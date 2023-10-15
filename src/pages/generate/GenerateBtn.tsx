@@ -15,7 +15,7 @@ function GenerateBtn({ clickHandler }: GenerateBtnProps) {
       const response = await fetch(apiUrl);
       if (response.ok) {
         try {
-          const { url } = await response.json();
+          const { url } = (await response.json()) as { url: string };
           clickHandler(url); // Assuming the response contains a 'url' property
         } catch (jsonError) {
           console.error("Error parsing response JSON:", jsonError);
@@ -36,7 +36,7 @@ function GenerateBtn({ clickHandler }: GenerateBtnProps) {
     <>
       <button
         className="rounded-md bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={handleClick}
+        onClick={(event) => void handleClick(event)}
       >
         Get Logo
       </button>
