@@ -17,6 +17,12 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  experimental: {
+    serverActions: true,
+  },
+  images: {
+    domains: ["https://logo--generator.s3.ap-northeast-2.amazonaws.com"],
+  },
 };
 
 export default config;
