@@ -32,12 +32,15 @@ function AuthShowcase() {
       <p className="text-center text-2xl text-white">
         {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
       </p>
-      <Link
-        href="/generate"
-        className="rounded-md bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-      >
-        Generate Logo
-      </Link>
+      {sessionData && (
+        <Link
+          href="/generate"
+          className="rounded-md bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+        >
+          Generate Logo
+        </Link>
+      )}
+
       <button
         className="rounded-md bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
         onClick={sessionData ? () => void signOut() : () => void signIn()}
