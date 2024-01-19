@@ -1,5 +1,4 @@
-
-import { History } from "./components/History";
+import { History } from "./_components/History";
 import MaxWidthWrapper from "../_components/MaxWidthWrapper";
 
 export default function HistoryPage() {

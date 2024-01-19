@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { api } from "~/trpc/react";
 import { Button, LoadingButton } from "../../app/_components/Button";
-import { Select } from "./components/Select";
-import { ChatBubble, LoadingBubble } from "./components/Chat";
+import { Select } from "./_components/Select";
+import { ChatBubble, LoadingBubble } from "./_components/Chat";
 
 type GenerateFormProps = {
   onStart: () => void;
