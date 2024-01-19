@@ -1,16 +1,25 @@
+"use client";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import Head from "next/head";
-import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { api } from "../../trpc/react";
 
 export default function Register() {
   const [password, setPassword] = useState("");
   const router = useRouter();
-  const email = router.query.email as string;
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
   console.log(email);
   const mutation = api.register.register.useMutation();
+
+  useEffect(() => {
+    if (!searchParams.has("email")) {
+      return;
+    }
+    setEmail(searchParams.get("email") ?? "");
+  }, [searchParams]);
 
   const sendRegister = async () => {
     const result = await mutation.mutateAsync({
@@ -23,7 +32,7 @@ export default function Register() {
         email: email,
         password: password,
       });
-      void router.push("/");
+      router.push("/");
     } else {
       // console.log("user already exists");
     }

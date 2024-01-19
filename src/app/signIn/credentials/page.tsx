@@ -1,28 +1,30 @@
-import { useRouter } from "next/router";
+"use client";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
-import { api } from "../../trpc/react";
+import { api } from "../../../trpc/react";
 
 export default function Credentials() {
   const [email, setEmail] = useState("");
   const isValidatedMutation = api.user.isValidated.useMutation();
   const router = useRouter();
+  const searchParams = useSearchParams();
   useEffect(() => {
-    if (!router.isReady) return;
-    const param = router.query.email as string;
-    if (!param) {
-      void router.push("/");
+    if (!searchParams.has("email")) {
+      router.push("/");
     } else {
-      void checkUserAsync(param);
-      setEmail(param);
+      const param = searchParams.get("email");
+      void checkUserAsync(param ?? "");
+      setEmail(param ?? "");
     }
-  }, [router.isReady]);
+  }, [router, searchParams]);
+
   console.log(email);
 
   const checkUserAsync = async (email: string) => {
     const result = await isValidatedMutation.mutateAsync({ email: email });
     if (!result) {
-      void router.push("/");
+      router.push("/");
     }
   };
 
@@ -36,9 +38,7 @@ export default function Credentials() {
       redirect: false,
     });
     console.log(result);
-    await router.push({
-      pathname: "/",
-    });
+    router.push("/");
   };
 
   const signInHandler = (event: React.MouseEvent) => {

@@ -3,7 +3,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "../../trpc/react";
+import { api } from "../../../trpc/react";
 
 export default function SignInForm() {
   const handleEmailSignInClick = (event: React.MouseEvent) => {
@@ -19,14 +19,14 @@ export default function SignInForm() {
     void router.push("/");
   }
 
+  const findMutation = api.user.isValidated.useMutation();
+  const verificationMutation = api.register.sendVerification.useMutation();
   async function emailSignIn(email: string) {
-    const findMutation = api.user.isValidated.useMutation();
-    const verificationMutation = api.register.sendVerification.useMutation();
     const result = await findMutation.mutateAsync({ email: email });
     if (result) {
       router.push(`/signIn/credentials?email=${email}`);
     } else {
-      verificationMutation.mutate({
+      await verificationMutation.mutateAsync({
         email: email,
       });
       router.push(`/signIn/email?email=${email}`);

@@ -1,12 +1,17 @@
-import { signIn, signOut, useSession } from "next-auth/react";
+"use client";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Email() {
-  const { data: sessionData } = useSession();
-
-  const router = useRouter();
-  const email = router.query.email;
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    if (searchParams.has("email")) {
+      const email = searchParams.get("email");
+      setEmail(email ?? "");
+    }
+  }, [searchParams]);
   return (
     <>
       <main className="flex min-h-screen flex-col items-center justify-center font-serif font-bold">
