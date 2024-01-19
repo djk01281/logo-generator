@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { api } from "../../trpc/server";
+import { api } from "../../trpc/react";
 
 export default function Credentials() {
   const [password, setPassword] = useState("");

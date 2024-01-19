@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
-import { api } from "../../trpc/server";
+import { api } from "../../trpc/react";
 
 export default function Credentials() {
   const [email, setEmail] = useState("");

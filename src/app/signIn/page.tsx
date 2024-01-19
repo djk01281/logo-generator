@@ -1,5 +1,5 @@
 "use client";
-import { api } from "../../trpc/server";
+import { api } from "../../trpc/react";
 import { useRouter } from "next/navigation";
 import SignInForm from "./SignInForm";
 import { signIn, signOut, useSession } from "next-auth/react";
