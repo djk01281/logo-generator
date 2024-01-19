@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { api } from "../../utils/.api";
+import { api } from "../../trpc/react";
 import { useRouter } from "next/router";
 export default function Activate() {
   const router = useRouter();

@@ -27,7 +27,7 @@ export const History = () => {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       },
     );
-  const observer = useRef();
+  const observer = useRef<IntersectionObserver | null>(null);
   const lastRef = useCallback(
     (node: HTMLImageElement) => {
       if (isFetchingNextPage) return;
