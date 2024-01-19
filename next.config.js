@@ -14,10 +14,6 @@ const config = {
    *
    * @see https://github.com/vercel/next.js/issues/41980
    */
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
-  },
 
   images: {
     domains: ["logo--generator.s3.ap-northeast-2.amazonaws.com"],
