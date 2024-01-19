@@ -52,7 +52,7 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
     formHistory: { role: string; content: string }[],
   ) => {
     console.log(formHistory);
-    const questionResult = await getPromptMutation.mutateAsync(formHistory)!;
+    const questionResult = await getPromptMutation.mutateAsync(formHistory);
     if (questionResult) {
       if (questionResult.type === "answer") {
         await handleSubmitAsync(questionResult.response);
