@@ -5,6 +5,23 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  transpilePackages: ["geist"],
+  reactStrictMode: true,
+
+  /**
+   * If you are using `appDir` then you must comment the below `i18n` config out.
+   *
+   * @see https://github.com/vercel/next.js/issues/41980
+   */
+  i18n: {
+    locales: ["en"],
+    defaultLocale: "en",
+  },
+
+  images: {
+    domains: ["logo--generator.s3.ap-northeast-2.amazonaws.com"],
+  },
+};
 
 export default config;

@@ -1,9 +1,19 @@
-import "../styles/globals.css";
+import "~/styles/globals.css";
+import { Montserrat } from "next/font/google";
 
 import { Inter } from "next/font/google";
-
+import { cookies } from "next/headers";
 import { TRPCReactProvider } from "../trpc/react";
+import { NextAuthProvider } from "./providers";
+import Navbar from "./_components/Navbar";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 
+const montserrat = Montserrat({
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+});
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -21,9 +31,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${montserrat.variable} ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className}`}
+    >
       <body className={`font-sans ${inter.variable}`}>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          <NextAuthProvider>
+            <Navbar />
+            <main>{children}</main>
+          </NextAuthProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );
