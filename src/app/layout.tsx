@@ -1,7 +1,11 @@
 import "~/styles/globals.css";
 import { Montserrat } from "next/font/google";
 
-import { Inter } from "next/font/google";
+import {
+  Inter,
+  Just_Another_Hand,
+  Bricolage_Grotesque,
+} from "next/font/google";
 import { cookies } from "next/headers";
 import { TRPCReactProvider } from "../trpc/react";
 import { NextAuthProvider } from "./providers";
@@ -17,6 +21,16 @@ const montserrat = Montserrat({
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage_grotesque",
+});
+
+const just = Just_Another_Hand({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-just_another_hand",
 });
 
 export const metadata = {
@@ -35,7 +49,9 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className}`}
     >
-      <body className={`font-sans ${inter.variable}`}>
+      <body
+        className={`font-sans ${inter.variable} ${bricolage.variable} ${just.variable}`}
+      >
         <TRPCReactProvider>
           <NextAuthProvider>
             <Navbar />

@@ -6,9 +6,9 @@ type buttonProps = {
 export const Button = (buttonProps: buttonProps) => {
   return (
     <button
-      className={`order-[1.5px] ml-auto rounded-md border-[1px] border-[#eaeaea] 
-              bg-[#171717] px-6
-           py-3 font-sans text-[14px] text-white no-underline transition hover:border-[#383838] hover:bg-[#383838]`}
+      className={`order-[1.5px] ml-auto select-none rounded-md border-[1px] 
+              border-[#eaeaea] bg-[#171717]
+           px-6 py-3 font-sans text-[14px] text-white no-underline transition hover:border-[#383838] hover:bg-[#383838]`}
       onClick={buttonProps.fn}
     >
       {buttonProps.text}
@@ -20,8 +20,8 @@ export const LoadingButton = () => {
   return (
     <button
       disabled={true}
-      className={`relative order-[1.5px] ml-auto  flex cursor-not-allowed items-center gap-2 rounded-md
-       border-[1px] border-[#eaeaea] bg-[#f2f2f2] px-3 py-3 font-sans text-[14px] text-[8f8f8f] no-underline transition`}
+      className={`relative order-[1.5px] ml-auto  flex cursor-not-allowed select-none items-center gap-2
+       rounded-md border-[1px] border-[#eaeaea] bg-[#f2f2f2] px-3 py-3 font-sans text-[14px] text-[8f8f8f] no-underline transition`}
     >
       <svg
         width="24"

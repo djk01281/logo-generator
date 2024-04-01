@@ -3,6 +3,14 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Just_Another_Hand } from "next/font/google";
+
+const just = Just_Another_Hand({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-just_another_hand",
+});
+
 export default function Navbar() {
   const [gradientColors, setGradientColors] = useState(getRandomColors());
   const [opened, setOpened] = useState(false);
@@ -70,8 +78,11 @@ export default function Navbar() {
   };
   console.log(session);
   return (
-    <div className="absoulte fixed top-0 z-10 flex w-full justify-between border-b-2 border-[#ebebeb] bg-white p-[24px] font-serif">
-      <Link className="flex items-center justify-center" href="/">
+    <div className="absoulte fixed top-0 z-10 flex w-full justify-between  border-[#ebebeb] bg-white p-[24px] font-serif">
+      <Link
+        className={` ${just.className} flex items-center justify-center rounded-xl bg-red-400 px-1.5 pt-1 text-center text-[15px] leading-snug text-white`}
+        href="/"
+      >
         LOGOAI
       </Link>
       {!sigendIn ? (

@@ -24,3 +24,4 @@ export const HistoryCard = forwardRef<HTMLImageElement, historyCardProps>(
   },
 );
 HistoryCard.displayName = "History";
+

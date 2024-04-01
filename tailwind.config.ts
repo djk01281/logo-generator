@@ -18,6 +18,7 @@ export default {
         serif: ["var(--font-montserrat)"],
         mono: ["var(--font-geist-mono)"],
         sans: ["var(--font-geist-sans)"],
+        bricolage: ["var(--font-bricolage_grotesque)"],
       },
     },
   },
