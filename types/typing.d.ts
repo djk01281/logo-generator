@@ -1,0 +1,55 @@
+type Draw = {
+  ctx: CanvasRenderingContext2D;
+  currentPoint: Point;
+  prevPoint: Point | null;
+};
+
+type Pan = {
+  ctx: CanvasRenderingContext2D;
+  currentPoint: Point;
+  prevPoint: Point | null;
+};
+
+type Move = {
+  ctx: CanvasRenderingContext2D;
+  currentPoint: Point;
+  prevPoint: Point | null;
+};
+
+type Select = {
+  ctx: CanvasRenderingContext2D;
+  currentPoint: Point;
+};
+
+type Zoom = {
+  ctx: CanvasRenderingContext2D;
+  scaleX: number;
+  scaleY: number;
+};
+
+type Hover = {
+  ctx: CanvasRenderingContext2D;
+  currentPoint: Point;
+};
+
+type Point = { x: number; y: number };
+
+type Path = {
+  d: AbsoluteSegment[];
+  fill: string;
+};
+
+type SVG = Path[];
+
+type AbsoluteSegment = {
+  key: string;
+  data: Point[];
+};
+
+const Tools = {
+  draw: "draw",
+  hand: "hand",
+  select: "select",
+};
+
+type Tool = keyof typeof Tools;

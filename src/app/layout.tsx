@@ -54,7 +54,6 @@ export default function RootLayout({
       >
         <TRPCReactProvider>
           <NextAuthProvider>
-            <Navbar />
             <main>{children}</main>
           </NextAuthProvider>
         </TRPCReactProvider>

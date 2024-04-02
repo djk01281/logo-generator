@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { api } from "../../trpc/react";
+import { api } from "../../../trpc/react";
 
 type convertedResultType = {
   svg: string;
@@ -10,14 +10,25 @@ type ResultProps = {
   isLoading: boolean;
   imgSrc: string;
   imageRef: React.RefObject<HTMLImageElement>;
+  onSVGComplete: (svg: string) => void;
 };
 
 //import isLoading
-export default function Result({ isLoading, imgSrc, imageRef }: ResultProps) {
+export default function Result({
+  isLoading,
+  imgSrc,
+  imageRef,
+  onSVGComplete,
+}: ResultProps) {
   const [svg, setSVG] = useState("");
 
   const [isConverted, SetIsConverted] = useState(false);
   const [isConverting, SetIsConverting] = useState(false);
+
+  isLoading = false;
+
+  imgSrc =
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/LEGO_logo.svg/512px-LEGO_logo.svg.png";
 
   useEffect(() => {
     if (imageRef.current) {
@@ -50,6 +61,8 @@ export default function Result({ isLoading, imgSrc, imageRef }: ResultProps) {
     console.log(`image src is: ${imgSrc}`);
     const svgResponse = await convert.mutateAsync({ url: imgSrc });
     setSVG(svgResponse ?? "");
+    onSVGComplete(svgResponse ?? "");
+
     SetIsConverted(true);
     SetIsConverting(false);
   };
@@ -94,7 +107,7 @@ export default function Result({ isLoading, imgSrc, imageRef }: ResultProps) {
     fillProgressBar();
   }, []);
   return (
-    <div id="imageContainer" className=" w-[492px] max-w-[80vw] p-[24px] ">
+    <div id="imageContainer" className=" w-full p-4 ">
       {/* <div>{svg && <div dangerouslySetInnerHTML={{ __html: svg }}></div>}</div> */}
       <div
         className={` mb-12 flex flex-col items-center justify-center gap-10 rounded-md p-3`}
@@ -116,23 +129,11 @@ export default function Result({ isLoading, imgSrc, imageRef }: ResultProps) {
           </>
         ) : (
           <div className="flex w-full flex-col">
-            <div className="mb-[24px] text-center text-[24px] font-semibold text-[#171717]">
+            <div className="mb-[12px] text-center text-sm font-semibold text-[#171717]">
               Building the logo ...
             </div>
             <div className="relative mb-8 pt-1">
-              <div className="mb-2 flex items-center justify-between">
-                <div>
-                  <span className="inline-block rounded-full bg-teal-200 px-2 py-1 text-xs font-semibold uppercase text-teal-600">
-                    In Progress
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="inline-block text-xs font-semibold text-teal-600">
-                    {`${progress.toFixed(2)}%`}
-                  </span>
-                </div>
-              </div>
-              <div className="flex h-2 overflow-hidden rounded-full">
+              <div className="flex h-3 overflow-hidden rounded-full">
                 <div
                   style={{ width: `${progress}%` }}
                   className="flex flex-col justify-center whitespace-nowrap bg-teal-500 text-center text-white"
@@ -140,8 +141,8 @@ export default function Result({ isLoading, imgSrc, imageRef }: ResultProps) {
               </div>
             </div>
 
-            <div className="rouned-md w-full px-4 pt-4 sm:px-12">
-              <div className="flex flex-col border-[#eaeaea] bg-[#fafafa] p-4 drop-shadow-xl motion-safe:animate-bounce ">
+            <div className="rouned-md w-full ">
+              <div className="flex flex-col border-[#eaeaea] bg-[#fafafa] p-4 drop-shadow-xl  ">
                 <div className=" text-[14px] font-semibold text-[#666666]  ">
                   💡 Tip
                 </div>

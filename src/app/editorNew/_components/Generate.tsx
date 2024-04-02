@@ -1,11 +1,6 @@
-"use client";
-import { GetSessionParams, useSession } from "next-auth/react";
-import Head from "next/head";
-import { getSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
-import Result from "../editorNew/_components/Result";
-import { redirect } from "next/navigation";
-import GenerateForm from "../editorNew/_components/GenerateForm";
+import Result from "./Result";
+import GenerateForm from "./GenerateForm";
 
 type GenerateProps = {
   onSVGComplete: (svg: string) => void;
@@ -33,15 +28,15 @@ export default function Generate({ onSVGComplete }: GenerateProps) {
   if (true) {
     return (
       <>
-        <main className=" flex h-full w-80 flex-col items-center ">
+        <main className=" flex min-h-[80vh] w-full flex-col items-center ">
           <div></div>
-          <div className="  flex w-full transform flex-col items-center justify-center gap-24 rounded-[12px]  bg-white shadow-md">
+          <div className="  mb-8 flex w-full transform flex-col items-center justify-center gap-24 rounded-[12px] border-[1px]  border-[#eaeaea] bg-white drop-shadow-2xl">
             {resultSrc !== "" || isLoading ? (
               <Result
-                onSVGComplete={onSVGComplete}
                 isLoading={isLoading}
                 imgSrc={resultSrc}
                 imageRef={imgRef}
+                onSVGComplete={onSVGComplete}
               ></Result>
             ) : (
               // (
@@ -63,18 +58,3 @@ export default function Generate({ onSVGComplete }: GenerateProps) {
     );
   }
 }
-
-// export async function getServerSideProps(context: GetSessionParams) {
-//   const session = await getSession(context);
-//   if (!session) {
-//     return {
-//       redirect: {
-//         destination: "/",
-//         permanent: false,
-//       },
-//     };
-//   }
-//   return {
-//     props: { session },
-//   };
-// }

@@ -7,7 +7,7 @@ type selectProps = {
 export const Select = (selectProps: selectProps) => {
   const { selectArray, selectFn, selectCurrent } = selectProps;
   return (
-    <div className="ml-auto flex flex-col gap-4 ">
+    <div className="ml-auto flex flex-col gap-0.5 ">
       {selectArray.map((option, index) => (
         <div
           key={index}
@@ -17,7 +17,7 @@ export const Select = (selectProps: selectProps) => {
           className={`animate-fade-down animate-duration-[750ms] animate-once animate-delay-${(
             500 +
             index * 25
-          ).toString()} z-40 flex gap-[12px] rounded p-[12px] animate-ease-in animate-ease-out hover:cursor-pointer ${
+          ).toString()} z-40 flex gap-[12px] rounded p-1.5 animate-ease-in animate-ease-out hover:cursor-pointer ${
             selectCurrent === option ? "bg-[#eaeaea]" : "hover:bg-[#fafafa]"
           } `}
         >
