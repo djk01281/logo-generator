@@ -19,6 +19,7 @@ type Move = {
 type Select = {
   ctx: CanvasRenderingContext2D;
   currentPoint: Point;
+  e: React.MouseEvent<HTMLCanvasElement>;
 };
 
 type Zoom = {
@@ -36,6 +37,7 @@ type Point = { x: number; y: number };
 
 type Path = {
   d: AbsoluteSegment[];
+  path2D: Path2D | null;
   fill: string;
 };
 

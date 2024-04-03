@@ -74,9 +74,9 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
   return (
     <div className="w-full p-4">
       {!started ? (
-        <div className="flex w-full flex-col items-center justify-center  gap-1 rounded-md bg-red-100 p-3">
+        <div className="flex w-full flex-col items-center justify-center  gap-1 rounded-md border-[1px] border-[#f87171] bg-red-100 p-3">
           <div className="font-[geist] font-bold text-rose-950">
-            Create Your Logos
+            <span>&#x1F389;</span> Create Your Logos
           </div>
           <div className="mb-2 font-[geist] text-sm font-normal text-[2d2e32]">
             Out of Ideas? Create logos in minutes.

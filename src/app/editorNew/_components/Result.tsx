@@ -25,11 +25,6 @@ export default function Result({
   const [isConverted, SetIsConverted] = useState(false);
   const [isConverting, SetIsConverting] = useState(false);
 
-  isLoading = false;
-
-  imgSrc =
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/LEGO_logo.svg/512px-LEGO_logo.svg.png";
-
   useEffect(() => {
     if (imageRef.current) {
       imageRef.current.scrollIntoView({ behavior: "smooth" });

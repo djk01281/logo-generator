@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 export const useSelect = (
   onMove: ({ ctx, currentPoint, prevPoint }: Move) => void,
   onHover: ({ ctx, currentPoint }: Hover) => void,
-  onSelect: ({ ctx, currentPoint }: Select) => void,
+  onSelect: ({ ctx, currentPoint, e }: Select) => void,
   canvasRef: React.RefObject<HTMLCanvasElement>,
   tool: Tool,
 ) => {
@@ -18,7 +18,7 @@ export const useSelect = (
     if (!ctx) return;
     const currentPoint = computePointInCanvas(e);
     if (!currentPoint) return;
-    onSelect({ ctx, currentPoint });
+    onSelect({ ctx, currentPoint, e });
   };
 
   const onSelectMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -56,5 +56,11 @@ export const useSelect = (
     prevPoint.current = null;
   };
 
-  return { onSelectMouseUp, onSelectMouseDown, onSelectMouseMove };
+  return {
+    onSelectMouseUp,
+    setMouseDown,
+    onSelectMouseDown,
+    onSelectMouseMove,
+    mouseDown,
+  };
 };

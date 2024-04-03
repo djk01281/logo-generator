@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-interface useHandProps {}
 export const useHand = (
   onPan: ({ ctx, currentPoint, prevPoint }: Pan) => void,
   onZoom: ({ ctx, scaleX, scaleY }: Zoom) => void,
   canvasRef: React.RefObject<HTMLCanvasElement>,
-  tool: Tool
+  tool: Tool,
 ) => {
   const [mouseDown, setMouseDown] = useState(false);
   const prevPoint = useRef<null | Point>(null);
@@ -14,7 +13,7 @@ export const useHand = (
     setMouseDown(true);
   };
 
-  const onWheelMove = (event: WheelEvent) => {
+  const handOnWheelMove = (event: React.WheelEvent<HTMLCanvasElement>) => {
     if (tool !== "hand") return;
     event.preventDefault();
     const canvas = canvasRef.current;
@@ -23,13 +22,14 @@ export const useHand = (
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const scale = event.deltaY < 0 ? 1.1 : 0.9;
+    const scale = event.deltaY < 0 ? 0.1 : -0.1;
     onZoom({ ctx, scaleX: scale, scaleY: scale });
   };
 
-  const mouseMoveHandler = (e: MouseEvent) => {
+  const handMouseMoveHandler = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!mouseDown) return;
     if (tool === "select") {
+      return;
     }
 
     if (tool === "hand") {
@@ -43,7 +43,7 @@ export const useHand = (
     }
   };
 
-  const computePointInCanvas = (e: MouseEvent) => {
+  const computePointInCanvas = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -54,25 +54,16 @@ export const useHand = (
     return { x, y };
   };
 
-  const mouseUpHandler = () => {
+  const handMouseUpHandler = () => {
     setMouseDown(false);
     prevPoint.current = null;
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.addEventListener("mousemove", mouseMoveHandler);
-      window.addEventListener("mouseup", mouseUpHandler);
-      canvas.addEventListener("wheel", onWheelMove);
-
-      return () => {
-        canvas.removeEventListener("mousemove", mouseMoveHandler);
-        window.removeEventListener("mouseup", mouseUpHandler);
-        canvas.removeEventListener("wheel", onWheelMove);
-      };
-    }
-  }, [onPan, onZoom]);
-
-  return { onMouseDown, mouseDown };
+  return {
+    onMouseDown,
+    mouseDown,
+    handMouseMoveHandler,
+    handMouseUpHandler,
+    handOnWheelMove,
+  };
 };

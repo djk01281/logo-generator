@@ -44,18 +44,10 @@ export default function Generate({ onSVGComplete }: GenerateProps) {
                 imageRef={imgRef}
               ></Result>
             ) : (
-              // (
-              //   <GenerateForm
-              //     onStart={startHandler}
-              //     onFinish={finishHandler}
-              //   ></GenerateForm>
-              // )
-              <Result
-                isLoading={isLoading}
-                imgSrc={resultSrc}
-                imageRef={imgRef}
-                onSVGComplete={onSVGComplete}
-              ></Result>
+              <GenerateForm
+                onStart={startHandler}
+                onFinish={finishHandler}
+              ></GenerateForm>
             )}
           </div>
         </main>
