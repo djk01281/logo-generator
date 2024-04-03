@@ -1135,11 +1135,13 @@ export default function Editor() {
           <div className="flex h-full w-[296px] flex-col items-center justify-center rounded-xl bg-white shadow-md">
             Layers
           </div>
-          {selectedPath !== null && (
-            <AnimatePresence>
+          <AnimatePresence>
+            {selectedPath !== null && (
               <motion.div
-                initial={{ x: 100 }}
+                initial={{ x: 200 }}
                 animate={{ x: 0 }}
+                exit={{ x: 200 }}
+                transition={{ duration: 0.2 }}
                 className={` flex  h-full  w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
@@ -1207,8 +1209,8 @@ export default function Editor() {
                   </div>
                 </div>
               </motion.div>
-            </AnimatePresence>
-          )}
+            )}
+          </AnimatePresence>
         </div>
         <div className="z-10 h-[80px] w-full flex-none p-[20px]">
           <div className="flex justify-center gap-2">
