@@ -270,7 +270,6 @@ export default function Editor() {
       if (!continueFlag) return;
     }
 
-    setSelectedPoint(null);
     let pathSelected = -1;
 
     //fix so that when a path is selected, you no longer search
