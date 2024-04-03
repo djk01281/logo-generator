@@ -1137,10 +1137,9 @@ export default function Editor() {
           <AnimatePresence>
             {selectedPath !== null && (
               <motion.div
-                initial={{ x: 200 }}
+                initial={{ x: 300 }}
                 animate={{ x: 0 }}
-                exit={{ x: 200 }}
-                transition={{ duration: 0.2 }}
+                exit={{ x: 300 }}
                 className={` flex  h-full  w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
