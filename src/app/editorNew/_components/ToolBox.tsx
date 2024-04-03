@@ -1,6 +1,6 @@
 "use client";
 
-import { useSVG } from "@/hooks/usSVG";
+import { useSVG } from "~/hooks/usSVG";
 import { FC } from "react";
 import { useState, useRef } from "react";
 import { parsePath, absolutize, normalize } from "path-data-parser";
@@ -12,9 +12,9 @@ interface ToolBoxProps {
 
 const ToolBox: FC<ToolBoxProps> = ({ handleToolChange, tool }) => {
   return (
-    <div className="h-full items-center shadow-md bg-white rounded-md p-1 gap-1 flex">
+    <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
       <div
-        className={`h-[30px] w-[30px] rounded-md flex justify-center items-center ${
+        className={`flex h-[30px] w-[30px] items-center justify-center rounded-md ${
           tool === "select" ? "bg-violet-400 text-white" : ""
         } hover:bg-violet-400 hover:text-white`}
         onClick={() => handleToolChange("select")}
@@ -38,10 +38,10 @@ const ToolBox: FC<ToolBoxProps> = ({ handleToolChange, tool }) => {
         </svg>
       </div>
 
-      <div className="w-[1px] h-[28px] bg-[#f3f5f7]"></div>
+      <div className="h-[28px] w-[1px] bg-[#f3f5f7]"></div>
 
       <div
-        className={`h-[30px] w-[30px] flex justify-center pt-1 items-center rounded-md  ${
+        className={`flex h-[30px] w-[30px] items-center justify-center rounded-md pt-1  ${
           tool === "hand" ? "bg-violet-400 text-white" : ""
         } hover:bg-violet-400 hover:text-white`}
         onClick={() => handleToolChange("hand")}
