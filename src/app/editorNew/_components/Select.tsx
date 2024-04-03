@@ -7,14 +7,14 @@ type selectProps = {
 export const Select = (selectProps: selectProps) => {
   const { selectArray, selectFn, selectCurrent } = selectProps;
   return (
-    <div className="ml-auto flex flex-col gap-0.5 ">
+    <div className=" flex  flex-col gap-0.5 ">
       {selectArray.map((option, index) => (
         <div
           key={index}
           onClick={() => {
             selectFn(option);
           }}
-          className={`animate-fade-down animate-duration-[750ms] animate-once animate-delay-${(
+          className={`w-full animate-fade-down justify-start animate-duration-[750ms] animate-once animate-delay-${(
             500 +
             index * 25
           ).toString()} z-40 flex gap-[12px] rounded p-1.5 animate-ease-in animate-ease-out hover:cursor-pointer ${

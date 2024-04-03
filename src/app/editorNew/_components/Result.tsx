@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { api } from "../../../trpc/react";
 
 type convertedResultType = {
@@ -101,6 +101,34 @@ export default function Result({
 
     fillProgressBar();
   }, []);
+
+  const [convertingProgress, setConvertingProgress] = useState(0);
+
+  useEffect(() => {
+    if (!isConverting) {
+      return;
+    }
+
+    const fillProgressBar = () => {
+      const interval = 100;
+      const increment = 1;
+      let currentProgress = 0;
+
+      const timer = setInterval(() => {
+        console.log(`convertingProgress: ${convertingProgress}`);
+        currentProgress += increment;
+        setConvertingProgress((prevProgress) => prevProgress + increment); // Use functional update
+        if (currentProgress >= 100) {
+          clearInterval(timer);
+        }
+      }, interval);
+
+      return () => clearInterval(timer);
+    };
+
+    fillProgressBar();
+  }, [isConverting]);
+
   return (
     <div id="imageContainer" className=" w-full p-4 ">
       {/* <div>{svg && <div dangerouslySetInnerHTML={{ __html: svg }}></div>}</div> */}
@@ -118,8 +146,8 @@ export default function Result({
             <div className="mb-8 text-[14px] font-normal text-[#666666]">
               You can either convert the result to{" "}
               <span className="font-semibold text-[#171717]">SVG format</span>,
-              or <span className="font-semibold text-[#171717]">edit</span> the
-              image from our editor.
+              or <span className="font-semibold text-[#171717]">download</span>{" "}
+              the image.
             </div>
           </>
         ) : (
@@ -137,7 +165,7 @@ export default function Result({
             </div>
 
             <div className="rouned-md w-full ">
-              <div className="flex flex-col border-[#eaeaea] bg-[#fafafa] p-4 drop-shadow-xl  ">
+              <div className="flex flex-col border-[#eaeaea] bg-[#fafafa] p-4 pb-1 drop-shadow-xl  ">
                 <div className=" text-[14px] font-semibold text-[#666666]  ">
                   💡 Tip
                 </div>
@@ -151,6 +179,18 @@ export default function Result({
       </div>
       {!isLoading && (
         <>
+          {/* {isConverting ? (
+            <>
+              <div className="relative mb-8 pt-1">
+                <div className="flex h-3 overflow-hidden rounded-full">
+                  <div
+                    style={{ width: `${convertingProgress}%` }}
+                    className="flex flex-col justify-center whitespace-nowrap bg-teal-500 text-center text-black"
+                  >{`isConverting : ${isConverting}, convertingProgress : ${convertingProgress}`}</div>
+                </div>
+              </div>
+            </>
+          ) : null} */}
           <div className="absolute bottom-0 left-0 flex w-full justify-between gap-4 rounded-md bg-[#fafafa] p-4">
             {/* <button className="flex w-1/2 place-content-between gap-2 rounded-md border-2 border-black bg-[#89de8d] px-4 py-3 font-bold no-underline shadow-xl transition hover:bg-emerald-200">
         <select></select>
@@ -164,18 +204,20 @@ export default function Result({
                 Download
               </button>
             ) : (
-              <button
-                className={`${
-                  isConverting ? "animate-bounce" : ""
-                } rounded-md border-black bg-[#171717] px-10 py-3 font-sans text-[14px] text-white  no-underline transition hover:border-[1px]  hover:border-[#383838] hover:bg-[#383838]`}
-                onClick={handleConvert}
-              >
-                Convert
-              </button>
+              <>
+                <button
+                  className={`${
+                    isConverting ? "animate-bounce" : ""
+                  } rounded-md border-black bg-[#171717] px-10 py-3 font-sans text-[14px] text-white  no-underline transition hover:border-[1px]  hover:border-[#383838] hover:bg-[#383838]`}
+                  onClick={handleConvert}
+                >
+                  Convert
+                </button>
+              </>
             )}
 
-            <button className="order-[1.5px] w-[131.53px] rounded-md border-[1px] border-[#eaeaea] bg-white px-10 py-3 font-sans text-[14px] text-black no-underline transition hover:cursor-not-allowed  hover:border-[1px] hover:border-[#383838]">
-              Edit
+            <button className="flex w-[131.53px] flex-col items-center justify-center rounded-md border-[1px] border-[#eaeaea] bg-white px-10 py-3 text-center font-sans text-[14px] text-black no-underline transition hover:cursor-not-allowed  hover:border-[1px] hover:border-[#383838]">
+              Download
             </button>
           </div>
         </>

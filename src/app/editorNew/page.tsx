@@ -12,6 +12,7 @@ import Generate from "./_components/Generate";
 import SVGPathCommander from "svg-path-commander";
 import { ChromePicker } from "react-color";
 import { HexColorPicker } from "react-colorful";
+import { motion, AnimatePresence } from "framer-motion";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -481,6 +482,7 @@ export default function Editor() {
       drawSVGPoints(ctx, svg);
     };
     reader.readAsText(file);
+    setSelectedDraw(null);
   };
 
   const onSVGComplete = (svgString: string) => {
@@ -787,6 +789,19 @@ export default function Editor() {
   const left = "left-[" + isRightClicked?.x + "px]";
 
   const [colorPicker, setColorPicker] = useState<boolean>(false);
+  const handleColorChange = (e: string) => {
+    setColor(e);
+    console.log(e);
+    if (!svg) return;
+    if (!selectedPath) return;
+    const svgSelectedPath = svg[selectedPath];
+    if (svgSelectedPath === undefined) return;
+    svgSelectedPath.fill = e;
+
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    drawSVG(ctx, svg);
+  };
 
   return (
     <div
@@ -806,33 +821,35 @@ export default function Editor() {
       <div className=" flex h-full w-full flex-col">
         {isRightClicked !== null ? (
           <div
-            className={`absolute z-20 flex w-36 flex-col gap-3 rounded-md bg-[#1e1e1e] p-4  text-xs font-light text-white shadow-md`}
+            className={`absolute z-20 flex w-32 flex-col gap-2 rounded-md bg-[#1e1e1e] p-2  text-xs font-light text-white shadow-md`}
             style={{
               position: "absolute",
               top: isRightClicked.y,
               left: isRightClicked.x,
             }}
           >
-            <div
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 setIsEditing(true);
                 setIsRightClicked(null);
               }}
+              className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
             >
               Edit
-            </div>
-            <div
+            </button>
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 onDeletePath();
                 setIsRightClicked(null);
               }}
+              className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
             >
               Delete
-            </div>
+            </button>
           </div>
         ) : null}
 
@@ -883,7 +900,11 @@ export default function Editor() {
               <>
                 {selectedDraw === "aiInput" ? (
                   <div className="absolute left-0 top-full z-10 flex -translate-x-1.5 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
-                    <Generate onSVGComplete={onSVGComplete}></Generate>
+                    <AnimatePresence>
+                      <motion.div initial={{ y: -20 }} animate={{ y: 0 }}>
+                        <Generate onSVGComplete={onSVGComplete}></Generate>
+                      </motion.div>
+                    </AnimatePresence>
                     <div
                       className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
                       onClick={(e) => {
@@ -936,15 +957,53 @@ export default function Editor() {
               </svg>
               <>
                 {selectedDraw === "fileInput" ? (
-                  <div className="absolute left-0 top-full z-10 flex h-24 w-60 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
-                    <input
-                      type="file"
-                      accept=".svg"
-                      onChange={(e) => handleFileChange(e)}
-                      className=""
-                      ref={fileInputRef}
-                    />
-                  </div>
+                  <AnimatePresence>
+                    <motion.div
+                      initial={{ y: 4 }}
+                      animate={{ y: 24 }}
+                      className="absolute left-0 top-full z-10 flex w-60 translate-y-6 items-center justify-center rounded-lg bg-white p-4 shadow-md"
+                    >
+                      <input
+                        type="file"
+                        accept=".svg"
+                        onChange={(e) => handleFileChange(e)}
+                        className="absolute h-full w-60 appearance-none opacity-0"
+                        ref={fileInputRef}
+                      />
+                      <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-[geist] text-[14px]">
+                        <div className="mb-1 flex w-full items-center justify-center">
+                          <svg
+                            version="1.0"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 48 48"
+                            enable-background="new 0 0 48 48"
+                            width={36}
+                            height={36}
+                          >
+                            <path
+                              fill="#4053f7"
+                              d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"
+                            />
+                            <path
+                              fill="#4053f7"
+                              d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="mb-2 flex w-full items-center justify-center font-medium">
+                          Drag and Drop Files
+                        </div>
+                        <div className="mb-2.5 flex w-full items-center justify-center text-xs font-medium text-slate-500">
+                          OR
+                        </div>
+                        <div className="flex w-full items-center justify-center">
+                          <button className="rounded-md bg-[#4053f7] p-2 text-white">
+                            Browse Files
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 ) : null}
               </>
             </div>
@@ -1025,8 +1084,47 @@ export default function Editor() {
           </div>
           <div className="z-10 flex  h-[40px] items-center gap-4 rounded-md">
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div className="h-[30px] w-[30px] rounded-md bg-slate-200"></div>
-              <div className="h-[30px] w-[30px] rounded-md bg-slate-200"></div>
+              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g transform="matrix(0.96403766,0,0,0.96419055,0.02351096,-0.45900725)">
+                    <path
+                      className="strokeDefault"
+                      d="M 9.80036,18.0706 H 8.19992 c -0.53907,0 -0.99777,-0.4051 -1.06139,-0.9442 L 6.96777,15.7871 C 6.62626,15.6766 6.29813,15.5393 5.98675,15.382 l -1.06808,0.8303 c -0.43192,0.3349 -1.0413,0.298 -1.4163,-0.0904 l -1.125,-1.125 C 1.99233,14.6253 1.9555,14.0159 2.29032,13.584 L 3.11733,12.5126 C 2.95661,12.2012 2.81934,11.873 2.71219,11.5315 L 1.36956,11.3608 C 0.833845,11.2972 0.428711,10.8384 0.428711,10.2994 V 8.69894 c 0,-0.53906 0.405134,-0.99777 0.944199,-1.06138 L 2.71219,7.4668 C 2.82268,7.12528 2.95996,6.79715 3.11733,6.48577 L 2.29032,5.41769 C 1.9555,4.98577 1.99233,4.37639 2.38072,3.99805 l 1.125,-1.125 C 3.87737,2.488 4.48675,2.45117 4.91867,2.78599 L 5.98675,3.61635 C 6.29813,3.45564 6.62626,3.32171 6.96777,3.21122 L 7.13853,1.86858 C 7.20215,1.33287 7.66085,0.927734 8.19992,0.927734 h 1.60044 c 0.53904,0 0.99774,0.405136 1.06134,0.944196 l 0.1708,1.33929 c 0.3415,0.11049 0.6696,0.24776 0.981,0.40513 L 13.0816,2.78599 C 13.5135,2.45117 14.1229,2.488 14.4979,2.8764 l 1.125,1.12499 c 0.3851,0.37166 0.4219,0.98103 0.0871,1.41295 l -0.827,1.07143 c 0.1607,0.31138 0.2979,0.63951 0.4051,0.98103 l 1.3426,0.17076 c 0.5357,0.06361 0.9409,0.52232 0.9409,1.06138 v 1.60046 c 0,0.539 -0.4052,0.9978 -0.9442,1.0614 l -1.3393,0.1707 c -0.1105,0.3415 -0.2478,0.6697 -0.4051,0.9811 l 0.8303,1.068 c 0.3348,0.432 0.298,1.0413 -0.0904,1.4163 l -1.125,1.125 c -0.3716,0.3851 -0.981,0.4219 -1.4129,0.0871 l -1.0715,-0.827 c -0.3114,0.1607 -0.6395,0.298 -0.981,0.4051 l -0.1708,1.3426 c -0.0636,0.5358 -0.5223,0.9409 -1.06134,0.9409 z M 5.94992,14.5985 c 0.06026,0 0.12053,0.0134 0.1741,0.0435 0.39509,0.221 0.82032,0.3985 1.26563,0.5257 0.13727,0.0402 0.23772,0.1574 0.25446,0.298 l 0.2009,1.5703 c 0.02008,0.1808 0.17745,0.3181 0.35156,0.3181 h 1.60044 c 0.17746,0 0.33149,-0.1373 0.35159,-0.3148 l 0.2009,-1.5736 c 0.0167,-0.1406 0.1172,-0.2578 0.2544,-0.298 0.4487,-0.1272 0.8739,-0.3047 1.2657,-0.5257 0.1238,-0.0703 0.2812,-0.0569 0.3917,0.0302 l 1.2489,0.9709 c 0.144,0.1105 0.3449,0.1038 0.4687,-0.0234 l 1.1317,-1.1317 c 0.1306,-0.1272 0.1407,-0.3281 0.0268,-0.4721 l -0.971,-1.2489 c -0.087,-0.1138 -0.1004,-0.2678 -0.0301,-0.3917 0.221,-0.3951 0.3984,-0.8203 0.5257,-1.2656 0.0401,-0.1373 0.1573,-0.2378 0.298,-0.2545 l 1.5703,-0.2009 c 0.1808,-0.0234 0.3181,-0.1775 0.3181,-0.3549 V 8.69894 c 0,-0.17746 -0.1373,-0.33147 -0.3148,-0.35156 L 14.96,8.14648 C 14.8193,8.12974 14.7021,8.0293 14.662,7.89202 14.5347,7.44336 14.3573,7.01814 14.1363,6.62639 14.066,6.50251 14.0794,6.34514 14.1664,6.23465 l 0.971,-1.24888 C 15.2479,4.8418 15.2412,4.6409 15.114,4.51702 L 13.9823,3.38532 C 13.8584,3.25474 13.6542,3.2447 13.5102,3.35854 L 12.2613,4.32952 C 12.1475,4.41657 11.9934,4.42997 11.8662,4.35965 11.4745,4.13867 11.0492,3.96456 10.6006,3.83398 10.4633,3.79381 10.3629,3.67662 10.3461,3.53599 L 10.1452,1.96568 C 10.1218,1.78488 9.96777,1.6476 9.79032,1.6476 H 8.18987 c -0.17745,0 -0.33147,0.13728 -0.35156,0.31473 L 7.63742,3.53599 C 7.62068,3.67662 7.52023,3.79381 7.38295,3.83398 6.93429,3.96122 6.50907,4.13867 6.11733,4.35965 5.99344,4.42997 5.83608,4.41657 5.72224,4.32952 L 4.47335,3.35854 C 4.32938,3.24805 4.12849,3.25474 4.0046,3.38198 L 2.88295,4.51032 C 2.75237,4.63756 2.74233,4.83845 2.85617,4.98242 L 3.82715,6.23131 C 3.9142,6.34514 3.92759,6.49916 3.85728,6.62305 3.6363,7.01814 3.45884,7.44336 3.33161,7.88867 3.29143,8.02595 3.17425,8.12639 3.03362,8.14314 L 1.46331,8.34403 C 1.28251,8.36412 1.14523,8.52148 1.14523,8.69559 V 10.296 c 0,0.1775 0.13728,0.3315 0.31473,0.3516 l 1.57366,0.2009 c 0.14063,0.0167 0.25781,0.1172 0.29799,0.2545 0.12723,0.4486 0.30469,0.8738 0.52567,1.2656 0.07031,0.1239 0.05692,0.2812 -0.03013,0.3917 l -0.97098,1.2489 c -0.11049,0.144 -0.1038,0.3449 0.02343,0.4688 l 1.1317,1.1317 c 0.12388,0.1305 0.32478,0.1406 0.4721,0.0267 l 1.24888,-0.9709 c 0.06362,-0.0402 0.14063,-0.067 0.21764,-0.067 z"
+                      stroke-width="0.8"
+                      stroke="#222429"
+                    ></path>
+                    <path
+                      className="strokeDefault strokeActive"
+                      d="m 9.00014,13.0717 c -1.96875,0 -3.57254,-1.6038 -3.57254,-3.57254 0,-1.96875 1.60379,-3.57255 3.57254,-3.57255 1.96876,0 3.57256,1.6038 3.57256,3.57255 0,1.96874 -1.6038,3.57254 -3.57256,3.57254 z m 0,-6.42857 c -1.57701,0 -2.85603,1.28237 -2.85603,2.85603 0,1.57364 1.28237,2.85604 2.85603,2.85604 1.57366,0 2.85606,-1.2824 2.85606,-2.85604 0,-1.57366 -1.279,-2.85603 -2.85606,-2.85603 z"
+                      stroke-width="0.8"
+                      stroke="#222429"
+                    ></path>
+                  </g>
+                </svg>
+              </div>
+              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200 ">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.8"
+                  stroke="#222429"
+                  width={20}
+                  height={20}
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
+                </svg>
+              </div>
             </div>
             <div className="z-10 flex h-full w-[40px] items-center justify-center rounded-md bg-pink-300">
               D
@@ -1037,88 +1135,80 @@ export default function Editor() {
           <div className="flex h-full w-[296px] flex-col items-center justify-center rounded-xl bg-white shadow-md">
             Layers
           </div>
-
-          <div
-            className={`visible flex  w-[296px] flex-col gap-4 bg-white p-4 font-[Inter] text-[#1a1a1a] shadow-md ${
-              selectedPath === null ? "invisible" : ""
-            } h-full rounded-xl`}
-          >
-            <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
-              Properties
-            </div>
-            <div className="flex flex-col gap-4 border-b-[1px] border-[#e6e6e6] p-1 pb-4 text-xs">
-              <div className="font-bold">Fill</div>
-              <div className="flex w-full flex-col">
-                <div className="flex h-[24px] w-full flex-row items-center gap-2">
-                  <div
-                    className={`h-[16px] w-[16px]`}
-                    style={{
-                      backgroundColor:
-                        svg && selectedPath !== null
-                          ? svg[selectedPath]?.fill
-                            ? svg[selectedPath]?.fill
-                            : "#000000"
-                          : ("#000000" as string),
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setColorPicker(true);
-                    }}
-                  ></div>
-                  <div className="leading-1 relative flex flex-row items-center justify-center text-center">
-                    <input
-                      value={
-                        svg && selectedPath !== null
-                          ? svg[selectedPath]?.fill
-                            ? svg[selectedPath]?.fill
-                            : "#000000"
-                          : "#000000"
-                      }
-                      className="flex h-full w-[64px] flex-row justify-center rounded-md border-[1px] border-[#e6e6e6] p-1 text-center text-xs"
-                    ></input>
-                    {colorPicker && (
+          {selectedPath !== null && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ x: 100 }}
+                animate={{ x: 0 }}
+                className={` flex  h-full  w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
+              >
+                <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
+                  Properties
+                </div>
+                <div className="flex flex-col gap-4 border-b-[1px] border-[#e6e6e6] p-1 pb-4 text-xs">
+                  <div className="font-bold">Fill</div>
+                  <div className="flex w-full flex-col">
+                    <div className="flex h-[24px] w-full flex-row items-center gap-2">
                       <div
-                        className="absolute left-0 top-0"
-                        ref={colorPickerRef}
+                        className={`h-[16px] w-[16px]`}
+                        style={{
+                          backgroundColor:
+                            svg && selectedPath !== null
+                              ? svg[selectedPath]?.fill
+                                ? svg[selectedPath]?.fill
+                                : "#000000"
+                              : ("#000000" as string),
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setColorPicker(true);
                         }}
-                      >
-                        <HexColorPicker
-                          color={color}
-                          onChange={(e) => {
-                            setColor(e);
-                            if (!svg) return;
-                            if (!selectedPath) return;
-                            const svgSelectedPath = svg[selectedPath];
-                            if (svgSelectedPath === undefined) return;
-                            svgSelectedPath.fill = e;
-
-                            const ctx = canvasRef.current?.getContext("2d");
-                            if (!ctx) return;
-                            drawSVG(ctx, svg);
-                          }}
-                        />
+                      ></div>
+                      <div className="leading-1 relative flex flex-row items-center justify-center text-center">
+                        <input
+                          value={
+                            svg && selectedPath !== null
+                              ? svg[selectedPath]?.fill
+                                ? svg[selectedPath]?.fill
+                                : "#000000"
+                              : "#000000"
+                          }
+                          className="flex h-full w-[64px] flex-row justify-center rounded-md border-[1px] border-[#e6e6e6] p-1 text-center text-xs"
+                        ></input>
+                        {colorPicker && (
+                          <div
+                            className="absolute left-0 top-0"
+                            ref={colorPickerRef}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <HexColorPicker
+                              color={color}
+                              onChange={handleColorChange}
+                            />
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4 border-b-[1px] border-[#e6e6e6] p-1 pb-4 text-xs">
-              <div className="font-bold">Dimensions</div>
-              <div className="flex w-full flex-col gap-4">
-                <div className="flex w-full flex-row">
-                  <div className="w-1/2">W</div>
-                  <div className="w-1/2">X</div>
+                <div className="flex flex-col gap-4 border-b-[1px] border-[#e6e6e6] p-1 pb-4 text-xs">
+                  <div className="font-bold">Dimensions</div>
+                  <div className="flex w-full flex-col gap-4">
+                    <div className="flex w-full flex-row">
+                      <div className="w-1/2">W</div>
+                      <div className="w-1/2">X</div>
+                    </div>
+                    <div className="flex w-full flex-row">
+                      <div className="w-1/2">X</div>
+                      <div className="w-1/2">Y</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex w-full flex-row">
-                  <div className="w-1/2">X</div>
-                  <div className="w-1/2">Y</div>
-                </div>
-              </div>
-            </div>
-          </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
         <div className="z-10 h-[80px] w-full flex-none p-[20px]">
           <div className="flex justify-center gap-2">
@@ -1129,61 +1219,53 @@ export default function Editor() {
               tool={tool}
             />
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div className="h-[30px] w-[30px] rounded-md bg-slate-200 hover:bg-violet-300 hover:text-white">
+              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200  hover:text-white">
                 <svg
-                  height="32"
-                  viewBox="0 0 32 32"
-                  width="32"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="scale-x-[-1] transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.8"
+                  stroke="
+                #222429"
+                  className=""
+                  height={18}
+                  width={18}
                 >
-                  <g
-                    fill="none"
-                    fill-rule="evenodd"
-                    transform="translate(10 9)"
-                  >
-                    <path
-                      d="m11 .0781-10.25.078 3.494 3.12c-.289.312-.527.571-.572.63-.156.203-.781 1.125-.969 1.516-.187.39-.562 1.39-.672 2.031-.1.589-.094 1.656-.078 2.109.015.423.16 1.258.297 1.641.219.609.344.938.625 1.375.316.492.593.767 1.031 1.188.391.375 2.188 1.234 2.188 1.234-.282-.359-.813-1.391-.938-1.75-.066-.19-.239-1.111-.281-1.531-.047-.469-.078-1.125-.063-1.594.014-.409.102-.809.204-1.172.109-.391.428-.907.687-1.266.203-.281.448-.572.797-.906.254-.244.551-.503.854-.727l3.615 3.227z"
-                      fill="#fff"
-                    />
-                    <path
-                      d="m9.9648 7.2402-.004-6.184-6.161.004 1.798 1.802c-.138.146-.326.345-.437.484-.277.347-.443.537-.61.732-.118.138-.262.317-.377.474-.159.217-.28.43-.361.575-.111.196-.226.46-.367.75-.196.404-.262.746-.319.982-.039.16-.13.571-.166.953-.028.29-.008.624-.008.759 0 .236-.024.52.027.98.047.421.296 1.351.482 1.722.156.313.462.93.462.93s-.17-1.518-.116-2.285c.032-.438.235-1.183.493-1.728.045-.093.053-.21.186-.422.103-.162.24-.386.355-.568.214-.337.654-.875.759-1.015.169-.225.66-.672.938-.917.142-.125.493-.419.793-.668z"
-                      fill="#000"
-                    />
-                  </g>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                  />
                 </svg>
               </div>
+              <div className="h-[28px] w-[1px] bg-[#f3f5f7]"></div>
               <div
-                className="h-[30px] w-[30px] rounded-md bg-slate-200 hover:bg-violet-300 hover:text-white"
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-slate-200 bg-white hover:bg-slate-200"
                 onClick={() => {
                   setSelectedDraw("file");
                 }}
               >
                 <svg
-                  height="32"
-                  viewBox="0 0 32 32"
-                  width="32"
                   xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.8"
+                  stroke="
+                #222429"
+                  className=""
+                  height={18}
+                  width={18}
                 >
-                  <g
-                    fill="none"
-                    fill-rule="evenodd"
-                    transform="translate(10 9)"
-                  >
-                    <path
-                      d="m11 .0781-10.25.078 3.494 3.12c-.289.312-.527.571-.572.63-.156.203-.781 1.125-.969 1.516-.187.39-.562 1.39-.672 2.031-.1.589-.094 1.656-.078 2.109.015.423.16 1.258.297 1.641.219.609.344.938.625 1.375.316.492.593.767 1.031 1.188.391.375 2.188 1.234 2.188 1.234-.282-.359-.813-1.391-.938-1.75-.066-.19-.239-1.111-.281-1.531-.047-.469-.078-1.125-.063-1.594.014-.409.102-.809.204-1.172.109-.391.428-.907.687-1.266.203-.281.448-.572.797-.906.254-.244.551-.503.854-.727l3.615 3.227z"
-                      fill="#fff"
-                    />
-                    <path
-                      d="m9.9648 7.2402-.004-6.184-6.161.004 1.798 1.802c-.138.146-.326.345-.437.484-.277.347-.443.537-.61.732-.118.138-.262.317-.377.474-.159.217-.28.43-.361.575-.111.196-.226.46-.367.75-.196.404-.262.746-.319.982-.039.16-.13.571-.166.953-.028.29-.008.624-.008.759 0 .236-.024.52.027.98.047.421.296 1.351.482 1.722.156.313.462.93.462.93s-.17-1.518-.116-2.285c.032-.438.235-1.183.493-1.728.045-.093.053-.21.186-.422.103-.162.24-.386.355-.568.214-.337.654-.875.759-1.015.169-.225.66-.672.938-.917.142-.125.493-.419.793-.668z"
-                      fill="#000"
-                    />
-                  </g>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+                  />
                 </svg>
               </div>
             </div>
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div className="flex h-[30px] w-[60px] items-center justify-center rounded-md bg-slate-200 font-[geist] text-xs hover:bg-violet-300 hover:text-white">
+              <div className="flex h-[30px] w-[60px] items-center justify-center rounded-md bg-slate-200 bg-white font-[geist] text-xs hover:bg-slate-200">
                 {Math.round(scale.x * 100)}%
               </div>
             </div>
