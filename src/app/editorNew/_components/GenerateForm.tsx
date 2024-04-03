@@ -96,16 +96,31 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
               {!getPromptMutation.isLoading ? (
                 <div className="flex flex-col gap-8">
                   <ChatBubble text={question} />
-                  <div className="mb-4">
+                  <div className="flex flex-col gap-1">
                     {select.length === 0 ? (
-                      <textarea
-                        onChange={(event) =>
-                          handleInputChange(event.target.value)
-                        }
-                        placeholder="Your Answer"
-                        value={input}
-                        className="w-full animate-fade-down resize-none rounded-[6px] border-[1px] border-[#eaeaea] p-[12px] text-[14px] font-normal outline-none ring-black animate-delay-500 animate-duration-[750ms] animate-once animate-ease-in animate-ease-out focus:border-black focus:ring-0 focus:ring-offset-0"
-                      ></textarea>
+                      <>
+                        {" "}
+                        <div className="flex h-3 overflow-hidden rounded-full">
+                          <div
+                            style={{
+                              width: `${((input.length / 30) * 100).toFixed()}%`,
+                            }}
+                            className="flex flex-col justify-center whitespace-nowrap bg-teal-500 text-center text-white"
+                          ></div>
+                        </div>
+                        <div className="relative">
+                          <textarea
+                            onChange={(event) =>
+                              handleInputChange(event.target.value)
+                            }
+                            placeholder="Your Answer"
+                            maxLength={30}
+                            value={input}
+                            className="relative w-full animate-fade-down resize-none rounded-[6px] border-[1px] border-[#eaeaea] p-[12px] text-[14px] font-normal outline-none ring-black animate-delay-500 animate-duration-[750ms] animate-once animate-ease-in animate-ease-out focus:border-black focus:ring-0 focus:ring-offset-0"
+                          ></textarea>
+                          <div className="absolute bottom-1.5 right-1.5 text-slate-500">{`${input.length}/30`}</div>
+                        </div>
+                      </>
                     ) : (
                       <Select
                         selectArray={select}
