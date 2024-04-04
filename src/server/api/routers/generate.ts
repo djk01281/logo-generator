@@ -85,7 +85,7 @@ export const generateRouter = createTRPCRouter({
           options: string?[] //this is optional. if the type is select, this field must be present. It's the options you're giving the user as the answer. It should have 5 Items at max.
           }
 
-          The prompt given to the dall-e-3 should always generate a single logo that is clean, simple, 'illustration-like',  'vector-like', 'svg-icon-like', 'solid-colors'. `,
+          The prompt given to the dall-e-3 should always generate a single logo that is clean, 'simple, flat,  vector-like, svg-icon-like, solid-colors with bold lines'. `,
         };
 
         const openai = new OpenAI({
