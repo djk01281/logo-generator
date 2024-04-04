@@ -249,6 +249,7 @@ export default function Editor() {
 
   function onSelect({ ctx, currentPoint, e }: Select) {
     if (!svg) return;
+    console.log(`isEditing: ${isEditing}`);
 
     if (isEditing) {
       let continueFlag = true;
@@ -296,6 +297,7 @@ export default function Editor() {
 
     console.log(pathSelected);
     setIsEditing(false);
+
     clear();
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
@@ -717,7 +719,7 @@ export default function Editor() {
       return;
     }
 
-    if (selectedPoint !== null) {
+    if (isEditing && selectedPoint !== null) {
       const dx = currentPoint.x - prevPoint.x;
       const dy = currentPoint.y - prevPoint.y;
       onPointMove(ctx, dx, dy);
