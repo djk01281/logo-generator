@@ -13,6 +13,11 @@ import SVGPathCommander from "svg-path-commander";
 import { ChromePicker } from "react-color";
 import { HexColorPicker } from "react-colorful";
 import { motion, AnimatePresence } from "framer-motion";
+import { set } from "zod";
+import { transform } from "next/dist/build/swc";
+
+import { Segment } from "path-data-parser/lib/parser";
+import { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } from "@aws-sdk/client-s3";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -199,10 +204,20 @@ export default function Editor() {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isRightClicked, setIsRightClicked] = useState<Point | null>(null);
   const [color, setColor] = useState<string>("#000000");
+  const [boundingPoints2D, setBoundingPoint2D] = useState<Path2D[] | null>(
+    null,
+  );
+  const [selectedBoundingBoxPoint, setSelectedBoundingBoxPoint] = useState<
+    string | null
+  >(null);
+
+  const [rotatePoint2D, setRotatePoint2D] = useState<Path2D | null>(null);
+  const [selectedRotatePoint, setSelectedRotatePoint] =
+    useState<boolean>(false);
 
   // console.log(scale);
 
-  const svgPathToStrig = (path: AbsoluteSegment[]) => {
+  const svgPathToString = (path: AbsoluteSegment[]) => {
     let pathString = "";
     path.forEach((segment) => {
       pathString += segment.key;
@@ -215,8 +230,8 @@ export default function Editor() {
 
   function onPan({ ctx, currentPoint, prevPoint }: Pan) {
     if (!prevPoint) return;
-    const dx = currentPoint.x - prevPoint.x;
-    const dy = currentPoint.y - prevPoint.y;
+    const dx = (currentPoint.x - prevPoint.x) * (1 / scale.x);
+    const dy = (currentPoint.y - prevPoint.y) * (1 / scale.y);
     setPanOffset({ x: panOffset.x + dx, y: panOffset.y + dy });
 
     clear();
@@ -225,6 +240,7 @@ export default function Editor() {
     if (!svg) return;
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
+    if (selectedPath !== null) drawBoundingBox(ctx, selectedPath);
   }
 
   function onZoom({ ctx, scaleX, scaleY }: Zoom) {
@@ -235,16 +251,20 @@ export default function Editor() {
     const rect = canvas.getBoundingClientRect();
     const xOffSet = rect.width / 2;
     const yOffSet = rect.height / 2;
-    setPanOffset({ x: panOffset.x * scaleX, y: panOffset.y * scaleY });
+    // setPanOffset({
+    //   x: panOffset.x * (1 / (scale.x * (1 + scaleX))),
+    //   y: panOffset.y * (1 / (scale.y * (1 + scaleY))),
+    // });
     setScale({ x: scale.x * (1 + scaleX), y: scale.x * (1 + scaleX) });
-    ctx.translate(xOffSet, yOffSet);
+    // ctx.translate(xOffSet, yOffSet);
     ctx.scale(1 + scaleX, 1 + scaleY);
-    ctx.translate(-xOffSet, -yOffSet);
+    // ctx.translate(-xOffSet, -yOffSet);
 
     clear();
     if (!svg) return;
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
+    if (selectedPath !== null) drawBoundingBox(ctx, selectedPath);
   }
 
   function onSelect({ ctx, currentPoint, e }: Select) {
@@ -271,7 +291,50 @@ export default function Editor() {
       if (!continueFlag) return;
     }
 
+    //check if bounding box's point is selected
+    if (selectedPath !== null) {
+      let boundingPointSelected = false;
+      if (boundingPoints2D !== null) {
+        boundingPoints2D.some((boundingPoint2D, i) => {
+          if (
+            ctx.isPointInPath(boundingPoint2D, currentPoint.x, currentPoint.y)
+          ) {
+            setSelectedBoundingBoxPoint(
+              i === 0
+                ? "leftUpper"
+                : i === 1
+                  ? "rightUpper"
+                  : i === 2
+                    ? "leftLower"
+                    : i === 3
+                      ? "rightLower"
+                      : null,
+            );
+            boundingPointSelected = true;
+            console.log("Bounding Point Selected");
+            console.log(selectedBoundingBoxPoint);
+            return true;
+          } else {
+            return false;
+          }
+        });
+      }
+      if (boundingPointSelected) return;
+    }
+
+    setSelectedBoundingBoxPoint(null);
+
     let pathSelected = -1;
+    setSelectedRotatePoint(false);
+    if (selectedPath !== null) {
+      if (rotatePoint2D !== null) {
+        if (ctx.isPointInPath(rotatePoint2D, currentPoint.x, currentPoint.y)) {
+          setSelectedRotatePoint(true);
+          console.log("Rotate Point Selected");
+          return;
+        }
+      }
+    }
 
     //fix so that when a path is selected, you no longer search
 
@@ -279,6 +342,7 @@ export default function Editor() {
       if (path2D === null) return false;
       if (ctx.isPointInPath(path2D, currentPoint.x, currentPoint.y)) {
         setSelectedPath((prev) => i);
+
         pathSelected = i;
         return true;
       } else {
@@ -288,6 +352,7 @@ export default function Editor() {
 
     if (pathSelected === -1) {
       setSelectedPath(null);
+      setSelectedPoint(null);
     } else {
       const selectedSvg = svg[pathSelected];
       if (selectedSvg?.path2D) {
@@ -323,21 +388,348 @@ export default function Editor() {
 
     if (!svg) return;
     if (selectedPath === null) return;
-    const selectedPathString = svgPathToStrig(svg[pathSelected]!.d);
-    // const selectedPathBoxString = new SVGPathCommander(
-    //   selectedPathString,
-    // ).getBBox();
-    // ctx.beginPath();
-    // ctx.rect(
-    //   selectedPathBoxString.x,
-    //   selectedPathBoxString.y,
-    //   selectedPathBoxString.width,
-    //   selectedPathBoxString.height,
-    // );
-    // ctx.lineWidth = 2 * (1 / scale.x);
-    // ctx.strokeStyle = "#3eadfd";
-    // ctx.stroke();
-    // ctx.closePath();
+    // const selectedPathString = svgPathToString(svg[pathSelected]!.d);
+    // // const selectedPathBoxString = new SVGPathCommander(
+    // //   selectedPathString,
+    // // ).getBBox();
+
+    ctx.beginPath();
+    ctx.rect(
+      svg[pathSelected]!.xMin + svg[pathSelected]!.offset.x,
+      svg[pathSelected]!.yMin + svg[pathSelected]!.offset.y,
+      svg[pathSelected]!.xMax - svg[pathSelected]!.xMin,
+      svg[pathSelected]!.yMax - svg[pathSelected]!.yMin,
+    );
+    ctx.lineWidth = 2 * (1 / scale.x);
+    ctx.strokeStyle = "#3eadfd";
+    ctx.stroke();
+    ctx.closePath();
+
+    const newPoint2Ds: Path2D[] = [];
+    const leftUpperPoint2D = new Path2D();
+    const rightUpperPoint2D = new Path2D();
+    const leftLowerPoint2D = new Path2D();
+    const rightLowerPoint2D = new Path2D();
+    const rotatePoint2D = new Path2D();
+
+    newPoint2Ds.push(leftUpperPoint2D);
+    newPoint2Ds.push(rightUpperPoint2D);
+    newPoint2Ds.push(leftLowerPoint2D);
+    newPoint2Ds.push(rightLowerPoint2D);
+
+    setBoundingPoint2D(newPoint2Ds);
+    setRotatePoint2D(rotatePoint2D);
+
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "#3eadfd";
+    ctx.lineWidth = 2 * (1 / scale.x);
+    leftUpperPoint2D.arc(
+      svg[pathSelected]!.xMin + svg[pathSelected]!.offset.x,
+      svg[pathSelected]!.yMin + svg[pathSelected]!.offset.y,
+      5 * (1 / scale.x),
+      0,
+      2 * Math.PI,
+    );
+    ctx.fill(leftUpperPoint2D);
+    ctx.stroke(leftUpperPoint2D);
+
+    rightUpperPoint2D.arc(
+      svg[pathSelected]!.xMax + svg[pathSelected]!.offset.x,
+      svg[pathSelected]!.yMin + svg[pathSelected]!.offset.y,
+      5 * (1 / scale.x),
+      0,
+      2 * Math.PI,
+    );
+    ctx.fill(rightUpperPoint2D);
+    ctx.stroke(rightUpperPoint2D);
+
+    leftLowerPoint2D.arc(
+      svg[pathSelected]!.xMin + svg[pathSelected]!.offset.x,
+      svg[pathSelected]!.yMax + svg[pathSelected]!.offset.y,
+      5 * (1 / scale.x),
+      0,
+      2 * Math.PI,
+    );
+    ctx.fill(leftLowerPoint2D);
+    ctx.stroke(leftLowerPoint2D);
+
+    rightLowerPoint2D.arc(
+      svg[pathSelected]!.xMax + svg[pathSelected]!.offset.x,
+      svg[pathSelected]!.yMax + svg[pathSelected]!.offset.y,
+      5 * (1 / scale.x),
+      0,
+      2 * Math.PI,
+    );
+
+    rotatePoint2D.arc(
+      (svg[pathSelected]!.xMax + svg[pathSelected]!.xMin) / 2 +
+        svg[pathSelected]!.offset.x,
+      svg[pathSelected]!.yMin +
+        svg[pathSelected]!.offset.y -
+        20 * (1 / scale.x),
+      5 * (1 / scale.x),
+      0,
+      2 * Math.PI,
+    );
+
+    ctx.fill(rotatePoint2D);
+    ctx.stroke(rotatePoint2D);
+
+    ctx.fill(rightLowerPoint2D);
+    ctx.stroke(rightLowerPoint2D);
+
+    ctx.closePath();
+  };
+
+  const onPathRotate = (
+    ctx: CanvasRenderingContext2D,
+    path: Path2D,
+    dx: number,
+    dy: number,
+    prevX: number,
+    prevY: number,
+  ) => {
+    if (!svg) return;
+    if (selectedPath === null) return;
+    const originX =
+      (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2 +
+      svg[selectedPath]!.offset.x;
+    const originY =
+      (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2 +
+      svg[selectedPath]!.offset.y;
+
+    console.log(svg[selectedPath]!.offset.x, svg[selectedPath]!.offset.y);
+
+    //Fix How it only rotates clockwise
+    const originVector = { x: prevX - originX, y: prevY - originY };
+    const crossToOriginVector = {
+      x:
+        -originVector.y /
+        Math.sqrt(
+          originVector.x * originVector.x + originVector.y * originVector.y,
+        ),
+      y:
+        originVector.x /
+        Math.sqrt(
+          originVector.x * originVector.x + originVector.y * originVector.y,
+        ),
+    };
+
+    const newVectorLength = Math.sqrt(
+      Math.pow(crossToOriginVector.x * dx, 2) +
+        Math.pow(crossToOriginVector.y * dy, 2),
+    );
+    const direction =
+      crossToOriginVector.x * dx + crossToOriginVector.y * dy > 0 ? -1 : 1;
+
+    const radian = (newVectorLength * direction * scale.x) / 100;
+    if (selectedPath === null) return;
+    if (svg === null) return;
+
+    svg[selectedPath]!.rotation = radian;
+    const newPath = { ...svg[selectedPath]! };
+    newPath.d.map((segment) => {
+      segment.data.map((point) => {
+        const rotatedPoint = rotatePoint(
+          point.x,
+          point.y,
+          (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2,
+          (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2,
+          radian,
+        );
+        point.x = rotatedPoint.x;
+        point.y = rotatedPoint.y;
+      });
+    });
+    // const rotatedXmaxYmax = rotatePoint(
+    //   svg[selectedPath]!.xMax
+    // )
+    // newPath.xMin = svg[selectedPath]!.xMin;
+
+    const newPath2D = pathToPath2D(newPath);
+    svg[selectedPath]!.path2D = newPath2D;
+    clear();
+    drawSVG(ctx, svg);
+    drawBoundingBox(ctx, selectedPath);
+    //Draw Prev Point on Canvas
+    ctx.beginPath();
+    ctx.arc(prevX, prevY, 100, 0, 2 * Math.PI);
+    ctx.fillStyle = "red";
+
+    //Draw Origin
+    ctx.arc(originX, originY, 100, 0, 2 * Math.PI);
+    ctx.fillStyle = "blue";
+
+    ctx.fill();
+    ctx.closePath();
+  };
+
+  const rotatePoint = (
+    x: number,
+    y: number,
+    originX: number,
+    originY: number,
+    radian: number,
+  ) => {
+    const cos = Math.cos(radian);
+    const sin = Math.sin(radian);
+    const nx = cos * (x - originX) + sin * (y - originY) + originX;
+    const ny = cos * (y - originY) - sin * (x - originX) + originY;
+    return { x: nx, y: ny };
+  };
+
+  const onPathExpand = (
+    ctx: CanvasRenderingContext2D,
+    path: Path2D,
+    dx: number,
+    dy: number,
+    selectedBoxPoint: string,
+  ) => {
+    let realDx = dx;
+    let realDy = dy;
+    if (svg === null) return;
+    if (selectedPath === null) return;
+    const oldWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
+    const oldHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+    if (selectedBoxPoint === "leftUpper") {
+      realDx = dx;
+      realDy = dy;
+      svg[selectedPath]!.xMin += realDx;
+      svg[selectedPath]!.yMin += realDy;
+
+      const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
+      const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+      svg[selectedPath]?.d.map((segment) => {
+        segment.data.map((point) => {
+          point.x =
+            (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
+            svg[selectedPath]!.xMax;
+          point.y =
+            (point.y - svg[selectedPath]!.yMax) * (newHeight / oldHeight) +
+            svg[selectedPath]!.yMax;
+
+          // console.log(point);
+        });
+      });
+    } else if (selectedBoxPoint === "rightUpper") {
+      realDx = dx;
+      realDy = dy;
+      svg[selectedPath]!.xMax += realDx;
+      svg[selectedPath]!.yMin += realDy;
+      const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
+      const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+      svg[selectedPath]?.d.map((segment) => {
+        segment.data.map((point) => {
+          point.x =
+            (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
+            svg[selectedPath]!.xMin;
+          point.y =
+            (point.y - svg[selectedPath]!.yMax) * (newHeight / oldHeight) +
+            svg[selectedPath]!.yMax;
+
+          // console.log(point);
+        });
+      });
+    } else if (selectedBoxPoint === "leftLower") {
+      realDx = dx;
+      realDy = dy;
+      svg[selectedPath]!.xMin += realDx;
+      svg[selectedPath]!.yMax += realDy;
+
+      const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
+      const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+      svg[selectedPath]?.d.map((segment) => {
+        segment.data.map((point) => {
+          point.x =
+            (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
+            svg[selectedPath]!.xMax;
+          point.y =
+            (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
+            svg[selectedPath]!.yMin;
+
+          // console.log(point);
+        });
+      });
+    } else if (selectedBoxPoint === "rightLower") {
+      realDx = dx;
+      realDy = dy;
+      svg[selectedPath]!.xMax += realDx;
+      svg[selectedPath]!.yMax += realDy;
+      const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
+      const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+      svg[selectedPath]?.d.map((segment) => {
+        segment.data.map((point) => {
+          point.x =
+            (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
+            svg[selectedPath]!.xMin;
+          point.y =
+            (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
+            svg[selectedPath]!.yMin;
+          // console.log(point);
+        });
+      });
+    }
+
+    // const newPathToBeSerialized: Segment[] = [];
+    // svg[selectedPath]!.d.forEach((segment) => {
+    //   const newSegment: Segment = { key: segment.key, data: [] };
+    //   newSegment.data = absoluteSegmentToSegment(segment).data;
+    //   newPathToBeSerialized.push(newSegment);
+    // });
+    // const newPathString = serialize(newPathToBeSerialized);
+    // // const transformedPathString = new SVGPathCommander(newPathString)
+    // //   // .transform(transform)
+    // //   .toString();
+    // const transformedPathString = newPathString;
+    // const newPath = parsePath(transformedPathString);
+    // const newPathAbsolute: AbsoluteSegment[] = newPath.map((segment) => {
+    //   return segmentToAbsoluteSegment(segment);
+    // });
+    // svg[selectedPath]!.d = newPathAbsolute;
+
+    // const newPath2D = pathToPath2D(svg[selectedPath]!);
+    // svg[selectedPath]!.path2D = newPath2D;
+
+    // const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
+    // const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+    // svg[selectedPath]?.d.map((segment) => {
+    //   segment.data.map((point) => {
+    //     point.x =
+    //       (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
+    //       svg[selectedPath]!.xMin;
+    //     point.y =
+    //       (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
+    //       svg[selectedPath]!.yMin;
+    //     // console.log(point);
+    //   });
+    // });
+
+    const newPath2D = pathToPath2D(svg[selectedPath]!);
+    svg[selectedPath]!.path2D = newPath2D;
+
+    clear();
+    drawSVG(ctx, svg);
+    drawBoundingBox(ctx, selectedPath);
+  };
+
+  const absoluteSegmentToSegment = (
+    absoluteSegment: AbsoluteSegment,
+  ): Segment => {
+    const { key, data } = absoluteSegment;
+    const segmentData: number[] = [];
+    data.map((point) => {
+      segmentData.push(point.x, point.y);
+    });
+    return { key: key, data: segmentData };
+  };
+
+  const segmentToAbsoluteSegment = (segment: Segment): AbsoluteSegment => {
+    const { key, data } = segment;
+    const absoluteData: Point[] = [];
+    for (let i = 0; i < data.length; i += 2) {
+      absoluteData.push({ x: data[i]!, y: data[i + 1]! });
+    }
+    return { key: key, data: absoluteData };
   };
 
   //Loop through the SVG, loop through paths, loop through segments, draw points as red dots
@@ -349,8 +741,10 @@ export default function Editor() {
     const selectedPathPath = svg[selectedPath];
     if (selectedPathPath === null || selectedPathPath === undefined) return;
 
-    const { d, fill } = selectedPathPath;
+    const { d, offset } = selectedPathPath;
     const newPoint2Ds: Path2D[] = [];
+    const xOffset = offset.x;
+    const yOffset = offset.y;
     d.map((segment) => {
       const { key, data } = segment;
       const endPoint = data[data.length - 1];
@@ -364,7 +758,13 @@ export default function Editor() {
       if (newPoint2Ds.length - 1 === selectedPoint) {
         ctx.fillStyle = "#3eadfd";
       }
-      point2D.arc(endPoint.x, endPoint.y, 5 * (1 / scale.x), 0, 2 * Math.PI);
+      point2D.arc(
+        endPoint.x + xOffset,
+        endPoint.y + yOffset,
+        5 * (1 / scale.x),
+        0,
+        2 * Math.PI,
+      );
       ctx.fill(point2D);
 
       ctx.strokeStyle = "#3eadfd";
@@ -388,45 +788,45 @@ export default function Editor() {
     if (selectedPath === null) return;
     if (!svg) return;
     console.log("moving path");
-    const newSVG = [...svg];
-    const newPathPath = newSVG[selectedPath];
-    if (newPathPath === undefined || newPathPath === null) return;
-    const newD = newPathPath.d;
-    newD.map((segment) => {
-      segment.data.map((point) => {
-        point.x += dx;
-        point.y += dy;
-        return point;
-      });
-    });
+    // const newSVG = [...svg];
+    // const newPathPath = newSVG[selectedPath];
+    // if (newPathPath === undefined || newPathPath === null) return;
+    // const newD = newPathPath.d;
+    // newD.map((segment) => {
+    //   segment.data.map((point) => {
+    //     point.x += dx;
+    //     point.y += dy;
+    //     return point;
+    //   });
+    // });
 
-    type Segment = {
-      key: string;
-      data: number[];
-    };
-    const newPath: Segment[] = [];
-    if (newSVG[selectedPath] === null || newSVG[selectedPath] === undefined)
-      return;
-    const newnewpath = newSVG[selectedPath];
-    if (newnewpath === null || newnewpath === undefined) return;
-    const newnewpathD = newnewpath.d;
-    if (newnewpathD === null || newnewpathD === undefined) return;
-    newnewpathD.map((segment) => {
-      const data: number[] = [];
-      const key = segment.key;
-      segment.data.map((point) => {
-        data.push(point.x, point.y);
-      });
+    // type Segment = {
+    //   key: string;
+    //   data: number[];
+    // };
+    // const newPath: Segment[] = [];
+    // if (newSVG[selectedPath] === null || newSVG[selectedPath] === undefined)
+    //   return;
+    // const newnewpath = newSVG[selectedPath];
+    // if (newnewpath === null || newnewpath === undefined) return;
+    // const newnewpathD = newnewpath.d;
+    // if (newnewpathD === null || newnewpathD === undefined) return;
+    // newnewpathD.map((segment) => {
+    //   const data: number[] = [];
+    //   const key = segment.key;
+    //   segment.data.map((point) => {
+    //     data.push(point.x, point.y);
+    //   });
 
-      newPath.push({ key: key, data: data });
-    });
+    //   newPath.push({ key: key, data: data });
+    // });
 
     //experiment with not rerendering
 
-    const serialized = serialize(newPath);
-    const newPath2D = new Path2D(serialized);
-    // newSVG[selectedPath].path2D = newPath2D;
-    // setSVG(newSVG);
+    svg[selectedPath]!.offset.x += dx;
+    svg[selectedPath]!.offset.y += dy;
+
+    const newPath2D = pathToPath2D(svg[selectedPath]!);
 
     const svgSelectedPath = svg[selectedPath];
     if (svgSelectedPath === undefined) return;
@@ -437,6 +837,22 @@ export default function Editor() {
     drawSVGPoints(ctx, svg);
     drawBoundingBox(ctx, selectedPath);
     drawOutline(ctx, newPath2D);
+  };
+
+  const pathToPath2D = (path: Path): Path2D => {
+    const { d, offset } = path;
+    const dWithOffset = d.map((segment) => {
+      return {
+        key: segment.key,
+        data: segment.data.map((point) => {
+          return { x: point.x + offset.x, y: point.y + offset.y };
+        }),
+      };
+    });
+
+    const pathString = svgPathToString(dWithOffset);
+    const path2D = new Path2D(pathString);
+    return path2D;
   };
 
   const computePointInCanvas = (e: React.MouseEvent) => {
@@ -509,11 +925,19 @@ export default function Editor() {
     const svg: SVG = paths.map((path) => {
       const dString = path.getAttribute("d");
       const transform = path.getAttribute("transform");
-      let translateX = 0;
-      let translateY = 0;
+
       const transformObject = {
         translate: [0, 0],
       };
+
+      let path2D = null;
+      let xMax = 0;
+      let xMin = 0;
+      let yMax = 0;
+      let yMin = 0;
+      let xOffSet = 0;
+      let yOffSet = 0;
+      const rotation = 0;
 
       if (transform) {
         //get translate from the transform property
@@ -521,18 +945,24 @@ export default function Editor() {
         if (match !== null && match?.length === 4) {
           const x = parseFloat(match[2]!.slice(1));
           const y = parseFloat(match[3]!);
-          translateX = x;
-          translateY = y;
+          xOffSet = x;
+          yOffSet = y;
           transformObject.translate = [x, y];
         }
       }
-      let path2D = null;
+
       if (dString) {
         const dStringWithTransform = new SVGPathCommander(dString)
           .transform(transformObject)
           .toString();
         const p = new Path2D(dStringWithTransform);
         path2D = p;
+
+        const bBox = new SVGPathCommander(dString).getBBox();
+        xMax = bBox.x2;
+        xMin = bBox.x;
+        yMax = bBox.y2;
+        yMin = bBox.y;
       }
 
       //right now the path2DsTemp does not take into account the transform property. Fix this.
@@ -546,8 +976,8 @@ export default function Editor() {
             key: key,
             data: [
               {
-                x: segment.data[0]! + translateX,
-                y: segment.data[1]! + translateY,
+                x: segment.data[0]!,
+                y: segment.data[1]!,
               },
             ],
           };
@@ -565,23 +995,24 @@ export default function Editor() {
             key: key,
             data: [
               {
-                x: segment.data[0]! + translateX,
-                y: segment.data[1]! + translateY,
+                x: segment.data[0]!,
+                y: segment.data[1]!,
               },
               {
-                x: segment.data[2]! + translateX,
-                y: segment.data[3]! + translateY,
+                x: segment.data[2]!,
+                y: segment.data[3]!,
               },
               {
-                x: segment.data[4]! + translateX,
-                y: segment.data[5]! + translateY,
+                x: segment.data[4]!,
+                y: segment.data[5]!,
               },
             ],
           };
         }
       });
       const fill = path.getAttribute("fill") ?? "black";
-      return { d, fill, path2D };
+      const offset = { x: xOffSet, y: yOffSet };
+      return { d, fill, path2D, offset, xMin, xMax, yMin, yMax, rotation };
     });
 
     return { svg: svg };
@@ -595,6 +1026,7 @@ export default function Editor() {
     clear();
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
+    if (selectedPath !== null) drawBoundingBox(ctx, selectedPath);
     // drawBoundingBox(ctx, selectedPath);
     const newSVG = [...svg];
     newSVG.reverse().some(({ path2D }, i) => {
@@ -628,7 +1060,7 @@ export default function Editor() {
     if (svgSelectedPath === undefined) return;
 
     const segment = svgSelectedPath.d[selectedPoint];
-    segment?.data.forEach((point) => {
+    segment?.data.map((point) => {
       point.x += dx;
       point.y += dy;
     });
@@ -642,8 +1074,10 @@ export default function Editor() {
     svgSelectedPath.d.map((segment) => {
       const data: number[] = [];
       const key = segment.key;
+      const xOffSet = svgSelectedPath.offset.x;
+      const yOffSet = svgSelectedPath.offset.y;
       segment.data.map((point) => {
-        data.push(point.x, point.y);
+        data.push(point.x + xOffSet, point.y + yOffSet);
       });
 
       newPath.push({ key: key, data: data });
@@ -655,7 +1089,37 @@ export default function Editor() {
     clear();
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
+
+    // const newString = serialize(newPath);
+    const newBbox = getBBox(svg[selectedPath]!);
+    svgSelectedPath.xMax = newBbox.x2;
+    svgSelectedPath.xMin = newBbox.x;
+    svgSelectedPath.yMax = newBbox.y2;
+    svgSelectedPath.yMin = newBbox.y;
   }
+
+  type BBox = {
+    x: number;
+    y: number;
+    x2: number;
+    y2: number;
+  };
+  const getBBox = (path: Path): BBox => {
+    if (!path) return { x: 0, y: 0, x2: 0, y2: 0 };
+    let x = path.d[0]?.data[0]?.x ?? 0;
+    let y = path.d[0]?.data[0]?.y ?? 0;
+    let x2 = path.d[0]?.data[0]?.x ?? 0;
+    let y2 = path.d[0]?.data[0]?.y ?? 0;
+    path.d.map((segment) => {
+      segment.data.map((point) => {
+        x = Math.min(x, point.x);
+        y = Math.min(y, point.y);
+        x2 = Math.max(x2, point.x);
+        y2 = Math.max(y2, point.y);
+      });
+    });
+    return { x, y, x2, y2 };
+  };
 
   const filePopUpRef = useRef<HTMLDivElement | null>(null);
   const aiPopUpRef = useRef<HTMLDivElement | null>(null);
@@ -720,14 +1184,38 @@ export default function Editor() {
     }
 
     if (isEditing && selectedPoint !== null) {
-      const dx = currentPoint.x - prevPoint.x;
-      const dy = currentPoint.y - prevPoint.y;
+      const dx = (currentPoint.x - prevPoint.x) * (1 / scale.x);
+      const dy = (currentPoint.y - prevPoint.y) * (1 / scale.y);
       onPointMove(ctx, dx, dy);
       return;
     }
 
-    const dx = currentPoint.x - prevPoint.x;
-    const dy = currentPoint.y - prevPoint.y;
+    if (selectedBoundingBoxPoint !== null) {
+      onPathExpand(
+        ctx,
+        svg[selectedPath]!.path2D!,
+        currentPoint.x - prevPoint.x,
+        currentPoint.y - prevPoint.y,
+        selectedBoundingBoxPoint,
+      );
+      return;
+    }
+
+    if (selectedRotatePoint !== false) {
+      console.log("Rotate Point Selected and Moving");
+      onPathRotate(
+        ctx,
+        svg[selectedPath]!.path2D!,
+        (currentPoint.x - prevPoint.x) * (1 / scale.x),
+        (currentPoint.y - prevPoint.y) * (1 / scale.y),
+        prevPoint.x * (1 / scale.x) - panOffset.x,
+        prevPoint.y * (1 / scale.y) - panOffset.y,
+      );
+      return;
+    }
+
+    const dx = (currentPoint.x - prevPoint.x) * (1 / scale.x);
+    const dy = (currentPoint.y - prevPoint.y) * (1 / scale.y);
     const svgSelectedPath = svg[selectedPath];
     if (svgSelectedPath === undefined) return;
     const path = svgSelectedPath.path2D;
@@ -742,6 +1230,7 @@ export default function Editor() {
     newSVG.splice(selectedPath, 1);
     setSVG(newSVG);
     setSelectedPath(null);
+    setSelectedPoint(null);
     clear();
 
     const ctx = canvasRef.current?.getContext("2d");
@@ -764,6 +1253,7 @@ export default function Editor() {
     onSelectMouseUp();
     handMouseUpHandler();
     console.log("useSelect mouse up");
+    setBoundingPoint2D(null);
   };
 
   const onMouseMoveWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {

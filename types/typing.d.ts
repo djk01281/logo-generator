@@ -39,6 +39,12 @@ type Path = {
   d: AbsoluteSegment[];
   path2D: Path2D | null;
   fill: string;
+  offset: Point;
+  xMax: number;
+  xMin: number;
+  yMax: number;
+  yMin: number;
+  rotation: number;
 };
 
 type SVG = Path[];
