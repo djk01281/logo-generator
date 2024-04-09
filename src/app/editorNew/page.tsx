@@ -289,6 +289,9 @@ export default function Editor() {
       }
 
       if (!continueFlag) return;
+      else {
+        setSelectedPoint(null);
+      }
     }
 
     //check if bounding box's point is selected
@@ -1194,8 +1197,8 @@ export default function Editor() {
       onPathExpand(
         ctx,
         svg[selectedPath]!.path2D!,
-        currentPoint.x - prevPoint.x,
-        currentPoint.y - prevPoint.y,
+        (currentPoint.x - prevPoint.x) * (1 / scale.x),
+        (currentPoint.y - prevPoint.y) * (1 / scale.y),
         selectedBoundingBoxPoint,
       );
       return;

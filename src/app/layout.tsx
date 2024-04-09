@@ -5,13 +5,21 @@ import {
   Inter,
   Just_Another_Hand,
   Bricolage_Grotesque,
+  Paytone_One,
 } from "next/font/google";
+
 import { cookies } from "next/headers";
 import { TRPCReactProvider } from "../trpc/react";
 import { NextAuthProvider } from "./providers";
 import Navbar from "./_components/Navbar";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
+
+const paytone = Paytone_One({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-paytone_one",
+});
 
 const montserrat = Montserrat({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
@@ -47,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className}`}
+      className={`${montserrat.variable} ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}`}
     >
       <body
         className={`font-sans ${inter.variable} ${bricolage.variable} ${just.variable}`}
