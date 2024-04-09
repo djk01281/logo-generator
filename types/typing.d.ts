@@ -58,6 +58,7 @@ const Tools = {
   draw: "draw",
   hand: "hand",
   select: "select",
+  add: "add",
 };
 
 type Tool = keyof typeof Tools;

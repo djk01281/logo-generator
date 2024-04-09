@@ -18,6 +18,7 @@ import { transform } from "next/dist/build/swc";
 
 import { Segment } from "path-data-parser/lib/parser";
 import { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } from "@aws-sdk/client-s3";
+import { on } from "events";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -177,7 +178,7 @@ const just = Just_Another_Hand({
 
 export default function Editor() {
   const [tool, setTool] = useState<Tool>("select");
-  const { svg, setSVG, setSelected, moveSelected } = useSVG(null);
+  const { svg, setSVG, setSelected, moveSelected } = useSVG([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const {
@@ -214,7 +215,9 @@ export default function Editor() {
   const [rotatePoint2D, setRotatePoint2D] = useState<Path2D | null>(null);
   const [selectedRotatePoint, setSelectedRotatePoint] =
     useState<boolean>(false);
-
+  const [addPoint, setAddPoint] = useState<Point | null>(null);
+  const [addShape, setAddShape] = useState<string | null>(null);
+  const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
   // console.log(scale);
 
   const svgPathToString = (path: AbsoluteSegment[]) => {
@@ -241,6 +244,202 @@ export default function Editor() {
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
     if (selectedPath !== null) drawBoundingBox(ctx, selectedPath);
+  }
+
+  function onAddSelect(
+    ctx: CanvasRenderingContext2D,
+    currentPoint: Point,
+    type: string,
+  ) {
+    if (!svg) {
+      console.log("svg is null");
+      return;
+    }
+    if (!ctx) {
+      console.log("ctx is null");
+      return;
+    }
+    if (!currentPoint) {
+      console.log("current point is null");
+      return;
+    }
+    if (tool !== "add") {
+      console.log("tool is not add");
+      return;
+    }
+    if (type === null) {
+      console.log("type is null");
+      return;
+    }
+
+    console.log("on add select called");
+    console.log("current point", currentPoint);
+
+    setAddPoint({
+      x: currentPoint.x,
+      y: currentPoint.y,
+    });
+    setAddShape(type);
+  }
+
+  function onAddMove(
+    ctx: CanvasRenderingContext2D,
+    e: React.MouseEvent<HTMLCanvasElement>,
+  ) {
+    console.log("on add move called - first");
+    if (!ctx) {
+      console.log("ctx is null");
+      return;
+    }
+    if (!isMouseDown) {
+      console.log("mouse is not down");
+      return;
+    }
+    const currentPoint = computePointInCanvas(e)!;
+    const calculatedPoint = {
+      x: currentPoint.x * (1 / scale.x) - panOffset.x,
+      y: currentPoint.y * (1 / scale.y) - panOffset.y,
+    };
+    const calculatedAddPoint = {
+      x: addPoint!.x * (1 / scale.x) - panOffset.x,
+      y: addPoint!.y * (1 / scale.y) - panOffset.y,
+    };
+    if (!calculatedPoint) {
+      console.log("current point is null");
+      return;
+    }
+    if (!addPoint) {
+      console.log("add point is null");
+      return;
+    }
+    if (!addShape) {
+      console.log("add shape is null");
+      return;
+    }
+    const addWidth = currentPoint.x - addPoint.x;
+    const addHeight = currentPoint.y - addPoint.y;
+    if (!svg) {
+      console.log("svg is null");
+      return;
+    }
+
+    //fix it so that it only pushes to the svg when mouse is up
+    // if (addShape === "rect") {
+    //   svg.push({
+    //     fill: color,
+    //     d: [
+    //       {
+    //         key: "M",
+    //         data: [
+    //           { x: addPoint.x, y: addPoint.y },
+    //           { x: addPoint.x + addWidth, y: addPoint.y },
+    //           { x: addPoint.x + addWidth, y: addPoint.y + addHeight },
+    //           { x: addPoint.x, y: addPoint.y + addHeight },
+    //           { x: addPoint.x, y: addPoint.y },
+    //         ],
+    //       },
+    //     ],
+    //     path2D: null,
+    //     xMin: addPoint.x,
+    //     xMax: addPoint.x + addWidth,
+    //     yMin: addPoint.y,
+    //     yMax: addPoint.y + addHeight,
+    //     offset: { x: 0, y: 0 },
+    //     rotation: 0,
+    //   });
+    // }
+
+    // const newPath2D = pathToPath2D(svg[svg.length - 1]!);
+    // svg[svg.length - 1]!.path2D = newPath2D;
+
+    console.log("add move called - second");
+    clear();
+
+    ctx.rect(
+      addPoint.x,
+      addPoint.y,
+      currentPoint.x - addPoint.x,
+      currentPoint.y - addPoint.y,
+    );
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    drawSVG(ctx, svg);
+    drawBoundingBox(ctx, svg.length - 1);
+    setSelectedPath(svg.length - 1);
+  }
+
+  function onAddUp(
+    ctx: CanvasRenderingContext2D,
+    e: React.MouseEvent<HTMLCanvasElement>,
+  ) {
+    if (!ctx) {
+      console.log("ctx is null");
+      return;
+    }
+    if (!addPoint) {
+      console.log("add point is null");
+      return;
+    }
+    if (!addShape) {
+      console.log("add shape is null");
+      return;
+    }
+    const currentPoint = computePointInCanvas(e)!;
+    const calculatedPoint = {
+      x: currentPoint.x * (1 / scale.x) - panOffset.x,
+      y: currentPoint.y * (1 / scale.y) - panOffset.y,
+    };
+    const calculatedAddPoint = {
+      x: addPoint.x * (1 / scale.x) - panOffset.x,
+      y: addPoint.y * (1 / scale.y) - panOffset.y,
+    };
+    if (!calculatedPoint) return;
+
+    const addWidth = calculatedPoint.x - calculatedAddPoint.x;
+    const addHeight = calculatedPoint.y - calculatedAddPoint.y;
+    if (!svg) {
+      console.log("svg is null");
+      return;
+    }
+
+    if (addShape === "rect") {
+      console.log("PUSHINNNNGGGGG");
+      svg.push({
+        fill: color,
+        d: [
+          {
+            key: "M",
+            data: [
+              { x: calculatedAddPoint.x, y: calculatedAddPoint.y },
+              { x: calculatedAddPoint.x + addWidth, y: calculatedAddPoint.y },
+              {
+                x: calculatedAddPoint.x + addWidth,
+                y: calculatedAddPoint.y + addHeight,
+              },
+              { x: calculatedAddPoint.x, y: calculatedAddPoint.y + addHeight },
+              { x: calculatedAddPoint.x, y: calculatedAddPoint.y },
+            ],
+          },
+        ],
+        path2D: null,
+        xMin: calculatedAddPoint.x,
+        xMax: calculatedAddPoint.x + addWidth,
+        yMin: calculatedAddPoint.y,
+        yMax: calculatedAddPoint.y + addHeight,
+        offset: { x: 0, y: 0 },
+        rotation: 0,
+      });
+    }
+
+    const newPath2D = pathToPath2D(svg[svg.length - 1]!);
+    svg[svg.length - 1]!.path2D = newPath2D;
+
+    clear();
+    drawSVG(ctx, svg);
+    drawBoundingBox(ctx, svg.length - 1);
+    setSelectedPath(svg.length - 1);
+    setTool("select");
   }
 
   function onZoom({ ctx, scaleX, scaleY }: Zoom) {
@@ -1243,6 +1442,7 @@ export default function Editor() {
   };
 
   const onMouseDownWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsMouseDown(true);
     if (tool === "hand") {
       onMouseDown();
     }
@@ -1250,13 +1450,28 @@ export default function Editor() {
       onSelectMouseDown(e);
     }
     if (isRightClicked !== null) setIsRightClicked(null);
+    if (tool === "add") {
+      console.log("tool is add");
+      const ctx = canvasRef.current?.getContext("2d");
+      if (!ctx) return;
+      if (!addShape) return;
+      onAddSelect(ctx, computePointInCanvas(e)!, addShape);
+    }
   };
 
   const onMouseUpWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsMouseDown(false);
     onSelectMouseUp();
     handMouseUpHandler();
     console.log("useSelect mouse up");
     setBoundingPoint2D(null);
+    console.log(tool);
+    if (tool === "add") {
+      console.log("Mouse Up on Add!!!!!!!!!");
+      const ctx = canvasRef.current?.getContext("2d");
+      if (!ctx) return;
+      onAddUp(ctx, e);
+    }
   };
 
   const onMouseMoveWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1265,6 +1480,12 @@ export default function Editor() {
     }
     if (tool === "hand") {
       handMouseMoveHandler(e);
+    }
+    if (tool === "add") {
+      const ctx = canvasRef.current?.getContext("2d");
+      if (!ctx) return;
+      ("add moving");
+      onAddMove(ctx, e);
     }
   };
 
@@ -1501,7 +1722,13 @@ export default function Editor() {
                 ) : null}
               </>
             </div>
-            <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300">
+            <div
+              className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300"
+              onClick={(e) => {
+                setTool("add");
+                setAddShape("rect");
+              }}
+            >
               <svg
                 width="16"
                 height="16"
