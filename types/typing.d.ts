@@ -49,9 +49,24 @@ type Path = {
 
 type SVG = Path[];
 
-type AbsoluteSegment = {
-  key: string;
-  data: Point[];
+type AbsoluteSegment =
+  | {
+      key: "M" | "L" | "C" | "Z";
+      data: Point[];
+    }
+  | {
+      key: "A";
+      data: ArcParams;
+    };
+
+type ArcParams = {
+  rx: number;
+  ry: number;
+  rotation: number;
+  largeArcFlag: number;
+  sweepFlag: number;
+  dx: number;
+  dy: number;
 };
 
 const Tools = {

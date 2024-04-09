@@ -224,9 +224,27 @@ export default function Editor() {
     let pathString = "";
     path.forEach((segment) => {
       pathString += segment.key;
-      segment.data.forEach((point) => {
-        pathString += point.x + " " + point.y + " ";
-      });
+      if (segment.key !== "A") {
+        segment.data.forEach((point) => {
+          pathString += point.x + " " + point.y + " ";
+        });
+      } else {
+        pathString +=
+          segment.data.rx +
+          " " +
+          segment.data.ry +
+          " " +
+          segment.data.rotation +
+          " " +
+          segment.data.largeArcFlag +
+          " " +
+          segment.data.sweepFlag +
+          " " +
+          segment.data.dx +
+          " " +
+          segment.data.dy +
+          " ";
+      }
     });
     return pathString;
   };
@@ -354,13 +372,28 @@ export default function Editor() {
 
     console.log("add move called - second");
     clear();
-
-    ctx.rect(
-      addPoint.x,
-      addPoint.y,
-      currentPoint.x - addPoint.x,
-      currentPoint.y - addPoint.y,
-    );
+    if (addShape === "rect") {
+      ctx.beginPath();
+      ctx.rect(
+        calculatedAddPoint.x,
+        calculatedAddPoint.y,
+        calculatedPoint.x - calculatedAddPoint.x,
+        calculatedPoint.y - calculatedAddPoint.y,
+      );
+      ctx.closePath();
+    } else if (addShape === "circle") {
+      ctx.beginPath();
+      ctx.ellipse(
+        calculatedAddPoint.x + (calculatedPoint.x - calculatedAddPoint.x) / 2,
+        calculatedAddPoint.y + (calculatedPoint.y - calculatedAddPoint.y) / 2,
+        Math.abs(calculatedPoint.x - calculatedAddPoint.x) / 2,
+        Math.abs(calculatedPoint.y - calculatedAddPoint.y) / 2,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.closePath();
+    }
     ctx.fillStyle = color;
     ctx.fill();
 
@@ -422,6 +455,57 @@ export default function Editor() {
             ],
           },
         ],
+        path2D: null,
+        xMin: calculatedAddPoint.x,
+        xMax: calculatedAddPoint.x + addWidth,
+        yMin: calculatedAddPoint.y,
+        yMax: calculatedAddPoint.y + addHeight,
+        offset: { x: 0, y: 0 },
+        rotation: 0,
+      });
+    } else if (addShape === "circle") {
+      svg.push({
+        fill: color,
+        d: [
+          {
+            key: "M",
+            data: [
+              {
+                x: calculatedAddPoint.x,
+                y: calculatedAddPoint.y + addHeight / 2,
+              },
+            ],
+          },
+          {
+            key: "A",
+            data: {
+              rx: addWidth / 2,
+              ry: addHeight / 2,
+              rotation: 0,
+              largeArcFlag: 1,
+              sweepFlag: 1,
+              dx: calculatedAddPoint.x + addWidth,
+              dy: calculatedAddPoint.y + addHeight / 2,
+            },
+          },
+          {
+            key: "A",
+            data: {
+              rx: addWidth / 2,
+              ry: addHeight / 2,
+              rotation: 0,
+              largeArcFlag: 1,
+              sweepFlag: 1,
+              dx: calculatedAddPoint.x,
+              dy: calculatedAddPoint.y + addHeight / 2,
+            },
+          },
+          {
+            key: "Z",
+            data: [],
+          },
+        ],
+
         path2D: null,
         xMin: calculatedAddPoint.x,
         xMax: calculatedAddPoint.x + addWidth,
@@ -730,7 +814,13 @@ export default function Editor() {
 
     svg[selectedPath]!.rotation = radian;
     const newPath = { ...svg[selectedPath]! };
+
     newPath.d.map((segment) => {
+      if (
+        segment.key === "A" ||
+        (typeof segment.data === "object" && !Array.isArray(segment.data))
+      )
+        return;
       segment.data.map((point) => {
         const rotatedPoint = rotatePoint(
           point.x,
@@ -802,6 +892,7 @@ export default function Editor() {
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
       svg[selectedPath]?.d.map((segment) => {
+        if (segment.key === "A") return;
         segment.data.map((point) => {
           point.x =
             (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
@@ -821,6 +912,7 @@ export default function Editor() {
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
       svg[selectedPath]?.d.map((segment) => {
+        if (segment.key === "A") return;
         segment.data.map((point) => {
           point.x =
             (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
@@ -841,6 +933,7 @@ export default function Editor() {
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
       svg[selectedPath]?.d.map((segment) => {
+        if (segment.key === "A") return;
         segment.data.map((point) => {
           point.x =
             (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
@@ -860,6 +953,8 @@ export default function Editor() {
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
       svg[selectedPath]?.d.map((segment) => {
+        if (segment.key === "A") return;
+
         segment.data.map((point) => {
           point.x =
             (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
@@ -918,6 +1013,7 @@ export default function Editor() {
     absoluteSegment: AbsoluteSegment,
   ): Segment => {
     const { key, data } = absoluteSegment;
+    if (key === "A") return { key: key, data: [] };
     const segmentData: number[] = [];
     data.map((point) => {
       segmentData.push(point.x, point.y);
@@ -925,14 +1021,14 @@ export default function Editor() {
     return { key: key, data: segmentData };
   };
 
-  const segmentToAbsoluteSegment = (segment: Segment): AbsoluteSegment => {
-    const { key, data } = segment;
-    const absoluteData: Point[] = [];
-    for (let i = 0; i < data.length; i += 2) {
-      absoluteData.push({ x: data[i]!, y: data[i + 1]! });
-    }
-    return { key: key, data: absoluteData };
-  };
+  // const segmentToAbsoluteSegment = (segment: Segment): AbsoluteSegment => {
+  //   const { key, data } = segment;
+  //   const absoluteData: Point[] = [];
+  //   for (let i = 0; i < data.length; i += 2) {
+  //     absoluteData.push({ x: data[i]!, y: data[i + 1]! });
+  //   }
+  //   return { key: key, data: absoluteData };
+  // };
 
   //Loop through the SVG, loop through paths, loop through segments, draw points as red dots
   const drawSVGPoints = (ctx: CanvasRenderingContext2D, svg: SVG) => {
@@ -949,6 +1045,7 @@ export default function Editor() {
     const yOffset = offset.y;
     d.map((segment) => {
       const { key, data } = segment;
+      if (key === "A") return;
       const endPoint = data[data.length - 1];
       if (!endPoint) return;
 
@@ -1044,12 +1141,26 @@ export default function Editor() {
   const pathToPath2D = (path: Path): Path2D => {
     const { d, offset } = path;
     const dWithOffset = d.map((segment) => {
-      return {
-        key: segment.key,
-        data: segment.data.map((point) => {
-          return { x: point.x + offset.x, y: point.y + offset.y };
-        }),
-      };
+      if (segment.key !== "A")
+        return {
+          key: segment.key,
+          data: segment.data.map((point) => {
+            return { x: point.x + offset.x, y: point.y + offset.y };
+          }),
+        };
+      else
+        return {
+          key: segment.key,
+          data: {
+            rx: segment.data.rx,
+            ry: segment.data.ry,
+            rotation: segment.data.rotation,
+            largeArcFlag: segment.data.largeArcFlag,
+            sweepFlag: segment.data.sweepFlag,
+            dx: segment.data.dx + offset.x,
+            dy: segment.data.dy + offset.y,
+          },
+        };
     });
 
     const pathString = svgPathToString(dWithOffset);
@@ -1173,28 +1284,55 @@ export default function Editor() {
       const d = dSegments.map((segment) => {
         const key = segment.key;
 
-        if (key === "M" || key === "L") {
+        if (key === "M") {
           return {
-            key: key,
+            key: "M",
             data: [
               {
                 x: segment.data[0]!,
                 y: segment.data[1]!,
               },
             ],
-          };
+          } as AbsoluteSegment;
+        }
+
+        if (key === "L") {
+          return {
+            key: "L",
+            data: [
+              {
+                x: segment.data[0]!,
+                y: segment.data[1]!,
+              },
+            ],
+          } as AbsoluteSegment;
         }
         if (key === "Z") {
           return {
-            key: key,
+            key: "Z",
             data: [],
-          };
+          } as AbsoluteSegment;
+        }
+
+        if (key === "A") {
+          return {
+            key: "A",
+            data: {
+              rx: segment.data[0]!,
+              ry: segment.data[1]!,
+              rotation: segment.data[2]!,
+              largeArcFlag: segment.data[3]!,
+              sweepFlag: segment.data[4]!,
+              dx: segment.data[5]!,
+              dy: segment.data[6]!,
+            },
+          } as AbsoluteSegment;
         }
 
         //key is C
         else {
           return {
-            key: key,
+            key: "C",
             data: [
               {
                 x: segment.data[0]!,
@@ -1209,7 +1347,7 @@ export default function Editor() {
                 y: segment.data[5]!,
               },
             ],
-          };
+          } as AbsoluteSegment;
         }
       });
       const fill = path.getAttribute("fill") ?? "black";
@@ -1262,6 +1400,7 @@ export default function Editor() {
     if (svgSelectedPath === undefined) return;
 
     const segment = svgSelectedPath.d[selectedPoint];
+    if (segment?.key === "A") return;
     segment?.data.map((point) => {
       point.x += dx;
       point.y += dy;
@@ -1276,6 +1415,7 @@ export default function Editor() {
     svgSelectedPath.d.map((segment) => {
       const data: number[] = [];
       const key = segment.key;
+      if (key === "A") return;
       const xOffSet = svgSelectedPath.offset.x;
       const yOffSet = svgSelectedPath.offset.y;
       segment.data.map((point) => {
@@ -1308,11 +1448,17 @@ export default function Editor() {
   };
   const getBBox = (path: Path): BBox => {
     if (!path) return { x: 0, y: 0, x2: 0, y2: 0 };
+
+    //TODO : When segment is 'A'
+
+    if (path.d[0]?.key === "A") return { x: 0, y: 0, x2: 0, y2: 0 };
+
     let x = path.d[0]?.data[0]?.x ?? 0;
     let y = path.d[0]?.data[0]?.y ?? 0;
     let x2 = path.d[0]?.data[0]?.x ?? 0;
     let y2 = path.d[0]?.data[0]?.y ?? 0;
     path.d.map((segment) => {
+      if (segment.key === "A") return;
       segment.data.map((point) => {
         x = Math.min(x, point.x);
         y = Math.min(y, point.y);
@@ -1750,7 +1896,13 @@ export default function Editor() {
                 ></rect>
               </svg>
             </div>
-            <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300">
+            <div
+              className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300"
+              onClick={(e) => {
+                setTool("add");
+                setAddShape("circle");
+              }}
+            >
               <svg
                 width="16"
                 height="16"
