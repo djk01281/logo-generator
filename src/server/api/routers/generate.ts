@@ -76,7 +76,7 @@ export const generateRouter = createTRPCRouter({
           The format should be a json object. There's three types. 'text', 'select' and 'answer'.
           'text' : ask a user a question that can be answered with a short text input.
           'select':  ask a user a question that can be answered from the options you give.
-          'answer': this isn't a question. It's going to be the final response you give after the five questions. It's the prompt we will be giving to dall-e-3.
+          'answer': this isn't a question. It's going to be the final response you give after the five questions. It's the prompt we will be giving to dall-e-3. 
 
           the format should like this:
           {

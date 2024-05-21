@@ -19,6 +19,9 @@ import { transform } from "next/dist/build/swc";
 import { Segment } from "path-data-parser/lib/parser";
 import { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } from "@aws-sdk/client-s3";
 import { on } from "events";
+import path from "path";
+import textPath from "../../helper/textPath";
+import { text } from "stream/consumers";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -180,6 +183,7 @@ export default function Editor() {
   const [tool, setTool] = useState<Tool>("select");
   const { svg, setSVG, setSelected, moveSelected } = useSVG([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const textareaRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const {
     onMouseDown,
@@ -198,9 +202,12 @@ export default function Editor() {
   const [panOffset, setPanOffset] = useState<Point>({ x: 0, y: 0 });
   const [scale, setScale] = useState<Point>({ x: 1, y: 1 });
 
-  const [point2Ds, setPoint2Ds] = useState<Path2D[]>([]);
+  const [point2Ds, setPoint2Ds] = useState<Path2D[][]>([]);
   const [selectedPath, setSelectedPath] = useState<number | null>(null);
-  const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
+  const [selectedPaths, setSelectedPaths] = useState<number[]>([]);
+
+  type PointIndex = [number, number];
+  const [selectedPoint, setSelectedPoint] = useState<PointIndex[] | null>(null);
   const [selectedDraw, setSelectedDraw] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isRightClicked, setIsRightClicked] = useState<Point | null>(null);
@@ -211,14 +218,22 @@ export default function Editor() {
   const [selectedBoundingBoxPoint, setSelectedBoundingBoxPoint] = useState<
     string | null
   >(null);
+  const [isEditingText, setIsEditingText] = useState<boolean>(false);
+  const [textareaPosition, setTextareaPosition] = useState<Point>({
+    x: 0,
+    y: 0,
+  });
 
   const [rotatePoint2D, setRotatePoint2D] = useState<Path2D | null>(null);
   const [selectedRotatePoint, setSelectedRotatePoint] =
     useState<boolean>(false);
   const [addPoint, setAddPoint] = useState<Point | null>(null);
+  const [selectPoint, setSelectPoint] = useState<Point | null>(null);
   const [addShape, setAddShape] = useState<string | null>(null);
   const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
   // console.log(scale);
+
+  const [forText, setForText] = useState<string>("");
 
   const svgPathToString = (path: AbsoluteSegment[]) => {
     let pathString = "";
@@ -290,9 +305,6 @@ export default function Editor() {
       return;
     }
 
-    console.log("on add select called");
-    console.log("current point", currentPoint);
-
     setAddPoint({
       x: currentPoint.x,
       y: currentPoint.y,
@@ -304,13 +316,11 @@ export default function Editor() {
     ctx: CanvasRenderingContext2D,
     e: React.MouseEvent<HTMLCanvasElement>,
   ) {
-    console.log("on add move called - first");
     if (!ctx) {
       console.log("ctx is null");
       return;
     }
     if (!isMouseDown) {
-      console.log("mouse is not down");
       return;
     }
     const currentPoint = computePointInCanvas(e)!;
@@ -370,8 +380,6 @@ export default function Editor() {
     // const newPath2D = pathToPath2D(svg[svg.length - 1]!);
     // svg[svg.length - 1]!.path2D = newPath2D;
 
-    console.log("add move called - second");
-    clear();
     if (addShape === "rect") {
       ctx.beginPath();
       ctx.rect(
@@ -437,25 +445,30 @@ export default function Editor() {
     }
 
     if (addShape === "rect") {
-      console.log("PUSHINNNNGGGGG");
       svg.push({
         fill: color,
-        d: [
-          {
-            key: "M",
-            data: [
-              { x: calculatedAddPoint.x, y: calculatedAddPoint.y },
-              { x: calculatedAddPoint.x + addWidth, y: calculatedAddPoint.y },
-              {
-                x: calculatedAddPoint.x + addWidth,
-                y: calculatedAddPoint.y + addHeight,
-              },
-              { x: calculatedAddPoint.x, y: calculatedAddPoint.y + addHeight },
-              { x: calculatedAddPoint.x, y: calculatedAddPoint.y },
-            ],
-          },
-        ],
-        path2D: null,
+        tag: "path",
+        shape: {
+          d: [
+            {
+              key: "M",
+              data: [
+                { x: calculatedAddPoint.x, y: calculatedAddPoint.y },
+                { x: calculatedAddPoint.x + addWidth, y: calculatedAddPoint.y },
+                {
+                  x: calculatedAddPoint.x + addWidth,
+                  y: calculatedAddPoint.y + addHeight,
+                },
+                {
+                  x: calculatedAddPoint.x,
+                  y: calculatedAddPoint.y + addHeight,
+                },
+                { x: calculatedAddPoint.x, y: calculatedAddPoint.y },
+              ],
+            },
+          ],
+          path2D: null,
+        },
         xMin: calculatedAddPoint.x,
         xMax: calculatedAddPoint.x + addWidth,
         yMin: calculatedAddPoint.y,
@@ -466,47 +479,50 @@ export default function Editor() {
     } else if (addShape === "circle") {
       svg.push({
         fill: color,
-        d: [
-          {
-            key: "M",
-            data: [
-              {
-                x: calculatedAddPoint.x,
-                y: calculatedAddPoint.y + addHeight / 2,
+        tag: "path",
+        shape: {
+          d: [
+            {
+              key: "M",
+              data: [
+                {
+                  x: calculatedAddPoint.x,
+                  y: calculatedAddPoint.y + addHeight / 2,
+                },
+              ],
+            },
+            {
+              key: "A",
+              data: {
+                rx: addWidth / 2,
+                ry: addHeight / 2,
+                rotation: 0,
+                largeArcFlag: 1,
+                sweepFlag: 1,
+                dx: calculatedAddPoint.x + addWidth,
+                dy: calculatedAddPoint.y + addHeight / 2,
               },
-            ],
-          },
-          {
-            key: "A",
-            data: {
-              rx: addWidth / 2,
-              ry: addHeight / 2,
-              rotation: 0,
-              largeArcFlag: 1,
-              sweepFlag: 1,
-              dx: calculatedAddPoint.x + addWidth,
-              dy: calculatedAddPoint.y + addHeight / 2,
             },
-          },
-          {
-            key: "A",
-            data: {
-              rx: addWidth / 2,
-              ry: addHeight / 2,
-              rotation: 0,
-              largeArcFlag: 1,
-              sweepFlag: 1,
-              dx: calculatedAddPoint.x,
-              dy: calculatedAddPoint.y + addHeight / 2,
+            {
+              key: "A",
+              data: {
+                rx: addWidth / 2,
+                ry: addHeight / 2,
+                rotation: 0,
+                largeArcFlag: 1,
+                sweepFlag: 1,
+                dx: calculatedAddPoint.x,
+                dy: calculatedAddPoint.y + addHeight / 2,
+              },
             },
-          },
-          {
-            key: "Z",
-            data: [],
-          },
-        ],
+            {
+              key: "Z",
+              data: [],
+            },
+          ],
 
-        path2D: null,
+          path2D: null,
+        },
         xMin: calculatedAddPoint.x,
         xMax: calculatedAddPoint.x + addWidth,
         yMin: calculatedAddPoint.y,
@@ -514,11 +530,64 @@ export default function Editor() {
         offset: { x: 0, y: 0 },
         rotation: 0,
       });
+    } else if (addShape === "text") {
+      ctx.font = "64px montserrat";
+      svg.push({
+        fill: color,
+        tag: "text",
+        shape: {
+          content: "Text",
+          font: "montserrat",
+          size: 64,
+          d: [
+            {
+              key: "M",
+              data: [{ x: calculatedAddPoint.x, y: calculatedAddPoint.y }],
+            },
+            {
+              key: "C",
+              data: [
+                { x: calculatedAddPoint.x + 200, y: calculatedAddPoint.y },
+                { x: calculatedAddPoint.x + 200, y: calculatedAddPoint.y },
+                { x: calculatedAddPoint.x + 400, y: calculatedAddPoint.y },
+              ],
+            },
+          ],
+          path2D: null,
+        },
+        xMin: calculatedAddPoint.x,
+        xMax: calculatedAddPoint.x + 400,
+        yMin: calculatedAddPoint.y - 64,
+        yMax: calculatedAddPoint.y,
+        offset: { x: 0, y: 0 },
+        rotation: 0,
+      });
     }
-
-    const newPath2D = pathToPath2D(svg[svg.length - 1]!);
-    svg[svg.length - 1]!.path2D = newPath2D;
-
+    if (svg[svg.length - 1]!.tag === "path") {
+      const newPath2D = pathToPath2D(svg[svg.length - 1]!);
+      svg[svg.length - 1]!.shape.path2D = newPath2D;
+    } else if (svg[svg.length - 1]!.tag === "text") {
+      // const newPath = [...svg[svg.length - 1]!.shape.d];
+      // if (newPath[0]?.key !== "A") {
+      //   newPath[0]?.data.push({
+      //     x: calculatedAddPoint.x + 400,
+      //     y: calculatedAddPoint.y + 64,
+      //   });
+      //   newPath[0]?.data.push({
+      //     x: calculatedAddPoint.x + 200,
+      //     y: calculatedAddPoint.y + 64,
+      //   });
+      //   newPath[0]?.data.push({
+      //     x: calculatedAddPoint.x + 0,
+      //     y: calculatedAddPoint.y + 64,
+      //   });
+      //   newPath[0]?.data.push({
+      //     x: calculatedAddPoint.x + 0,
+      //     y: calculatedAddPoint.y + 0,
+      //   });
+      // }
+    }
+    svg[svg.length - 1]!.shape.path2D = pathToPath2D(svg[svg.length - 1]!);
     clear();
     drawSVG(ctx, svg);
     drawBoundingBox(ctx, svg.length - 1);
@@ -527,7 +596,6 @@ export default function Editor() {
   }
 
   function onZoom({ ctx, scaleX, scaleY }: Zoom) {
-    console.log("Zooming", scaleX, scaleY);
     const canvas = ctx.canvas;
     if (!canvas) return;
 
@@ -552,22 +620,20 @@ export default function Editor() {
 
   function onSelect({ ctx, currentPoint, e }: Select) {
     if (!svg) return;
-    console.log(`isEditing: ${isEditing}`);
+
+    setSelectPoint(currentPoint);
 
     if (isEditing) {
       let continueFlag = true;
       if (selectedPath !== null) {
         point2Ds.some((point2D, i) => {
-          if (ctx.isPointInPath(point2D, currentPoint.x, currentPoint.y)) {
-            setSelectedPoint(i);
-            console.log("Selected point", i);
-            continueFlag = false;
-            // e.stopPropagation();
-
-            return true;
-          } else {
-            return false;
-          }
+          point2D.some((point, j) => {
+            if (ctx.isPointInPath(point, currentPoint.x, currentPoint.y)) {
+              setSelectedPoint([[i, j]]);
+              continueFlag = false;
+              return true;
+            }
+          });
         });
       }
 
@@ -597,8 +663,6 @@ export default function Editor() {
                       : null,
             );
             boundingPointSelected = true;
-            console.log("Bounding Point Selected");
-            console.log(selectedBoundingBoxPoint);
             return true;
           } else {
             return false;
@@ -616,7 +680,6 @@ export default function Editor() {
       if (rotatePoint2D !== null) {
         if (ctx.isPointInPath(rotatePoint2D, currentPoint.x, currentPoint.y)) {
           setSelectedRotatePoint(true);
-          console.log("Rotate Point Selected");
           return;
         }
       }
@@ -624,7 +687,12 @@ export default function Editor() {
 
     //fix so that when a path is selected, you no longer search
 
-    svg.some(({ path2D }, i) => {
+    svg.some((subSVG, i) => {
+      // if (subSVG.tag === "text") {
+      //   //TODO : Implement Text Selection
+      //   return false;
+      // }
+      const path2D = subSVG.shape.path2D;
       if (path2D === null) return false;
       if (ctx.isPointInPath(path2D, currentPoint.x, currentPoint.y)) {
         setSelectedPath((prev) => i);
@@ -640,14 +708,24 @@ export default function Editor() {
       setSelectedPath(null);
       setSelectedPoint(null);
     } else {
-      const selectedSvg = svg[pathSelected];
-      if (selectedSvg?.path2D) {
-        drawOutline(ctx, selectedSvg.path2D);
+      const selectedSvg = svg[pathSelected]!;
+      if (selectedSvg.shape.path2D !== null) {
+        drawOutline(ctx, selectedSvg.shape.path2D);
       }
     }
 
-    console.log(pathSelected);
     setIsEditing(false);
+
+    // if isEditingText was true, change the text
+    if (isEditingText) {
+      if (svg[selectedPath!]?.tag !== "text") return;
+      const textInput = textareaRef.current;
+      if (!textInput) return;
+
+      //@ts-expect-error: tag is text
+      svg[selectedPath!]!.shape.content = textInput.value;
+      setIsEditingText(false);
+    }
 
     clear();
     drawSVG(ctx, svg);
@@ -656,12 +734,122 @@ export default function Editor() {
     setColor(svg[selectedPath!]?.fill ?? "#000000");
   }
 
+  const drawText = (textTag: SubSVG, ctx: CanvasRenderingContext2D) => {
+    if (textTag.tag !== "text") return;
+
+    // const shape = textTag.shape;
+    // if (shape.content === null) return;
+    // const svgElement = document.getElementById("test");
+    // if (!svgElement) {
+    //   console.log("NO SVG ELEMENT");
+    //   return;
+    // }
+    // svgElement.innerHTML = "";
+    // const id = Math.random().toString();
+
+    // const defElement = document.createElementNS(
+    //   "http://www.w3.org/2000/svg",
+    //   "defs",
+    // );
+
+    // const textElement = document.createElementNS(
+    //   "http://www.w3.org/2000/svg",
+    //   "text",
+    // );
+    // const textPathElement = document.createElementNS(
+    //   "http://www.w3.org/2000/svg",
+    //   "textPath",
+    // );
+    // const pathElement = document.createElementNS(
+    //   "http://www.w3.org/2000/svg",
+    //   "path",
+    // );
+    // pathElement.setAttribute(
+    //   "d",
+    //   "M10,90 Q90,90 90,45 Q90,10 50,10 Q10,10 10,40 Q10,70 45,70 Q70,70 75,50",
+    // );
+    // pathElement.setAttribute("id", "sss");
+    // textElement.setAttribute("x", "0");
+    // textElement.setAttribute("y", "0");
+    // textPathElement.setAttribute("href", `#sss`);
+    // defElement.appendChild(pathElement);
+    // svgElement.appendChild(defElement);
+    // textPathElement.setAttribute("startOffset", "50%");
+
+    // textPathElement.textContent = shape.content;
+    // console.log(shape.content);
+    // setForText(shape.content);
+    // textElement.appendChild(textPathElement);
+    // svgElement.appendChild(textElement);
+    // const svgString = new XMLSerializer().serializeToString(svgElement);
+    // const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
+    // const url = URL.createObjectURL(svgBlob);
+    // const img = new Image();
+    // img.src = url;
+
+    // //get center of bezier curve
+    // if (shape.d[0] === null) return;
+    // if (shape.d[0]?.data === null) return;
+    // if (shape.d[0]?.key !== "M") return;
+    // const x = shape.d[0].data[0]?.x ?? 0;
+    // const y = shape.d[0].data[0]?.y ?? 0;
+    // img.onload = () => {
+    //   ctx.drawImage(img, x, y);
+    // };
+    // const measureText = (text: string) => {
+    //   ctx.fillStyle = "#000000";
+    //   ctx.font = "bold 64px Montserrat";
+
+    //   return ctx.measureText(text).width;
+    // };
+
+    const absoluteSegmentsToArraysOfArrays = (segments: AbsoluteSegment[]) => {
+      const result: Point[] = [];
+      segments.forEach((seg) => {
+        if (seg.key === "A") {
+          return;
+        }
+        seg.data.forEach((point) => {
+          result.push({
+            x: point.x + textTag.offset.x,
+            y: point.y + textTag.offset.y,
+          });
+        });
+      });
+      return result;
+    };
+
+    function draw(letter: string, x: number, y: number) {
+      // ctx.translate(x, y);
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 64px Montserrat";
+      ctx.fillText(letter, x, y);
+    }
+
+    const coors = absoluteSegmentsToArraysOfArrays(textTag.shape.d);
+
+    console.log(coors);
+    textPath(textTag.shape.content, coors, draw);
+  };
+
   const drawSVG = (ctx: CanvasRenderingContext2D, svg: SVG) => {
     if (!svg) return;
-    svg.map(({ path2D }, i) => {
-      if (!path2D) return;
-      ctx.fillStyle = svg[i]?.fill ?? "#000000";
-      ctx.fill(path2D);
+    svg.map((subSvg, i) => {
+      if (subSvg.tag === "text") {
+        drawText(subSvg, ctx);
+        const shape = subSvg.shape;
+        const path2D = shape.path2D;
+        console.log(shape);
+        if (!path2D) return;
+        ctx.strokeStyle = "#000000";
+        ctx.stroke(path2D);
+      } else {
+        const shape = subSvg.shape;
+        const path2D = shape.path2D;
+        if (!path2D) return;
+        ctx.fillStyle = svg[i]?.fill ?? "#000000";
+        ctx.fill(path2D);
+      }
     });
   };
 
@@ -777,6 +965,12 @@ export default function Editor() {
   ) => {
     if (!svg) return;
     if (selectedPath === null) return;
+    // if (svg[selectedPath]?.tag === "text") {
+    //   //TODO : Implement Text Rotation
+
+    //   return;
+    // }
+
     const originX =
       (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2 +
       svg[selectedPath]!.offset.x;
@@ -784,7 +978,7 @@ export default function Editor() {
       (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2 +
       svg[selectedPath]!.offset.y;
 
-    console.log(svg[selectedPath]!.offset.x, svg[selectedPath]!.offset.y);
+    // console.log(svg[selectedPath]!.offset.x, svg[selectedPath]!.offset.y);
 
     //Fix How it only rotates clockwise
     const originVector = { x: prevX - originX, y: prevY - originY };
@@ -815,7 +1009,9 @@ export default function Editor() {
     svg[selectedPath]!.rotation = radian;
     const newPath = { ...svg[selectedPath]! };
 
-    newPath.d.map((segment) => {
+    if (newPath.shape.d === null) return;
+
+    newPath.shape.d.map((segment) => {
       if (
         segment.key === "A" ||
         (typeof segment.data === "object" && !Array.isArray(segment.data))
@@ -839,21 +1035,21 @@ export default function Editor() {
     // newPath.xMin = svg[selectedPath]!.xMin;
 
     const newPath2D = pathToPath2D(newPath);
-    svg[selectedPath]!.path2D = newPath2D;
+    svg[selectedPath]!.shape.path2D = newPath2D;
     clear();
     drawSVG(ctx, svg);
     drawBoundingBox(ctx, selectedPath);
-    //Draw Prev Point on Canvas
-    ctx.beginPath();
-    ctx.arc(prevX, prevY, 100, 0, 2 * Math.PI);
-    ctx.fillStyle = "red";
+    // //Draw Prev Point on Canvas
+    // ctx.beginPath();
+    // ctx.arc(prevX, prevY, 100, 0, 2 * Math.PI);
+    // ctx.fillStyle = "red";
 
-    //Draw Origin
-    ctx.arc(originX, originY, 100, 0, 2 * Math.PI);
-    ctx.fillStyle = "blue";
+    // //Draw Origin
+    // ctx.arc(originX, originY, 100, 0, 2 * Math.PI);
+    // ctx.fillStyle = "blue";
 
-    ctx.fill();
-    ctx.closePath();
+    // ctx.fill();
+    // ctx.closePath();
   };
 
   const rotatePoint = (
@@ -881,6 +1077,11 @@ export default function Editor() {
     let realDy = dy;
     if (svg === null) return;
     if (selectedPath === null) return;
+    // if (svg[selectedPath]?.tag === "text") {
+    //   //TODO : Implement Text Expansion
+
+    //   return;
+    // }
     const oldWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
     const oldHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
     if (selectedBoxPoint === "leftUpper") {
@@ -891,7 +1092,8 @@ export default function Editor() {
 
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-      svg[selectedPath]?.d.map((segment) => {
+
+      svg[selectedPath]?.shape.d.map((segment) => {
         if (segment.key === "A") return;
         segment.data.map((point) => {
           point.x =
@@ -911,7 +1113,7 @@ export default function Editor() {
       svg[selectedPath]!.yMin += realDy;
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-      svg[selectedPath]?.d.map((segment) => {
+      svg[selectedPath]?.shape.d.map((segment) => {
         if (segment.key === "A") return;
         segment.data.map((point) => {
           point.x =
@@ -932,7 +1134,7 @@ export default function Editor() {
 
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-      svg[selectedPath]?.d.map((segment) => {
+      svg[selectedPath]?.shape.d.map((segment) => {
         if (segment.key === "A") return;
         segment.data.map((point) => {
           point.x =
@@ -952,7 +1154,7 @@ export default function Editor() {
       svg[selectedPath]!.yMax += realDy;
       const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
       const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-      svg[selectedPath]?.d.map((segment) => {
+      svg[selectedPath]?.shape.d.map((segment) => {
         if (segment.key === "A") return;
 
         segment.data.map((point) => {
@@ -1002,11 +1204,16 @@ export default function Editor() {
     // });
 
     const newPath2D = pathToPath2D(svg[selectedPath]!);
-    svg[selectedPath]!.path2D = newPath2D;
+    svg[selectedPath]!.shape.path2D = newPath2D;
 
     clear();
     drawSVG(ctx, svg);
     drawBoundingBox(ctx, selectedPath);
+  };
+
+  const onCreateText = (ctx: CanvasRenderingContext2D) => {
+    ctx.font = "30px Arial";
+    ctx.fillText("Hello World", 10, 50);
   };
 
   const absoluteSegmentToSegment = (
@@ -1039,37 +1246,102 @@ export default function Editor() {
     const selectedPathPath = svg[selectedPath];
     if (selectedPathPath === null || selectedPathPath === undefined) return;
 
-    const { d, offset } = selectedPathPath;
-    const newPoint2Ds: Path2D[] = [];
+    drawBezierControlLines(ctx, svg);
+    const { d } = selectedPathPath.shape;
+
+    const offset = selectedPathPath.offset;
+    const newPoint2Ds: Path2D[][] = [];
     const xOffset = offset.x;
     const yOffset = offset.y;
     d.map((segment) => {
       const { key, data } = segment;
       if (key === "A") return;
-      const endPoint = data[data.length - 1];
-      if (!endPoint) return;
+      const tempPoint2Ds: Path2D[] = [];
+      data.map((point) => {
+        const point2D = new Path2D();
+        tempPoint2Ds.push(point2D);
+        point2D.arc(
+          point.x + xOffset,
+          point.y + yOffset,
+          5 * (1 / scale.x),
+          0,
+          2 * Math.PI,
+        );
+        ctx.strokeStyle = "#4eb2fd";
+        ctx.stroke(point2D);
+      });
 
-      const point2D = new Path2D();
-
-      newPoint2Ds.push(point2D);
+      newPoint2Ds.push(tempPoint2Ds);
       ctx.fillStyle = "white";
 
-      if (newPoint2Ds.length - 1 === selectedPoint) {
-        ctx.fillStyle = "#3eadfd";
-      }
-      point2D.arc(
-        endPoint.x + xOffset,
-        endPoint.y + yOffset,
-        5 * (1 / scale.x),
-        0,
-        2 * Math.PI,
-      );
-      ctx.fill(point2D);
-
-      ctx.strokeStyle = "#3eadfd";
-      ctx.stroke(point2D);
+      // if (newPoint2Ds.length - 1 === selectedPoint) {
+      //   ctx.fillStyle = "#3eadfd";
+      // }
     });
     setPoint2Ds(newPoint2Ds);
+  };
+
+  const drawBezierControlLines = (ctx: CanvasRenderingContext2D, svg: SVG) => {
+    if (!svg) return;
+    if (selectedPath === null) return;
+    if (!isEditing) return;
+    if (svg[selectedPath] === undefined || svg[selectedPath] === null) return;
+    const selectedPathPath = svg[selectedPath];
+    if (selectedPathPath === null || selectedPathPath === undefined) return;
+
+    const { d } = selectedPathPath.shape;
+
+    const offset = selectedPathPath.offset;
+    const xOffset = offset.x;
+    const yOffset = offset.y;
+
+    const dLength = d.length;
+
+    for (let i = 0; i < dLength; i++) {
+      if (i === 0) continue;
+
+      const segment = d[i];
+      if (!segment) continue;
+      const { key, data } = segment;
+      if (key === "A") continue;
+      if (key === "M") continue;
+      if (key === "Z") continue;
+      if (key === "C") {
+        let lastPoint = { x: 0, y: 0 };
+        if (d[i - 1]!.key === "A") {
+          lastPoint = {
+            // @ts-expect-error: Unreachable code error
+            x: d[i - 1]!.data.dx as number,
+            // @ts-expect-error: Unreachable code error
+            y: d[i - 1]!.data.dy as number,
+          } as Point;
+        } else {
+          // @ts-expect-error: Unreachable code error
+          lastPoint = d[i - 1].data[d[i - 1].data.length - 1] as Point;
+        }
+
+        const startPoint = lastPoint;
+        const endPoint = data[2];
+        const startControlPoint = data[0];
+        const endControlPoint = data[1];
+        ctx.beginPath();
+        ctx.moveTo(startPoint.x + xOffset, startPoint.y + yOffset);
+        ctx.lineTo(
+          startControlPoint!.x + xOffset,
+          startControlPoint!.y + yOffset,
+        );
+        ctx.strokeStyle = "#4eb2fd";
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.moveTo(endPoint!.x + xOffset, endPoint!.y + yOffset);
+        ctx.lineTo(endControlPoint!.x + xOffset, endControlPoint!.y + yOffset);
+        ctx.strokeStyle = "#4eb2fd";
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
   };
 
   const drawOutline = (ctx: CanvasRenderingContext2D, path: Path2D) => {
@@ -1078,15 +1350,45 @@ export default function Editor() {
     ctx.stroke(path);
   };
 
+  const onPathsMove = (
+    ctx: CanvasRenderingContext2D,
+    dx: number,
+    dy: number,
+  ) => {
+    if (!svg) return;
+    const newSVG = [...svg];
+    newSVG.map((subSVG) => {
+      if (subSVG.tag === "text") {
+        //TODO : Implement Text Move
+        return;
+      }
+      const newPath = subSVG.shape.d;
+      if (newPath === null || newPath === undefined) return;
+      newPath.map((segment) => {
+        if (segment.key === "A") return;
+        segment.data.map((point) => {
+          point.x += dx;
+          point.y += dy;
+        });
+      });
+      const newPath2D = pathToPath2D(subSVG);
+      subSVG.shape.path2D = newPath2D;
+    });
+    setSVG(newSVG);
+    clear();
+    drawSVG(ctx, newSVG);
+    drawSVGPoints(ctx, newSVG);
+  };
+
   const onPathMove = (
     ctx: CanvasRenderingContext2D,
     path: Path2D,
     dx: number,
     dy: number,
   ) => {
+    console.log("path move");
     if (selectedPath === null) return;
     if (!svg) return;
-    console.log("moving path");
     // const newSVG = [...svg];
     // const newPathPath = newSVG[selectedPath];
     // if (newPathPath === undefined || newPathPath === null) return;
@@ -1129,7 +1431,7 @@ export default function Editor() {
 
     const svgSelectedPath = svg[selectedPath];
     if (svgSelectedPath === undefined) return;
-    svgSelectedPath.path2D = newPath2D;
+    svgSelectedPath.shape.path2D = newPath2D;
 
     clear();
     drawSVG(ctx, svg);
@@ -1138,8 +1440,11 @@ export default function Editor() {
     drawOutline(ctx, newPath2D);
   };
 
-  const pathToPath2D = (path: Path): Path2D => {
-    const { d, offset } = path;
+  const pathToPath2D = (path: SubSVG): Path2D => {
+    const tag = path.tag;
+    if (!path.shape.d) return new Path2D();
+    const { d } = path.shape;
+    const offset = path.offset;
     const dWithOffset = d.map((segment) => {
       if (segment.key !== "A")
         return {
@@ -1163,9 +1468,66 @@ export default function Editor() {
         };
     });
 
+    if (
+      tag === "text" &&
+      dWithOffset[0]?.key === "M" &&
+      dWithOffset[1]?.key === "C"
+    ) {
+      // const startPoint = dWithOffset[0]?.data[0];
+      // const middlePoint = dWithOffset[1]?.data[0];
+      // const endPoint = dWithOffset[2]?.data[0];
+      // dWithOffset.push({
+      //   key: "L",
+      //   data: [{ x: endPoint!.x, y: endPoint!.y - path.shape.size }],
+      // });
+      // dWithOffset.push({
+      //   key: "L",
+      //   data: [{ x: middlePoint!.x, y: middlePoint!.y - path.shape.size }],
+      // });
+      // dWithOffset.push({
+      //   key: "L",
+      //   data: [{ x: startPoint!.x, y: startPoint!.y - path.shape.size }],
+      // });
+      // dWithOffset.push({
+      //   key: "Z",
+      //   data: [],
+      // });
+
+      const endPoint = dWithOffset[1]?.data[2];
+      const startControlPoint = dWithOffset[1]?.data[0];
+      const endControlPoint = dWithOffset[1]?.data[1];
+      const startPoint = dWithOffset[0]?.data[0];
+
+      dWithOffset.push({
+        key: "L",
+        data: [{ x: endPoint!.x, y: endPoint!.y - path.shape.size }],
+      });
+      dWithOffset.push({
+        key: "C",
+        data: [
+          { x: endControlPoint!.x, y: endControlPoint!.y - path.shape.size },
+          {
+            x: startControlPoint!.x,
+            y: startControlPoint!.y - path.shape.size,
+          },
+          { x: startPoint!.x, y: startPoint!.y - path.shape.size },
+        ],
+      });
+      dWithOffset.push({
+        key: "Z",
+        data: [],
+      });
+    }
+
     const pathString = svgPathToString(dWithOffset);
+    console.log("PathStirng", pathString);
     const path2D = new Path2D(pathString);
     return path2D;
+  };
+
+  const computePointOutsideCanvas = (point: Point) => {
+    //ToDo : Take into account the scale
+    return { x: point.x + panOffset.x, y: point.y + panOffset.y };
   };
 
   const computePointInCanvas = (e: React.MouseEvent) => {
@@ -1351,8 +1713,13 @@ export default function Editor() {
         }
       });
       const fill = path.getAttribute("fill") ?? "black";
+      const shape: Path = {
+        d: d,
+        path2D: path2D,
+      };
       const offset = { x: xOffSet, y: yOffSet };
-      return { d, fill, path2D, offset, xMin, xMax, yMin, yMax, rotation };
+      const tag = "path";
+      return { shape, tag, fill, offset, xMin, xMax, yMin, yMax, rotation };
     });
 
     return { svg: svg };
@@ -1369,8 +1736,12 @@ export default function Editor() {
     if (selectedPath !== null) drawBoundingBox(ctx, selectedPath);
     // drawBoundingBox(ctx, selectedPath);
     const newSVG = [...svg];
-    newSVG.reverse().some(({ path2D }, i) => {
-      if (!path2D) return false;
+    newSVG.reverse().some((subSVG, i) => {
+      const path2D = subSVG.shape.path2D;
+      if (!path2D) {
+        console.log("no path 2d");
+        return;
+      }
       if (ctx.isPointInPath(path2D, currentPoint.x, currentPoint.y)) {
         drawOutline(ctx, path2D);
         return true;
@@ -1379,15 +1750,18 @@ export default function Editor() {
       }
     });
 
+    //When hovering over points, change color
     if (!isEditing) return;
     point2Ds.some((point2D) => {
-      if (ctx.isPointInPath(point2D, currentPoint.x, currentPoint.y)) {
-        ctx.fillStyle = "#3eadfd";
-        ctx.fill(point2D);
-        return true;
-      } else {
-        return false;
-      }
+      point2D.some((point2D) => {
+        if (ctx.isPointInPath(point2D, currentPoint.x, currentPoint.y)) {
+          ctx.fillStyle = "#3eadfd";
+          ctx.fill(point2D);
+          return true;
+        } else {
+          return false;
+        }
+      });
     });
   }
 
@@ -1399,12 +1773,18 @@ export default function Editor() {
     const svgSelectedPath = svg[selectedPath];
     if (svgSelectedPath === undefined) return;
 
-    const segment = svgSelectedPath.d[selectedPoint];
+    const segment = svgSelectedPath.shape.d[selectedPoint[0]![0]];
     if (segment?.key === "A") return;
-    segment?.data.map((point) => {
-      point.x += dx;
-      point.y += dy;
-    });
+
+    // segment?.data.map((point) => {
+    //   point.x += dx;
+    //   point.y += dy;
+    // });
+    // Instead of moving all the points in the curve, move the selected point
+    const point = segment?.data[selectedPoint[0]![1]];
+    if (!point) return;
+    point.x += dx;
+    point.y += dy;
 
     type Segment = {
       key: string;
@@ -1412,7 +1792,7 @@ export default function Editor() {
     };
     const newPath: Segment[] = [];
 
-    svgSelectedPath.d.map((segment) => {
+    svgSelectedPath.shape.d.map((segment) => {
       const data: number[] = [];
       const key = segment.key;
       if (key === "A") return;
@@ -1426,14 +1806,16 @@ export default function Editor() {
     });
 
     const newPath2D = new Path2D(serialize(newPath));
-    svgSelectedPath.path2D = newPath2D;
+    svgSelectedPath.shape.path2D = newPath2D;
 
     clear();
     drawSVG(ctx, svg);
     drawSVGPoints(ctx, svg);
 
     // const newString = serialize(newPath);
-    const newBbox = getBBox(svg[selectedPath]!);
+    if (selectedPath === null) return;
+
+    const newBbox = getBBox(svg[selectedPath]!.shape);
     svgSelectedPath.xMax = newBbox.x2;
     svgSelectedPath.xMin = newBbox.x;
     svgSelectedPath.yMax = newBbox.y2;
@@ -1446,7 +1828,7 @@ export default function Editor() {
     x2: number;
     y2: number;
   };
-  const getBBox = (path: Path): BBox => {
+  const getBBox = (path: Path | TextContent): BBox => {
     if (!path) return { x: 0, y: 0, x2: 0, y2: 0 };
 
     //TODO : When segment is 'A'
@@ -1523,11 +1905,88 @@ export default function Editor() {
       console.log("No SVG");
       return;
     }
-    if (selectedPath === null) {
-      console.log("No selected path");
+
+    if (!prevPoint) {
       return;
     }
-    if (!prevPoint) {
+
+    if (selectedPath === null) {
+      console.log("DRAGGING!!!", currentPoint, prevPoint);
+
+      const calculatedPoint = {
+        x: currentPoint.x * (1 / scale.x) - panOffset.x,
+        y: currentPoint.y * (1 / scale.y) - panOffset.y,
+      };
+      const calculatedSelectPoint = {
+        x: selectPoint!.x * (1 / scale.x) - panOffset.x,
+        y: selectPoint!.y * (1 / scale.y) - panOffset.y,
+      };
+      if (!calculatedPoint) {
+        console.log("current point is null");
+        return;
+      }
+      if (!selectPoint) {
+        console.log("add point is null");
+        return;
+      }
+
+      if (!svg) {
+        console.log("svg is null");
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.rect(
+        calculatedSelectPoint.x,
+        calculatedSelectPoint.y,
+        calculatedPoint.x - calculatedSelectPoint.x,
+        calculatedPoint.y - calculatedSelectPoint.y,
+      );
+      ctx.closePath();
+      ctx.fillStyle = "#eaf5ff";
+      ctx.fill();
+
+      drawSVG(ctx, svg);
+
+      // calculate if the box contains any paths, set selected paths
+      const newSelectedPaths: number[] = [];
+      svg.map(({ xMax, xMin, yMax, yMin }, i) => {
+        const biggerSelectX = Math.max(
+          calculatedPoint.x,
+          calculatedSelectPoint.x,
+        );
+        const smallerSelectX = Math.min(
+          calculatedPoint.x,
+          calculatedSelectPoint.x,
+        );
+        const biggerSelectY = Math.max(
+          calculatedPoint.y,
+          calculatedSelectPoint.y,
+        );
+        const smallerSelectY = Math.min(
+          calculatedPoint.y,
+          calculatedSelectPoint.y,
+        );
+        if (
+          ((yMin < smallerSelectY && yMax > smallerSelectY) ||
+            (yMin < biggerSelectY && yMax > biggerSelectY) ||
+            (yMin > smallerSelectY && yMax < biggerSelectY)) &&
+          ((xMin < smallerSelectX && xMax > smallerSelectX) ||
+            (xMin < biggerSelectX && xMax > biggerSelectX) ||
+            (xMin > smallerSelectX && xMax < biggerSelectX))
+        ) {
+          newSelectedPaths.push(i);
+        }
+      });
+      console.log(newSelectedPaths);
+      setSelectedPaths(newSelectedPaths);
+
+      //for each path, draw outline
+      newSelectedPaths.map((i) => {
+        const path2D = svg[i]!.shape.path2D;
+        if (!path2D) return;
+        drawOutline(ctx, path2D);
+      });
       return;
     }
 
@@ -1541,7 +2000,7 @@ export default function Editor() {
     if (selectedBoundingBoxPoint !== null) {
       onPathExpand(
         ctx,
-        svg[selectedPath]!.path2D!,
+        svg[selectedPath]!.shape.path2D!,
         (currentPoint.x - prevPoint.x) * (1 / scale.x),
         (currentPoint.y - prevPoint.y) * (1 / scale.y),
         selectedBoundingBoxPoint,
@@ -1553,7 +2012,7 @@ export default function Editor() {
       console.log("Rotate Point Selected and Moving");
       onPathRotate(
         ctx,
-        svg[selectedPath]!.path2D!,
+        svg[selectedPath]!.shape.path2D!,
         (currentPoint.x - prevPoint.x) * (1 / scale.x),
         (currentPoint.y - prevPoint.y) * (1 / scale.y),
         prevPoint.x * (1 / scale.x) - panOffset.x,
@@ -1564,12 +2023,33 @@ export default function Editor() {
 
     const dx = (currentPoint.x - prevPoint.x) * (1 / scale.x);
     const dy = (currentPoint.y - prevPoint.y) * (1 / scale.y);
+
+    if (selectedPaths.length > 0 && selectedPaths !== null) {
+      onPathsMove(ctx, dx, dy);
+      return;
+    }
+
     const svgSelectedPath = svg[selectedPath];
+
     if (svgSelectedPath === undefined) return;
-    const path = svgSelectedPath.path2D;
+    const path = svgSelectedPath.shape.path2D;
     if (!path) return;
     onPathMove(ctx, path, dx, dy);
   }
+
+  const onDeletePaths = () => {
+    if (!svg) return;
+    const newSVG = svg.filter((_, i) => !selectedPaths.includes(i));
+    setSVG(newSVG);
+    setSelectedPaths([]);
+    setSelectedPath(null);
+    setSelectedPoint(null);
+    clear();
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    drawSVG(ctx, newSVG);
+    drawSVGPoints(ctx, newSVG);
+  };
 
   const onDeletePath = () => {
     if (selectedPath === null) return;
@@ -1588,6 +2068,7 @@ export default function Editor() {
   };
 
   const onMouseDownWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log("Selected : ", selectedPath);
     setIsMouseDown(true);
     if (tool === "hand") {
       onMouseDown();
@@ -1597,7 +2078,6 @@ export default function Editor() {
     }
     if (isRightClicked !== null) setIsRightClicked(null);
     if (tool === "add") {
-      console.log("tool is add");
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
       if (!addShape) return;
@@ -1609,11 +2089,8 @@ export default function Editor() {
     setIsMouseDown(false);
     onSelectMouseUp();
     handMouseUpHandler();
-    console.log("useSelect mouse up");
     setBoundingPoint2D(null);
-    console.log(tool);
     if (tool === "add") {
-      console.log("Mouse Up on Add!!!!!!!!!");
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
       onAddUp(ctx, e);
@@ -1630,10 +2107,37 @@ export default function Editor() {
     if (tool === "add") {
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
-      ("add moving");
       onAddMove(ctx, e);
     }
   };
+
+  useEffect(() => {
+    //the textarea hans't been rendered yet so there's no textareaRef.current yet we should put this in a useEffect
+
+    console.log("BEFORE USE EFFECT");
+    if (selectedPath === null) return;
+    if (!isEditingText) return;
+    if (!textareaRef.current) return;
+
+    const { x, y } = computePointOutsideCanvas({
+      x: svg![selectedPath]!.xMin + svg![selectedPath]!.offset.x,
+      y: svg![selectedPath]!.yMin + svg![selectedPath]!.offset.y,
+    });
+
+    const width = svg![selectedPath]!.xMax - svg![selectedPath]!.xMin;
+    const height = svg![selectedPath]!.yMax - svg![selectedPath]!.yMin;
+
+    textareaRef.current?.style.setProperty("left", x.toString() + "px");
+    textareaRef.current?.style.setProperty("top", y.toString() + "px");
+    textareaRef.current?.style.setProperty("display", "block");
+    textareaRef.current?.style.setProperty("width", width.toString() + "px");
+    textareaRef.current?.style.setProperty("height", height.toString() + "px");
+    textareaRef.current?.style.setProperty("font-size", "64px");
+
+    setTextareaPosition({ x: x, y: y });
+
+    console.log("AFTER USE EFFECT");
+  }, [textareaRef.current]);
 
   const onSelectRightClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (selectedPath === null) return;
@@ -1652,7 +2156,6 @@ export default function Editor() {
   const [colorPicker, setColorPicker] = useState<boolean>(false);
   const handleColorChange = (e: string) => {
     setColor(e);
-    console.log(e);
     if (!svg) return;
     if (!selectedPath) return;
     const svgSelectedPath = svg[selectedPath];
@@ -1700,17 +2203,33 @@ export default function Editor() {
             >
               Edit
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onDeletePath();
-                setIsRightClicked(null);
-              }}
-              className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
-            >
-              Delete
-            </button>
+            {selectedPath !== null && svg![selectedPath]!.tag === "text" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setIsEditingText(true);
+
+                  setIsRightClicked(null);
+                }}
+                className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
+              >
+                Edit Text
+              </button>
+            )}
+            {selectedPaths !== null && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onDeletePaths();
+                  setIsRightClicked(null);
+                }}
+                className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
+              >
+                Delete
+              </button>
+            )}
           </div>
         ) : null}
 
@@ -1922,7 +2441,13 @@ export default function Editor() {
                 ></circle>
               </svg>
             </div>
-            <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md text-[18px] font-light hover:bg-violet-300">
+            <div
+              className="flex h-[30px] w-[30px] items-center justify-center rounded-md text-[18px] font-light hover:bg-violet-300"
+              onClick={(e) => {
+                setTool("add");
+                setAddShape("text");
+              }}
+            >
               T
             </div>
             <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300">
@@ -2007,6 +2532,8 @@ export default function Editor() {
         <div className="flex flex-auto justify-between p-[12px]">
           <div className="flex h-full w-[296px] flex-col items-center justify-center rounded-xl bg-white shadow-md">
             Layers
+            <svg id="test" width="100" height="100" viewBox="0 0 100 100" />
+            <div>{forText}</div>
           </div>
           <AnimatePresence>
             {selectedPath !== null && (
@@ -2014,7 +2541,7 @@ export default function Editor() {
                 initial={{ x: 300 }}
                 animate={{ x: 0 }}
                 exit={{ x: 300 }}
-                className={` flex  h-full  w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
+                className={` z-10 flex  h-full  w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Properties
@@ -2146,19 +2673,27 @@ export default function Editor() {
           </div>
         </div>
       </div>
-      <canvas
-        onMouseDown={onMouseDownWrapper}
-        onContextMenu={onRightClickWrapper}
-        onMouseUp={onMouseUpWrapper}
-        onMouseMove={onMouseMoveWrapper}
-        onWheel={handOnWheelMove}
-        ref={canvasRef}
-        width={600}
-        height={600}
-        className={` z-2 absolute rounded-lg bg-white ${
-          tool === "hand" ? "cursor-grab" : ""
-        } ${mouseDown ? "cursor-grabbing" : ""}`}
-      ></canvas>
+      <div className="absolute h-full w-full">
+        <canvas
+          onMouseDown={onMouseDownWrapper}
+          onContextMenu={onRightClickWrapper}
+          onMouseUp={onMouseUpWrapper}
+          onMouseMove={onMouseMoveWrapper}
+          onWheel={handOnWheelMove}
+          ref={canvasRef}
+          width={600}
+          height={600}
+          className={` z-2 absolute inset-0 m-auto rounded-lg bg-white ${
+            tool === "hand" ? "cursor-grab" : ""
+          } ${mouseDown ? "cursor-grabbing" : ""}`}
+        ></canvas>
+        {isEditingText && (
+          <input
+            ref={textareaRef}
+            className={`font-montserrat absolute   hidden resize-none border-2 border-[#18a0fb] font-bold ring-0 ring-offset-0`}
+          ></input>
+        )}
+      </div>
     </div>
   );
 }

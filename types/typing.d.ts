@@ -38,16 +38,45 @@ type Point = { x: number; y: number };
 type Path = {
   d: AbsoluteSegment[];
   path2D: Path2D | null;
-  fill: string;
-  offset: Point;
-  xMax: number;
-  xMin: number;
-  yMax: number;
-  yMin: number;
-  rotation: number;
 };
 
-type SVG = Path[];
+type TextContent = {
+  font: string;
+  size: number;
+  content: string;
+  path2D: Path2D | null;
+  d: AbsoluteSegment[];
+};
+type SVG = SubSVG[];
+
+type SubSVG =
+  | {
+      shape: Path;
+      tag: "path";
+      fill: string;
+      offset: Point;
+      xMax: number;
+      xMin: number;
+      yMax: number;
+      yMin: number;
+      rotation: number;
+    }
+  | {
+      shape: TextContent;
+      tag: "text";
+      fill: string;
+      offset: Point;
+      xMax: number;
+      xMin: number;
+      yMax: number;
+      yMin: number;
+      rotation: number;
+    };
+
+type SubPath = {
+  tag: "path" | "text";
+  info: Path | Text;
+};
 
 type AbsoluteSegment =
   | {
