@@ -12,21 +12,15 @@ export const useSVG = (initial: SVG | null) => {
   const [selected, setSelected] = useState<Edge | null>(null);
 
   const moveSelected = (to: Point) => {
-    if (svg === null) return;
-    if (selected === null) return;
-    const { pathIndex, pointIndex, segmentIndex } = selected;
-    const newSVG: SVG = svg.map((path, i) => {
-      if (i !== pathIndex) return path;
-      return {
-        ...path,
-        d: path.d.map((segment, j) => {
-          if (j !== segmentIndex) return segment;
-          segment.data[pointIndex] = to;
-          return segment;
-        }),
-      };
-    });
-    setSVG(newSVG);
+    // if (svg === null) return;
+    // if (selected === null) return;
+    // const { pathIndex, pointIndex, segmentIndex } = selected;
+    // if(svg[pathIndex]?.tag === "text") return;
+    // if(svg[pathIndex?.shape.
+    // const newSVG =  [...svg]
+    // newSVG[pathIndex]?.shape.d[segmentIndex].data[pointIndex] = to;
+    // setSVG(newSVG)
+    console.log("moveSelected", to);
   };
 
   return { svg, setSVG, setSelected, moveSelected };
