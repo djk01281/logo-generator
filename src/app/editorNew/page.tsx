@@ -1884,12 +1884,12 @@ export default function Editor() {
     //TODO : Change the selectedPaths only when the mouse is released
     if (!isEditing && selectedPaths.length === 0) {
       const calculatedPoint = {
-        x: (currentPoint.x - panOffset.x) * (1 / scale.x),
-        y: (currentPoint.y - panOffset.y) * (1 / scale.y),
+        x: currentPoint.x * (1 / scale.x) - panOffset.x,
+        y: currentPoint.y * (1 / scale.y) - panOffset.y,
       };
       const calculatedSelectPoint = {
-        x: (selectPoint!.x - panOffset.x) * (1 / scale.x),
-        y: (selectPoint!.y - panOffset.y) * (1 / scale.y),
+        x: selectPoint!.x * (1 / scale.x) - panOffset.x,
+        y: selectPoint!.y * (1 / scale.y) - panOffset.y,
       };
       if (!calculatedPoint) {
         console.log("current point is null");
@@ -2140,9 +2140,6 @@ export default function Editor() {
     onSelectRightClick(e);
     onSelectMouseUp();
   };
-
-  const top = "top-[" + isRightClicked?.y + "px]";
-  const left = "left-[" + isRightClicked?.x + "px]";
 
   const [colorPicker, setColorPicker] = useState<boolean>(false);
   const handleColorChange = (e: string) => {
