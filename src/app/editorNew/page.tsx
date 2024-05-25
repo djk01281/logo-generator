@@ -3,7 +3,7 @@
 import { useSVG } from "~/hooks/usSVG";
 import { useHand } from "~/hooks/useHand";
 import { useSelect } from "~/hooks/useSelect";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { parsePath, absolutize, normalize, serialize } from "path-data-parser";
 import ToolBox from "./_components/ToolBox";
 import Link from "next/link";
@@ -209,6 +209,7 @@ export default function Editor() {
   const [selectedPoint, setSelectedPoint] = useState<PointIndex[] | null>(null);
   const [selectedDraw, setSelectedDraw] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [isRightClicked, setIsRightClicked] = useState<Point | null>(null);
   const [color, setColor] = useState<string>("#000000");
   const [boundingPoints2D, setBoundingPoint2D] = useState<Path2D[] | null>(
@@ -481,6 +482,7 @@ export default function Editor() {
         yMax: calculatedAddPoint.y + addHeight,
         offset: { x: 0, y: 0 },
         rotation: 0,
+        stroke: "#000000",
       });
     } else if (addShape === "circle") {
       svg.push({
@@ -534,6 +536,7 @@ export default function Editor() {
         yMin: calculatedAddPoint.y,
         yMax: calculatedAddPoint.y + addHeight,
         offset: { x: 0, y: 0 },
+        stroke: "#000000",
         rotation: 0,
       });
     } else if (addShape === "text") {
@@ -566,6 +569,7 @@ export default function Editor() {
         yMin: calculatedAddPoint.y - 64,
         yMax: calculatedAddPoint.y,
         offset: { x: 0, y: 0 },
+        stroke: "#000000",
         rotation: 0,
       });
     }
@@ -855,6 +859,8 @@ export default function Editor() {
         if (!path2D) return;
         ctx.fillStyle = svg[i]?.fill ?? "#000000";
         ctx.fill(path2D);
+        ctx.strokeStyle = svg[i]?.stroke ?? "#000000";
+        ctx.stroke(path2D);
       }
     });
   };
@@ -1693,7 +1699,19 @@ export default function Editor() {
       };
       const offset = { x: xOffSet, y: yOffSet };
       const tag = "path";
-      return { shape, tag, fill, offset, xMin, xMax, yMin, yMax, rotation };
+      const stroke = path.getAttribute("stroke") ?? "black";
+      return {
+        shape,
+        tag,
+        fill,
+        offset,
+        xMin,
+        xMax,
+        yMin,
+        yMax,
+        rotation,
+        stroke,
+      };
     });
 
     return { svg: svg };
@@ -2027,6 +2045,12 @@ export default function Editor() {
       if (!addShape) return;
       onAddSelect(ctx, computePointInCanvas(e)!, addShape);
     }
+    if (tool === "draw") {
+      onDrawMouseDown(e);
+    }
+    if (tool === "draw" && isBending) {
+      onBendMouseDown(e);
+    }
   };
 
   const onMouseUpWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2116,7 +2140,301 @@ export default function Editor() {
       if (!ctx) return;
       onAddMove(ctx, e);
     }
+    if (tool === "draw") {
+      onDrawMouseMove(e);
+    }
+    if (tool === "draw" && isBending) {
+      onBendMouseMove(e);
+    }
   };
+  const [linePath2Ds, setLinePath2Ds] = useState<Path2D[]>([]);
+
+  const [isBending, setIsBending] = useState(false);
+
+  const onBendMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    //check linePath2Ds, if the point is inside a line, turn the line into a curve
+    //else do nothing
+    if (!svg) return;
+    if (svg.length === 0) return;
+    if (!isBending && tool !== "draw") return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const currentPoint = computePointInCanvas(e);
+    if (!currentPoint) return;
+    const offset = { x: panOffset.x, y: panOffset.y };
+    const xOffSet = offset.x;
+    const yOffSet = offset.y;
+    const x = currentPoint.x;
+    const y = currentPoint.y;
+    let selectedLine = -1;
+    console.log(linePath2Ds);
+    linePath2Ds.map((linePath2D, i) => {
+      if (ctx.isPointInPath(linePath2D, x, y)) {
+        selectedLine = i;
+      }
+    });
+    console.log("I IS", selectedLine);
+    if (selectedLine === -1) return;
+    const path = svg[svg.length - 1]!;
+    const d = path.shape.d;
+    let segment = d[selectedLine + 1]!;
+    if (segment.key === "C") return;
+    const lastPoint = d[selectedLine]!.data[0];
+    let endPoint = d[0]!.data[0];
+    if (d[selectedLine + 1]!.key !== "Z") {
+      endPoint = d[selectedLine + 1]!.data[0];
+    }
+    const startControlPoint = {
+      x: (lastPoint.x + endPoint.x) / 2,
+      y: (lastPoint.y + endPoint.y) / 2,
+    };
+    const endControlPoint = {
+      x: (lastPoint.x + endPoint.x) / 2,
+      y: (lastPoint.y + endPoint.y) / 2,
+    };
+    segment = {
+      key: "C",
+      data: [startControlPoint, endControlPoint, endPoint],
+    };
+    d[selectedLine + 1] = segment;
+  };
+
+  const onBendMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isBending) return;
+    if (!svg) return;
+    if (svg.length === 0) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const currentPoint = computePointInCanvas(e);
+    if (!currentPoint) return;
+    const path = svg[svg.length - 1]!;
+
+    let selectedLine = -1;
+    linePath2Ds.map((linePath2D, i) => {
+      if (ctx.isPointInPath(linePath2D, currentPoint.x, currentPoint.y)) {
+        selectedLine = i;
+      }
+    });
+
+    clear();
+    drawSVG(ctx, svg);
+    drawDrawPoints(ctx, svg[svg.length - 1]!);
+    if (selectedLine === -1) return;
+    ctx.fillStyle = "#3eadfd";
+    ctx.fill(linePath2Ds[selectedLine]!);
+  };
+
+  // ------------------- Draw Tool -------------------
+  const onDrawMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // If the new path is empty, add a 'M', Else add a 'L'
+    if (!isDrawing) return;
+    if (!svg) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    if (svg.length === 0) return;
+    const path = svg[svg.length - 1];
+    if (path === undefined) return;
+    const { x, y } = computePointInCanvas(e)!;
+    const offset = { x: panOffset.x, y: panOffset.y };
+    const xOffSet = offset.x;
+    const yOffSet = offset.y;
+    const d = path.shape.d;
+
+    if (d.length !== 0 && d[d.length - 1]!.key === "Z") {
+      const newPath: AbsoluteSegment[] = [];
+      const newPath2D = new Path2D("");
+      const newSVG = [...svg];
+      const { x, y } = computePointInCanvas(e)!;
+      newSVG.push({
+        tag: "path",
+        shape: { path2D: newPath2D, d: newPath },
+        xMax: x,
+        xMin: x,
+        yMax: y,
+        yMin: y,
+        rotation: 0,
+        offset: { x: 0, y: 0 },
+        fill: "white",
+        stroke: "black",
+      });
+      setSVG(newSVG);
+      setLinePath2Ds([]);
+    } else if (d.length === 0) {
+      d.push({
+        key: "M",
+        data: [{ x: x - xOffSet, y: y - yOffSet }],
+      });
+    }
+    //make the path2Ds of the Points if it's not the first point
+    else {
+      const pointPath2Ds = d.map((segment) => {
+        if (segment.key === "A") return new Path2D();
+        const point = segment.data[0]!;
+
+        const point2D = new Path2D();
+        point2D.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+        return point2D;
+      });
+
+      let selectedEndPoint = -1;
+      pointPath2Ds.map((point2D, i) => {
+        if (point2D) {
+          if (ctx.isPointInPath(point2D, x, y)) {
+            selectedEndPoint = i;
+          }
+        }
+      });
+      if (selectedEndPoint !== -1) {
+        d.push({
+          key: "Z",
+          data: [],
+        });
+
+        //Create a path2D of this new line, and add it to the linePath2Ds
+        const newPath2D = new Path2D();
+        //move it to the last point
+
+        const startPoint = d[d.length - 2]!.data[0]!;
+        const endPoint = d[0]!.data[0]!;
+
+        const thickness = 10;
+        const angle = Math.atan2(
+          endPoint.y - startPoint.y,
+          endPoint.x - startPoint.x,
+        );
+        const offsetX = (thickness / 2) * Math.sin(angle);
+        const offsetY = (thickness / 2) * Math.cos(angle);
+
+        newPath2D.moveTo(startPoint.x - offsetX, startPoint.y + offsetY);
+        newPath2D.lineTo(startPoint.x + offsetX, startPoint.y - offsetY);
+        newPath2D.lineTo(endPoint.x + offsetX, endPoint.y - offsetY);
+        newPath2D.lineTo(endPoint.x - offsetX, endPoint.y + offsetY);
+        newPath2D.closePath();
+        //Draw a rectangle of width 8
+
+        linePath2Ds.push(newPath2D);
+      } else {
+        d.push({
+          key: "L",
+          data: [{ x: x - xOffSet, y: y - yOffSet }],
+        });
+        //Create a path2D of this new line, and add it to the linePath2Ds
+        const newPath2D = new Path2D();
+        //move it to the last point
+
+        const startPoint = d[d.length - 2]!.data[0]!;
+        const endPoint = d[d.length - 1]!.data[0]!;
+
+        const thickness = 10;
+        const angle = Math.atan2(
+          endPoint.y - startPoint.y,
+          endPoint.x - startPoint.x,
+        );
+        const offsetX = (thickness / 2) * Math.sin(angle);
+        const offsetY = (thickness / 2) * Math.cos(angle);
+
+        newPath2D.moveTo(startPoint.x - offsetX, startPoint.y + offsetY);
+        newPath2D.lineTo(startPoint.x + offsetX, startPoint.y - offsetY);
+        newPath2D.lineTo(endPoint.x + offsetX, endPoint.y - offsetY);
+        newPath2D.lineTo(endPoint.x - offsetX, endPoint.y + offsetY);
+        newPath2D.closePath();
+        //Draw a rectangle of width 8
+
+        linePath2Ds.push(newPath2D);
+      }
+    }
+
+    //ts-ignore : Unreachable code error
+    let newXmin = path.shape.d[0]?.data[0].x!;
+    let newXmax = path.shape.d[0]?.data[0].x;
+    let newYmin = path.shape.d[0]?.data[0].y;
+    let newYmax = path.shape.d[0]?.data[0].y;
+
+    //calculate new bounding box
+    path.shape.d.map((segment) => {
+      if (segment.key === "A") return;
+      segment.data.map((point) => {
+        newXmin = Math.min(newXmin, point.x);
+        newXmax = Math.max(newXmax, point.x);
+        newYmin = Math.min(newYmin, point.y);
+        newYmax = Math.max(newYmax, point.y);
+      });
+    });
+
+    path.xMin = newXmin;
+    path.xMax = newXmax;
+    path.yMin = newYmin;
+    path.yMax = newYmax;
+
+    const newPath2D = pathToPath2D(path);
+    path.shape.path2D = newPath2D;
+    if (!ctx) return;
+
+    ctx.lineWidth = 2 * (1 / scale.x);
+
+    clear();
+    drawSVG(ctx, svg);
+  };
+  const drawPoint = (ctx: CanvasRenderingContext2D, point: Point) => {
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+    ctx.strokeStyle = "#3eadfd";
+    ctx.stroke();
+  };
+
+  const drawDrawPoints = (ctx: CanvasRenderingContext2D, subSVG: SubSVG) => {
+    const offset = subSVG.offset;
+    const xOffSet = offset.x;
+    const yOffSet = offset.y;
+    const d = subSVG.shape.d;
+    d.map((segment) => {
+      if (segment.key === "A") return;
+      segment.data.map((point) => {
+        drawPoint(ctx, { x: point.x + xOffSet, y: point.y + yOffSet });
+      });
+    });
+  };
+
+  const onDrawMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // 1. If the new path is not empty, Draw a line from the last point to the current point
+    // 2. If the new path is empty, do nothing
+    // 3. Draw a circle at the current point
+
+    if (!isDrawing) return;
+    if (!svg) return;
+    const computedPoint = computePointInCanvas(e);
+    if (!computedPoint) return;
+    const { x, y } = computedPoint;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    clear();
+    drawSVG(ctx, svg);
+    drawDrawPoints(ctx, svg[svg.length - 1]!);
+    drawPoint(ctx, { x, y });
+
+    //draw line
+    const path = svg[svg.length - 1];
+    if (path === undefined) return;
+    const offset = { x: panOffset.x, y: panOffset.y };
+    const xOffSet = offset.x;
+    const yOffSet = offset.y;
+    const d = path.shape.d;
+    if (d.length === 0) return;
+
+    //FIX : ERROR
+    if (d[d.length - 1]?.key === "A") return;
+    //ts-ignore : Unreachable code error
+    const lastPoint = (d[d.length - 1]!.data[0] as Point) ?? { x: 0, y: 0 };
+
+    ctx.beginPath();
+    ctx.moveTo(lastPoint.x + xOffSet, lastPoint.y + yOffSet);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = "#3eadfd";
+    ctx.stroke();
+    ctx.closePath();
+  };
+  //Also, when the tool is draw, draw the svgPoints of the current path that is being drawn
+  // ------------------- Draw Tool -------------------
 
   useEffect(() => {
     //the textarea hans't been rendered yet so there's no textareaRef.current yet we should put this in a useEffect
@@ -2247,245 +2565,352 @@ export default function Editor() {
           >
             LOGOAI
           </Link>
-          <div className="z-10 flex h-full flex-row items-center justify-center  gap-2 self-center rounded-md bg-white p-1.5 shadow-md">
-            <div
-              className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
-                selectedDraw === "aiInput" ? "bg-violet-300" : ""
-              } flex items-center justify-center rounded-md`}
-              onClick={(e) => {
-                setSelectedDraw("aiInput");
-                e.stopPropagation();
-              }}
-              ref={aiPopUpRef}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                stroke="black"
-                // className="hover:stroke-white"
+          <div className="z-10 flex h-full flex-row gap-4">
+            <div className="z-10 flex h-full flex-row items-center justify-center  gap-2 self-center rounded-md bg-white p-1.5 shadow-md">
+              <div
+                className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
+                  selectedDraw === "aiInput" ? "bg-violet-300" : ""
+                } flex items-center justify-center rounded-md`}
+                onClick={(e) => {
+                  setSelectedDraw("aiInput");
+                  e.stopPropagation();
+                }}
+                ref={aiPopUpRef}
               >
-                <path
-                  d="M5.91165 3.16664C5.94923 3.09576 6.05077 3.09577 6.08835 3.16664L7.89127 6.56722C7.90064 6.5849 7.9151 6.59936 7.93278 6.60873L11.3334 8.41165C11.4042 8.44923 11.4042 8.55077 11.3334 8.58835L7.93278 10.3913C7.9151 10.4006 7.90064 10.4151 7.89127 10.4328L6.08835 13.8334C6.05077 13.9042 5.94923 13.9042 5.91165 13.8334L4.10873 10.4328C4.09936 10.4151 4.0849 10.4006 4.06722 10.3913L0.666643 8.58835C0.595765 8.55077 0.595765 8.44923 0.666643 8.41165L4.06722 6.60873C4.0849 6.59936 4.09936 6.5849 4.10873 6.56722L5.91165 3.16664Z"
-                  stroke="inherit"
-                ></path>
-                <path
-                  d="M15.5 3L13.5 0.5L11.5 3L13.5 5.5L15.5 3Z"
-                  stroke="inherit"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-                <path
-                  d="M13.5 10.5V14.5M11.5 12.5H15.5"
-                  stroke="inherit"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-              </svg>
-              <>
-                {selectedDraw === "aiInput" ? (
-                  <div className="absolute left-0 top-full z-10 flex -translate-x-1.5 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  stroke="black"
+                  // className="hover:stroke-white"
+                >
+                  <path
+                    d="M5.91165 3.16664C5.94923 3.09576 6.05077 3.09577 6.08835 3.16664L7.89127 6.56722C7.90064 6.5849 7.9151 6.59936 7.93278 6.60873L11.3334 8.41165C11.4042 8.44923 11.4042 8.55077 11.3334 8.58835L7.93278 10.3913C7.9151 10.4006 7.90064 10.4151 7.89127 10.4328L6.08835 13.8334C6.05077 13.9042 5.94923 13.9042 5.91165 13.8334L4.10873 10.4328C4.09936 10.4151 4.0849 10.4006 4.06722 10.3913L0.666643 8.58835C0.595765 8.55077 0.595765 8.44923 0.666643 8.41165L4.06722 6.60873C4.0849 6.59936 4.09936 6.5849 4.10873 6.56722L5.91165 3.16664Z"
+                    stroke="inherit"
+                  ></path>
+                  <path
+                    d="M15.5 3L13.5 0.5L11.5 3L13.5 5.5L15.5 3Z"
+                    stroke="inherit"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M13.5 10.5V14.5M11.5 12.5H15.5"
+                    stroke="inherit"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></path>
+                </svg>
+                <>
+                  {selectedDraw === "aiInput" ? (
+                    <div className="absolute left-0 top-full z-10 flex -translate-x-1.5 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
+                      <AnimatePresence>
+                        <motion.div initial={{ y: -20 }} animate={{ y: 0 }}>
+                          <Generate onSVGComplete={onSVGComplete}></Generate>
+                        </motion.div>
+                      </AnimatePresence>
+                      <div
+                        className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
+                        onClick={(e) => {
+                          setSelectedDraw(null);
+                          e.stopPropagation();
+                        }}
+                      >
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 16 16"
+                          fill="grey"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            className="fillDefault fillActive"
+                            d="M15.0996 13.6L9.39961 7.9L15.0996 2.2C15.4996 1.8 15.4996 1.2 15.0996 0.8C14.6996 0.4 14.0996 0.4 13.6996 0.8L7.99965 6.5L2.29963 0.8C1.89963 0.4 1.29961 0.4 0.899609 0.8C0.499609 1.2 0.499609 1.8 0.899609 2.2L6.59962 7.9L0.899609 13.6C0.499609 14 0.499609 14.6 0.899609 15C1.09961 15.2 1.39962 15.3 1.59962 15.3C1.89962 15.3 2.09963 15.2 2.29963 15L7.99965 9.3L13.6996 15C13.8996 15.2 14.1996 15.3 14.3996 15.3C14.6996 15.3 14.8996 15.2 15.0996 15C15.4996 14.7 15.4996 14 15.0996 13.6Z"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              </div>
+              <div className="h-full w-[1px] bg-[#f3f5f7]"></div>
+              <div
+                className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
+                  selectedDraw === "fileInput" ? "bg-violet-300" : ""
+                } flex items-center justify-center rounded-md`}
+                onClick={(e) => {
+                  setSelectedDraw("fileInput");
+                  e.stopPropagation();
+                }}
+                ref={filePopUpRef}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="black"
+                  width={18}
+                  height={18}
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                  />
+                </svg>
+                <>
+                  {selectedDraw === "fileInput" ? (
                     <AnimatePresence>
-                      <motion.div initial={{ y: -20 }} animate={{ y: 0 }}>
-                        <Generate onSVGComplete={onSVGComplete}></Generate>
+                      <motion.div
+                        initial={{ y: 4 }}
+                        animate={{ y: 24 }}
+                        className="absolute left-0 top-full z-10 flex w-60 translate-y-6 items-center justify-center rounded-lg bg-white p-4 shadow-md"
+                      >
+                        <input
+                          type="file"
+                          accept=".svg"
+                          onChange={(e) => handleFileChange(e)}
+                          className="absolute h-full w-60 appearance-none opacity-0"
+                          ref={fileInputRef}
+                        />
+                        <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-[geist] text-[14px]">
+                          <div className="mb-1 flex w-full items-center justify-center">
+                            <svg
+                              version="1.0"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 48 48"
+                              enable-background="new 0 0 48 48"
+                              width={36}
+                              height={36}
+                            >
+                              <path
+                                fill="#4053f7"
+                                d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"
+                              />
+                              <path
+                                fill="#4053f7"
+                                d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="mb-2 flex w-full items-center justify-center font-medium">
+                            Drag and Drop Files
+                          </div>
+                          <div className="mb-2.5 flex w-full items-center justify-center text-xs font-medium text-slate-500">
+                            OR
+                          </div>
+                          <div className="flex w-full items-center justify-center">
+                            <button className="rounded-md bg-[#4053f7] p-2 text-white">
+                              Browse Files
+                            </button>
+                          </div>
+                        </div>
                       </motion.div>
                     </AnimatePresence>
-                    <div
-                      className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
-                      onClick={(e) => {
-                        setSelectedDraw(null);
-                        e.stopPropagation();
-                      }}
-                    >
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 16 16"
-                        fill="grey"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          className="fillDefault fillActive"
-                          d="M15.0996 13.6L9.39961 7.9L15.0996 2.2C15.4996 1.8 15.4996 1.2 15.0996 0.8C14.6996 0.4 14.0996 0.4 13.6996 0.8L7.99965 6.5L2.29963 0.8C1.89963 0.4 1.29961 0.4 0.899609 0.8C0.499609 1.2 0.499609 1.8 0.899609 2.2L6.59962 7.9L0.899609 13.6C0.499609 14 0.499609 14.6 0.899609 15C1.09961 15.2 1.39962 15.3 1.59962 15.3C1.89962 15.3 2.09963 15.2 2.29963 15L7.99965 9.3L13.6996 15C13.8996 15.2 14.1996 15.3 14.3996 15.3C14.6996 15.3 14.8996 15.2 15.0996 15C15.4996 14.7 15.4996 14 15.0996 13.6Z"
-                        ></path>
-                      </svg>
-                    </div>
-                  </div>
-                ) : null}
-              </>
-            </div>
-            <div className="h-full w-[1px] bg-[#f3f5f7]"></div>
-            <div
-              className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
-                selectedDraw === "fileInput" ? "bg-violet-300" : ""
-              } flex items-center justify-center rounded-md`}
-              onClick={(e) => {
-                setSelectedDraw("fileInput");
-                e.stopPropagation();
-              }}
-              ref={filePopUpRef}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="black"
-                width={18}
-                height={18}
+                  ) : null}
+                </>
+              </div>
+              <div
+                className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "rect" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
+                onClick={(e) => {
+                  setTool("add");
+                  setAddShape("rect");
+                }}
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                />
-              </svg>
-              <>
-                {selectedDraw === "fileInput" ? (
-                  <AnimatePresence>
-                    <motion.div
-                      initial={{ y: 4 }}
-                      animate={{ y: 24 }}
-                      className="absolute left-0 top-full z-10 flex w-60 translate-y-6 items-center justify-center rounded-lg bg-white p-4 shadow-md"
-                    >
-                      <input
-                        type="file"
-                        accept=".svg"
-                        onChange={(e) => handleFileChange(e)}
-                        className="absolute h-full w-60 appearance-none opacity-0"
-                        ref={fileInputRef}
-                      />
-                      <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-[geist] text-[14px]">
-                        <div className="mb-1 flex w-full items-center justify-center">
-                          <svg
-                            version="1.0"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 48 48"
-                            enable-background="new 0 0 48 48"
-                            width={36}
-                            height={36}
-                          >
-                            <path
-                              fill="#4053f7"
-                              d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"
-                            />
-                            <path
-                              fill="#4053f7"
-                              d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="mb-2 flex w-full items-center justify-center font-medium">
-                          Drag and Drop Files
-                        </div>
-                        <div className="mb-2.5 flex w-full items-center justify-center text-xs font-medium text-slate-500">
-                          OR
-                        </div>
-                        <div className="flex w-full items-center justify-center">
-                          <button className="rounded-md bg-[#4053f7] p-2 text-white">
-                            Browse Files
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                ) : null}
-              </>
-            </div>
-            <div
-              className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300"
-              onClick={(e) => {
-                setTool("add");
-                setAddShape("rect");
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                xmlns="http://www.w3.org/2000/svg"
-                className="_typeIcon_12syx_29"
-                color="black"
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="_typeIcon_12syx_29"
+                  color="black"
+                >
+                  <rect
+                    stroke="black"
+                    x="1.5"
+                    y="1.5"
+                    stroke-width="1.2"
+                    width="13"
+                    height="13"
+                    rx="2"
+                    fill="none"
+                    fill-rule="evenodd"
+                  ></rect>
+                </svg>
+              </div>
+              <div
+                className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "circle" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
+                onClick={(e) => {
+                  setTool("add");
+                  setAddShape("circle");
+                }}
               >
-                <rect
-                  stroke="black"
-                  x="1.5"
-                  y="1.5"
-                  stroke-width="1.2"
-                  width="13"
-                  height="13"
-                  rx="2"
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="_typeIcon_12syx_29"
+                  color="black"
+                >
+                  <circle
+                    stroke="black"
+                    cx="8"
+                    cy="8"
+                    r="6.5"
+                    fill="none"
+                    fill-rule="evenodd"
+                    stroke-width="1.2"
+                  ></circle>
+                </svg>
+              </div>
+              <div
+                className={`flex h-[30px] w-[30px] items-center ${tool == "add" && addShape == "text" ? "bg-violet-300" : ""} justify-center rounded-md text-[18px] font-light hover:bg-violet-300`}
+                onClick={(e) => {
+                  setTool("add");
+                  setAddShape("text");
+                }}
+              >
+                T
+              </div>
+              <div
+                onClick={(e) => {
+                  setTool("draw");
+
+                  setIsDrawing(true);
+                  //add a new empty path to the svg
+                  if (!svg) return;
+                  const newPath: AbsoluteSegment[] = [];
+                  const newPath2D = new Path2D("");
+                  const newSVG = [...svg];
+                  const { x, y } = computePointInCanvas(e)!;
+                  newSVG.push({
+                    tag: "path",
+                    shape: { path2D: newPath2D, d: newPath },
+                    xMax: x,
+                    xMin: x,
+                    yMax: y,
+                    yMin: y,
+                    rotation: 0,
+                    offset: { x: 0, y: 0 },
+                    fill: "white",
+                    stroke: "black",
+                  });
+                  setSVG(newSVG);
+                  setLinePath2Ds([]);
+                }}
+                className={`flex h-[30px] w-[30px] ${tool == "draw" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
                   fill="none"
-                  fill-rule="evenodd"
-                ></rect>
-              </svg>
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.49641 2.64768C9.65292 2.67176 9.79251 2.75949 9.88208 2.89007L14.2237 9.21965C14.4037 9.48202 14.5 9.79272 14.5 10.1109C14.5 10.5261 14.3361 10.9246 14.0439 11.2196L11.2541 14.0362C10.9602 14.333 10.5598 14.5 10.1421 14.5C9.82732 14.5 9.51985 14.4051 9.25985 14.2276L2.8938 9.88327C2.76081 9.79251 2.67142 9.65066 2.64694 9.49153L1.50615 2.07635C1.45478 1.74245 1.74246 1.45476 2.07636 1.50613L9.49641 2.64768Z"
+                    stroke="black"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M2.00002 1.9999L6.50002 6.4999"
+                    stroke="black"
+                    stroke-linecap="round"
+                  ></path>
+                  <path
+                    d="M12.8691 7.93213L7.8966 12.9093"
+                    stroke="black"
+                  ></path>
+                  <circle
+                    cx="7"
+                    cy="7"
+                    r="1"
+                    transform="rotate(90 7 7)"
+                    fill="black"
+                  ></circle>
+                </svg>
+              </div>
             </div>
-            <div
-              className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300"
-              onClick={(e) => {
-                setTool("add");
-                setAddShape("circle");
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                xmlns="http://www.w3.org/2000/svg"
-                className="_typeIcon_12syx_29"
-                color="black"
-              >
-                <circle
-                  stroke="black"
-                  cx="8"
-                  cy="8"
-                  r="6.5"
-                  fill="none"
-                  fill-rule="evenodd"
-                  stroke-width="1.2"
-                ></circle>
-              </svg>
-            </div>
-            <div
-              className="flex h-[30px] w-[30px] items-center justify-center rounded-md text-[18px] font-light hover:bg-violet-300"
-              onClick={(e) => {
-                setTool("add");
-                setAddShape("text");
-              }}
-            >
-              T
-            </div>
-            <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-violet-300">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M9.49641 2.64768C9.65292 2.67176 9.79251 2.75949 9.88208 2.89007L14.2237 9.21965C14.4037 9.48202 14.5 9.79272 14.5 10.1109C14.5 10.5261 14.3361 10.9246 14.0439 11.2196L11.2541 14.0362C10.9602 14.333 10.5598 14.5 10.1421 14.5C9.82732 14.5 9.51985 14.4051 9.25985 14.2276L2.8938 9.88327C2.76081 9.79251 2.67142 9.65066 2.64694 9.49153L1.50615 2.07635C1.45478 1.74245 1.74246 1.45476 2.07636 1.50613L9.49641 2.64768Z"
-                  stroke="black"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-                <path
-                  d="M2.00002 1.9999L6.50002 6.4999"
-                  stroke="black"
-                  stroke-linecap="round"
-                ></path>
-                <path d="M12.8691 7.93213L7.8966 12.9093" stroke="black"></path>
-                <circle
-                  cx="7"
-                  cy="7"
-                  r="1"
-                  transform="rotate(90 7 7)"
-                  fill="black"
-                ></circle>
-              </svg>
-            </div>
+            {tool === "draw" ? (
+              <div className="z-10 flex flex-row items-center justify-center gap-2 rounded-md bg-white p-[6px] shadow-md">
+                <div
+                  onClick={() => {
+                    setIsDrawing(true);
+                    setIsBending(false);
+                  }}
+                  className={` ${isDrawing == true ? "bg-[#0b99ff]" : ""} flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-[#0b99ff]  `}
+                >
+                  <svg
+                    className="svg "
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9.49641 2.64768C9.65292 2.67176 9.79251 2.75949 9.88208 2.89007L14.2237 9.21965C14.4037 9.48202 14.5 9.79272 14.5 10.1109C14.5 10.5261 14.3361 10.9246 14.0439 11.2196L11.2541 14.0362C10.9602 14.333 10.5598 14.5 10.1421 14.5C9.82732 14.5 9.51985 14.4051 9.25985 14.2276L2.8938 9.88327C2.76081 9.79251 2.67142 9.65066 2.64694 9.49153L1.50615 2.07635C1.45478 1.74245 1.74246 1.45476 2.07636 1.50613L9.49641 2.64768Z"
+                      stroke="black"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                    <path
+                      d="M2.00002 1.9999L6.50002 6.4999"
+                      stroke="black"
+                      stroke-linecap="round"
+                    ></path>
+                    <path
+                      d="M12.8691 7.93213L7.8966 12.9093"
+                      stroke="black"
+                    ></path>
+                    <circle
+                      cx="7"
+                      cy="7"
+                      r="1"
+                      transform="rotate(90 7 7)"
+                      fill="black"
+                    ></circle>
+                  </svg>
+                </div>
+                <div
+                  onClick={() => {
+                    setIsBending(true);
+                    setIsDrawing(false);
+                  }}
+                  className={`${isBending ? "bg-[#0b99ff]" : ""} flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-[#0b99ff]`}
+                >
+                  <svg
+                    className="svg   "
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                  >
+                    <path
+                      fill="#000"
+                      fill-opacity="1"
+                      fill-rule="evenodd"
+                      stroke="none"
+                      d="M14.5 6C15.88 6 17 4.88 17 3.5 17 2.12 15.88 1 14.5 1c-1.21 0-2.218.859-2.45 2h-.55C6.806 3 3 6.806 3 11.5v.55c-1.141.232-2 1.24-2 2.45C1 15.88 2.12 17 3.5 17 4.88 17 6 15.88 6 14.5c0-1.21-.859-2.218-2-2.45v-.55C4 7.358 7.358 4 11.5 4h.55c.232 1.141 1.24 2 2.45 2zM16 3.5c0 .828-.672 1.5-1.5 1.5-.828 0-1.5-.672-1.5-1.5 0-.828.672-1.5 1.5-1.5.828 0 1.5.672 1.5 1.5zm-11 11c0 .828-.672 1.5-1.5 1.5-.828 0-1.5-.672-1.5-1.5 0-.828.672-1.5 1.5-1.5.828 0 1.5.672 1.5 1.5z"
+                    ></path>
+                  </svg>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTool("select");
+                  }}
+                  className="flex h-[30px] items-center justify-center rounded-md bg-[#18181b] p-2 text-xs text-white"
+                >
+                  Done
+                </button>
+              </div>
+            ) : null}
           </div>
           <div className="z-10 flex  h-[40px] items-center gap-4 rounded-md">
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
@@ -2585,10 +3010,11 @@ export default function Editor() {
                           viewBox={`${subSVG?.xMin} ${subSVG?.yMin} ${subSVG?.xMax - subSVG?.xMin} ${subSVG?.yMax - subSVG?.yMin}`}
                         >
                           <path
-                            fill="#000"
+                            fill={subSVG?.fill}
                             fill-opacity="1"
                             fill-rule="nonzero"
-                            stroke="#000"
+                            stroke={subSVG?.stroke}
+                            stroke-width="24"
                             d={svgPathToString(subSVG?.shape.d)}
                           ></path>
                         </svg>

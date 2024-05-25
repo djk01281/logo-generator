@@ -54,6 +54,7 @@ type SubSVG =
       shape: Path;
       tag: "path";
       fill: string;
+      stroke: string;
       offset: Point;
       xMax: number;
       xMin: number;
@@ -66,6 +67,7 @@ type SubSVG =
       tag: "text";
       fill: string;
       offset: Point;
+      stroke: string;
       xMax: number;
       xMin: number;
       yMax: number;
