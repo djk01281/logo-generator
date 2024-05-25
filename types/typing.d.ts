@@ -80,15 +80,16 @@ type SubPath = {
   info: Path | Text;
 };
 
-type AbsoluteSegment =
-  | {
-      key: "M" | "L" | "C" | "Z";
-      data: Point[];
-    }
-  | {
-      key: "A";
-      data: ArcParams;
-    };
+type AbsoluteSegment = Lineish | Arc;
+
+type Lineish = {
+  key: "M" | "L" | "C" | "Z";
+  data: Point[];
+};
+type Arc = {
+  key: "A";
+  arcParams: ArcParams;
+};
 
 type ArcParams = {
   rx: number;

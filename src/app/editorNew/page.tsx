@@ -248,19 +248,19 @@ export default function Editor() {
         });
       } else {
         pathString +=
-          segment.data.rx +
+          segment.arcParams.rx +
           " " +
-          segment.data.ry +
+          segment.arcParams.ry +
           " " +
-          segment.data.rotation +
+          segment.arcParams.rotation +
           " " +
-          segment.data.largeArcFlag +
+          segment.arcParams.largeArcFlag +
           " " +
-          segment.data.sweepFlag +
+          segment.arcParams.sweepFlag +
           " " +
-          segment.data.dx +
+          segment.arcParams.dx +
           " " +
-          segment.data.dy +
+          segment.arcParams.dy +
           " ";
       }
     });
@@ -501,7 +501,7 @@ export default function Editor() {
             },
             {
               key: "A",
-              data: {
+              arcParams: {
                 rx: addWidth / 2,
                 ry: addHeight / 2,
                 rotation: 0,
@@ -513,7 +513,7 @@ export default function Editor() {
             },
             {
               key: "A",
-              data: {
+              arcParams: {
                 rx: addWidth / 2,
                 ry: addHeight / 2,
                 rotation: 0,
@@ -1260,17 +1260,18 @@ export default function Editor() {
     ctx.fillText("Hello World", 10, 50);
   };
 
-  const absoluteSegmentToSegment = (
-    absoluteSegment: AbsoluteSegment,
-  ): Segment => {
-    const { key, data } = absoluteSegment;
-    if (key === "A") return { key: key, data: [] };
-    const segmentData: number[] = [];
-    data.map((point) => {
-      segmentData.push(point.x, point.y);
-    });
-    return { key: key, data: segmentData };
-  };
+  // const absoluteSegmentToSegment = (
+  //   absoluteSegment: AbsoluteSegment,
+  // ): Segment => {
+  //   if("arcParms" in absoluteSegment) return { key: abs, data: [] };
+  //   const { key, data } = absoluteSegment;
+
+  //   const segmentData: number[] = [];
+  //   data.map((point) => {
+  //     segmentData.push(point.x, point.y);
+  //   });
+  //   return { key: key, data: segmentData };
+  // };
 
   // const segmentToAbsoluteSegment = (segment: Segment): AbsoluteSegment => {
   //   const { key, data } = segment;
@@ -1300,8 +1301,8 @@ export default function Editor() {
     const xOffset = offset.x;
     const yOffset = offset.y;
     d.map((segment) => {
+      if ("arcParams" in segment) return;
       const { key, data } = segment;
-      if (key === "A") return;
       const tempPoint2Ds: Path2D[] = [];
       data.map((point) => {
         const point2D = new Path2D();
@@ -1350,22 +1351,21 @@ export default function Editor() {
 
       const segment = d[i];
       if (!segment) continue;
+      if ("arcParams" in segment) continue;
       const { key, data } = segment;
-      if (key === "A") continue;
       if (key === "M") continue;
       if (key === "Z") continue;
       if (key === "C") {
         let lastPoint = { x: 0, y: 0 };
-        if (d[i - 1]!.key === "A") {
+        const lastSegment = d[i - 1]!;
+        if ("arcParams" in lastSegment) {
           lastPoint = {
-            // @ts-expect-error: Unreachable code error
-            x: d[i - 1]!.data.dx as number,
-            // @ts-expect-error: Unreachable code error
-            y: d[i - 1]!.data.dy as number,
+            x: lastSegment.arcParams.dx,
+            y: lastSegment.arcParams.dy,
           } as Point;
         } else {
-          // @ts-expect-error: Unreachable code error
-          lastPoint = d[i - 1].data[d[i - 1].data.length - 1] as Point;
+          const len = lastSegment.data.length;
+          lastPoint = lastSegment.data[len - 1]!;
         }
 
         const startPoint = lastPoint;
@@ -1436,14 +1436,14 @@ export default function Editor() {
       else
         return {
           key: segment.key,
-          data: {
-            rx: segment.data.rx,
-            ry: segment.data.ry,
-            rotation: segment.data.rotation,
-            largeArcFlag: segment.data.largeArcFlag,
-            sweepFlag: segment.data.sweepFlag,
-            dx: segment.data.dx + offset.x,
-            dy: segment.data.dy + offset.y,
+          arcParams: {
+            rx: segment.arcParams.rx,
+            ry: segment.arcParams.ry,
+            rotation: segment.arcParams.rotation,
+            largeArcFlag: segment.arcParams.largeArcFlag,
+            sweepFlag: segment.arcParams.sweepFlag,
+            dx: segment.arcParams.dx + offset.x,
+            dy: segment.arcParams.dy + offset.y,
           },
         };
     });
@@ -1659,7 +1659,7 @@ export default function Editor() {
         if (key === "A") {
           return {
             key: "A",
-            data: {
+            arcParams: {
               rx: segment.data[0]!,
               ry: segment.data[1]!,
               rotation: segment.data[2]!,
@@ -2179,10 +2179,24 @@ export default function Editor() {
     const d = path.shape.d;
     let segment = d[selectedLine + 1]!;
     if (segment.key === "C") return;
-    const lastPoint = d[selectedLine]!.data[0];
-    let endPoint = d[0]!.data[0];
-    if (d[selectedLine + 1]!.key !== "Z") {
-      endPoint = d[selectedLine + 1]!.data[0];
+    if (segment.key === "A") return;
+
+    if (d[selectedLine]!.key === "A") return;
+    if ("arcParams" in d[selectedLine]!) return;
+    const selectedAbsoluteSegment = d[selectedLine]!;
+    if (!("data" in selectedAbsoluteSegment)) return;
+
+    const lastPoint = selectedAbsoluteSegment.data[0]!;
+    const firstAbsoluteSegment = d[0]!;
+    if (!("data" in firstAbsoluteSegment)) return;
+    let endPoint = firstAbsoluteSegment.data[0]!;
+
+    const currentAbsoluteSegment = d[selectedLine + 1]!;
+    if (
+      "data" in currentAbsoluteSegment &&
+      currentAbsoluteSegment.key !== "Z"
+    ) {
+      endPoint = currentAbsoluteSegment.data[0]!;
     }
     const startControlPoint = {
       x: (lastPoint.x + endPoint.x) / 2,
@@ -2294,8 +2308,13 @@ export default function Editor() {
         const newPath2D = new Path2D();
         //move it to the last point
 
-        const startPoint = d[d.length - 2]!.data[0]!;
-        const endPoint = d[0]!.data[0]!;
+        const startSegment = d[d.length - 2]!;
+        if (!("data" in startSegment)) return;
+        const startPoint = startSegment.data[0]!;
+
+        const endSegment = d[0]!;
+        if (!("data" in endSegment)) return;
+        const endPoint = endSegment.data[0]!;
 
         const thickness = 10;
         const angle = Math.atan2(
@@ -2322,8 +2341,12 @@ export default function Editor() {
         const newPath2D = new Path2D();
         //move it to the last point
 
-        const startPoint = d[d.length - 2]!.data[0]!;
-        const endPoint = d[d.length - 1]!.data[0]!;
+        const startSegment = d[d.length - 2]!;
+        if (!("data" in startSegment)) return;
+        const startPoint = startSegment.data[0]!;
+        const endSegment = d[d.length - 1]!;
+        if (!("data" in endSegment)) return;
+        const endPoint = endSegment.data[0]!;
 
         const thickness = 10;
         const angle = Math.atan2(
@@ -2344,11 +2367,13 @@ export default function Editor() {
       }
     }
 
-    //ts-ignore : Unreachable code error
-    let newXmin = path.shape.d[0]?.data[0].x!;
-    let newXmax = path.shape.d[0]?.data[0].x;
-    let newYmin = path.shape.d[0]?.data[0].y;
-    let newYmax = path.shape.d[0]?.data[0].y;
+    const clickedSegment = path.shape.d[0]!;
+    if (!("data" in clickedSegment)) return;
+    const clickedData = clickedSegment.data[0]!;
+    let newXmin = clickedData.x;
+    let newXmax = clickedData.x;
+    let newYmin = clickedData.y;
+    let newYmax = clickedData.y;
 
     //calculate new bounding box
     path.shape.d.map((segment) => {
@@ -2423,8 +2448,10 @@ export default function Editor() {
 
     //FIX : ERROR
     if (d[d.length - 1]?.key === "A") return;
-    //ts-ignore : Unreachable code error
-    const lastPoint = (d[d.length - 1]!.data[0] as Point) ?? { x: 0, y: 0 };
+    const lastAbsoluteSegment = d[d.length - 1]!;
+    if ("arcParams" in lastAbsoluteSegment || lastAbsoluteSegment.key === "Z")
+      return;
+    const lastPoint = lastAbsoluteSegment.data[0]!;
 
     ctx.beginPath();
     ctx.moveTo(lastPoint.x + xOffSet, lastPoint.y + yOffSet);
