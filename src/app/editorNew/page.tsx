@@ -234,6 +234,9 @@ export default function Editor() {
 
   const [forText, setForText] = useState<string>("");
 
+  const dragLayer = useRef<number>(0);
+  const dragOverLayer = useRef<number>(0);
+
   const svgPathToString = (path: AbsoluteSegment[]) => {
     let pathString = "";
     path.forEach((segment) => {
@@ -265,9 +268,12 @@ export default function Editor() {
 
   function onPan({ ctx, currentPoint, prevPoint }: Pan) {
     if (!prevPoint) return;
-    const dx = (currentPoint.x - prevPoint.x) * (1 / scale.x);
-    const dy = (currentPoint.y - prevPoint.y) * (1 / scale.y);
-    setPanOffset({ x: panOffset.x + dx, y: panOffset.y + dy });
+    const dx = currentPoint.x - prevPoint.x;
+    const dy = currentPoint.y - prevPoint.y;
+    setPanOffset({
+      x: panOffset.x + dx,
+      y: panOffset.y + dy,
+    });
 
     clear();
     ctx.translate(dx, dy);
@@ -1979,6 +1985,16 @@ export default function Editor() {
     drawSVGPoints(ctx, newSVG);
   };
 
+  const handleSort = () => {
+    if (!svg) return;
+    const newSVG = [...svg];
+    const temp: SubSVG = newSVG[dragLayer.current ?? 0]!;
+    newSVG[dragLayer.current ?? 0] = newSVG[dragOverLayer.current ?? 0]!;
+    newSVG[dragOverLayer.current ?? 0] = temp;
+    setSVG(newSVG);
+    setSelectedPaths([dragOverLayer.current ?? 0]);
+  };
+
   // const onDeletePath = () => {
   //   if (selectedPaths.length === 0) return;
   //   if (!svg) return;
@@ -2521,10 +2537,74 @@ export default function Editor() {
           </div>
         </div>
         <div className="flex flex-auto justify-between p-[12px]">
-          <div className="flex h-full w-[296px] flex-col items-center justify-center rounded-xl bg-white shadow-md">
-            Layers
-            <svg id="test" width="100" height="100" viewBox="0 0 100 100" />
-            <div>{forText}</div>
+          <div className="z-10 flex h-[590px]  w-[296px] flex-col  gap-4 rounded-xl bg-white p-4 font-[Inter] text-[#1a1a1a] shadow-md">
+            <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
+              Layers
+            </div>
+            <div className="flex h-full flex-col gap-2 overflow-y-auto">
+              {svg?.map((subSVG, i) => {
+                return (
+                  <div
+                    draggable
+                    onClick={() => setSelectedPaths([i])}
+                    onDragStart={() => {
+                      dragLayer.current = i;
+                      setSelectedPaths([i]);
+                    }}
+                    onDragEnter={() => (dragOverLayer.current = i)}
+                    onDragEnd={handleSort}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    key={i}
+                    className={`flex ${selectedPaths.includes(i) ? "bg-[#e5f4ff]" : ""}  flex-row items-center gap-1 gap-2 rounded-sm border-[1px] border-dashed border-[#e6e6e6] p-1.5`}
+                  >
+                    <span>
+                      {subSVG?.tag === "text" ? (
+                        <svg
+                          className="svg"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="10"
+                          height="10"
+                          viewBox="0 0 10 10"
+                        >
+                          <path
+                            fill="#000"
+                            fill-opacity="1"
+                            fill-rule="nonzero"
+                            stroke="none"
+                            d="M0 0h10v3H9V1H5.5v8H7v1H3V9h1.5V1H1v2H0V0z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        <svg
+                          className="svg"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="10"
+                          height="10"
+                          viewBox={`${subSVG?.xMin} ${subSVG?.yMin} ${subSVG?.xMax - subSVG?.xMin} ${subSVG?.yMax - subSVG?.yMin}`}
+                        >
+                          <path
+                            fill="#000"
+                            fill-opacity="1"
+                            fill-rule="nonzero"
+                            stroke="#000"
+                            d={svgPathToString(subSVG?.shape.d)}
+                          ></path>
+                        </svg>
+                      )}
+                    </span>
+                    <span className="inline-block flex h-full items-center justify-center align-text-bottom text-[11px]">
+                      {subSVG?.tag === "text"
+                        ? subSVG?.shape.content
+                        : "Vector " + i.toString()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* <svg id="test" width="100" height="100" viewBox="0 0 100 100" />
+            <div>{forText}</div> */}
           </div>
           <AnimatePresence>
             {selectedPaths.length !== 0 && (
@@ -2532,7 +2612,7 @@ export default function Editor() {
                 initial={{ x: 300 }}
                 animate={{ x: 0 }}
                 exit={{ x: 300 }}
-                className={` z-10 flex  h-full  w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
+                className={` z-10 flex   h-[590px]   w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Properties
