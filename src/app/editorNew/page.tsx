@@ -1,5 +1,4 @@
 "use client";
-
 import { useSVG } from "~/hooks/usSVG";
 import { useHand } from "~/hooks/useHand";
 import { useSelect } from "~/hooks/useSelect";
@@ -10,18 +9,11 @@ import Link from "next/link";
 import { Just_Another_Hand } from "next/font/google";
 import Generate from "./_components/Generate";
 import SVGPathCommander from "svg-path-commander";
-import { ChromePicker } from "react-color";
 import { HexColorPicker } from "react-colorful";
 import { motion, AnimatePresence } from "framer-motion";
-import { set } from "zod";
-import { transform } from "next/dist/build/swc";
 
-import { Segment } from "path-data-parser/lib/parser";
-import { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } from "@aws-sdk/client-s3";
-import { on } from "events";
-import path from "path";
 import textPath from "../../helper/textPath";
-import { text } from "stream/consumers";
+import { Modak } from "next/font/google";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -177,6 +169,12 @@ const just = Just_Another_Hand({
   weight: ["400"],
   subsets: ["latin"],
   variable: "--font-just_another_hand",
+});
+
+const modak = Modak({
+  weight: ["400"],
+  subsets: ["devanagari"],
+  variable: "--font-modak",
 });
 
 export default function Editor() {
@@ -539,8 +537,9 @@ export default function Editor() {
         stroke: "#000000",
         rotation: 0,
       });
+      //-------------------FIX HERE TO FIX THE TEXT-------------------
     } else if (addShape === "text") {
-      ctx.font = "64px montserrat";
+      ctx.font = "64px modak";
       svg.push({
         fill: color,
         tag: "text",
@@ -833,8 +832,8 @@ export default function Editor() {
 
     function draw(letter: string, x: number, y: number) {
       // ctx.translate(x, y);
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 64px Montserrat";
+      ctx.fillStyle = textTag.fill;
+      ctx.font = "64px Modak";
       ctx.fillText(letter, x, y);
     }
 
@@ -847,12 +846,14 @@ export default function Editor() {
     if (!svg) return;
     svg.map((subSvg, i) => {
       if (subSvg.tag === "text") {
-        drawText(subSvg, ctx);
         const shape = subSvg.shape;
+
         const path2D = shape.path2D;
+
         if (!path2D) return;
-        ctx.strokeStyle = "#000000";
+        ctx.strokeStyle = "#ffffff";
         ctx.stroke(path2D);
+        drawText(subSvg, ctx);
       } else {
         const shape = subSvg.shape;
         const path2D = shape.path2D;
@@ -1507,6 +1508,7 @@ export default function Editor() {
 
   const computePointOutsideCanvas = (point: Point) => {
     //ToDo : Take into account the scale
+    const ctx = canvasRef.current?.getContext("2d");
     return { x: point.x + panOffset.x, y: point.y + panOffset.y };
   };
 
@@ -1848,6 +1850,10 @@ export default function Editor() {
 
   const filePopUpRef = useRef<HTMLDivElement | null>(null);
   const aiPopUpRef = useRef<HTMLDivElement | null>(null);
+
+  // useEffect(() => {
+
+  // }, []);
 
   // useEffect(() => {
   //   document.addEventListener("click", (e) => {
@@ -2520,7 +2526,7 @@ export default function Editor() {
 
   return (
     <div
-      className=" flex h-screen w-screen items-center justify-center bg-[#F3F4F6]"
+      className={`  flex h-screen w-screen items-center justify-center bg-[#F3F4F6] ${modak.variable}`}
       onClick={(e) => {
         // if (colorPickerRef !== null) {
         //   return;
@@ -3197,7 +3203,7 @@ export default function Editor() {
           </div>
         </div>
       </div>
-      <div className="absolute h-full w-full">
+      <div className="absolute h-[600px] w-[600px]">
         <canvas
           onMouseDown={onMouseDownWrapper}
           onContextMenu={onRightClickWrapper}
@@ -3207,14 +3213,14 @@ export default function Editor() {
           ref={canvasRef}
           width={600}
           height={600}
-          className={` z-2 absolute inset-0 m-auto rounded-lg bg-white ${
+          className={` ${modak.className} z-2 absolute inset-0 m-auto rounded-lg bg-white ${
             tool === "hand" ? "cursor-grab" : ""
           } ${mouseDown ? "cursor-grabbing" : ""}`}
         ></canvas>
         {isEditingText && (
           <input
             ref={textareaRef}
-            className={`font-montserrat absolute   hidden resize-none border-2 border-[#18a0fb] font-bold ring-0 ring-offset-0`}
+            className={`font-modak absolute   hidden resize-none border-2 border-[#18a0fb] font-bold ring-0 ring-offset-0`}
           ></input>
         )}
       </div>

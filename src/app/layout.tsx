@@ -6,6 +6,7 @@ import {
   Just_Another_Hand,
   Bricolage_Grotesque,
   Paytone_One,
+  Modak,
 } from "next/font/google";
 
 import { cookies } from "next/headers";
@@ -26,6 +27,13 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
 });
+
+const modak = Modak({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-modak",
+});
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -55,7 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}`}
+      className={`${montserrat.variable} ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${modak.variable} ${modak.className}`}
     >
       <body
         className={`font-sans ${inter.variable} ${bricolage.variable} ${just.variable}`}
