@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import textPath from "../../helper/textPath";
 import { Modak } from "next/font/google";
+import { on } from "events";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -193,7 +194,8 @@ export default function Editor() {
   const {
     onSelectMouseDown,
     onSelectMouseUp,
-    setMouseDown,
+    setSelectMouseDown,
+    selectMouseDown,
     onSelectMouseMove,
   } = useSelect(onMove, onHover, onSelect, canvasRef, tool);
 
@@ -230,6 +232,41 @@ export default function Editor() {
   const [addShape, setAddShape] = useState<string | null>(null);
   const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
   // console.log(scale);
+  const [history, setHistory] = useState<SVG[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
+
+  const onNewHistory = () => {
+    if (!svg) return;
+    if (mouseDown) return;
+    let newHistory = [...history];
+    if (newHistory.length !== 0 && historyIndex !== newHistory.length - 1) {
+      newHistory = newHistory.slice(0, historyIndex + 1);
+    }
+    newHistory.push([...svg]);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    console.log("New History", newHistory.length - 1);
+  };
+
+  const onReturnHistory = () => {
+    if (historyIndex === 0) return;
+    console.log("RETURNED", historyIndex - 1);
+    setHistoryIndex(historyIndex - 1);
+    setSVG([...history[historyIndex - 1]!]);
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    clear();
+    drawSVG(ctx, history[historyIndex - 1]!);
+  };
+
+  const onForwardHistory = () => {
+    if (historyIndex === history.length - 1) return;
+    setHistoryIndex(historyIndex + 1);
+    setSVG(history[historyIndex + 1]!);
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    drawSVG(ctx, history[historyIndex + 1]!);
+  };
 
   const [forText, setForText] = useState<string>("");
 
@@ -602,6 +639,7 @@ export default function Editor() {
     drawBoundingBox(ctx, [svg.length - 1]);
     setSelectedPaths([svg.length - 1]);
     setTool("select");
+    ////onNewhistory()
   }
 
   function onZoom({ ctx, scaleX, scaleY }: Zoom) {
@@ -736,6 +774,7 @@ export default function Editor() {
       //@ts-expect-error: tag is text
       svg[selectedPath!]!.shape.content = textInput.value;
       setIsEditingText(false);
+      ////onNewhistory()
     }
 
     clear();
@@ -1093,6 +1132,7 @@ export default function Editor() {
 
     // ctx.fill();
     // ctx.closePath();
+    ////onNewhistory()
   };
 
   const rotatePoint = (
@@ -1254,6 +1294,7 @@ export default function Editor() {
     clear();
     drawSVG(ctx, svg);
     drawBoundingBox(ctx, [...selectedPaths]);
+    ////onNewhistory()
   };
 
   const onCreateText = (ctx: CanvasRenderingContext2D) => {
@@ -1419,6 +1460,7 @@ export default function Editor() {
     clear();
     drawSVG(ctx, newSVG);
     drawSVGPoints(ctx, newSVG);
+    ////onNewhistory()
   };
 
   const pathToPath2D = (path: SubSVG): Path2D => {
@@ -1573,6 +1615,7 @@ export default function Editor() {
     drawSVGPoints(ctx, svg);
 
     setSelectedDraw(null);
+    ////onNewhistory()
   };
 
   const stringToSVGandPath2Ds = (svgString: string): { svg: SVG } => {
@@ -1817,6 +1860,8 @@ export default function Editor() {
     svgSelectedPath.xMin = newBbox.x;
     svgSelectedPath.yMax = newBbox.y2;
     svgSelectedPath.yMin = newBbox.y;
+
+    ////onNewhistory()
   }
 
   type BBox = {
@@ -2007,6 +2052,7 @@ export default function Editor() {
     if (!ctx) return;
     drawSVG(ctx, newSVG);
     drawSVGPoints(ctx, newSVG);
+    ////onNewhistory()
   };
 
   const handleSort = () => {
@@ -2017,6 +2063,7 @@ export default function Editor() {
     newSVG[dragOverLayer.current ?? 0] = temp;
     setSVG(newSVG);
     setSelectedPaths([dragOverLayer.current ?? 0]);
+    ////onNewhistory()
   };
 
   // const onDeletePath = () => {
@@ -2060,6 +2107,8 @@ export default function Editor() {
   };
 
   const onMouseUpWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    //onNewhistory()
+
     setIsMouseDown(false);
     onSelectMouseUp();
     handMouseUpHandler();
@@ -2217,6 +2266,7 @@ export default function Editor() {
       data: [startControlPoint, endControlPoint, endPoint],
     };
     d[selectedLine + 1] = segment;
+    ////onNewhistory()
   };
 
   const onBendMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2278,6 +2328,7 @@ export default function Editor() {
         stroke: "black",
       });
       setSVG(newSVG);
+      ////onNewhistory()
       setLinePath2Ds([]);
     } else if (d.length === 0) {
       d.push({
@@ -2405,6 +2456,7 @@ export default function Editor() {
 
     clear();
     drawSVG(ctx, svg);
+    ////onNewhistory()
   };
   const drawPoint = (ctx: CanvasRenderingContext2D, point: Point) => {
     ctx.beginPath();
@@ -2522,7 +2574,10 @@ export default function Editor() {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     drawSVG(ctx, svg);
+    ////onNewhistory()
   };
+
+  const [profileIsCredits, setProfileIsCredits] = useState<boolean>(true);
 
   return (
     <div
@@ -2989,82 +3044,143 @@ export default function Editor() {
                 </svg>
               </div>
             </div>
-            <div className="z-10 flex h-full w-[40px] items-center justify-center rounded-md bg-pink-300">
+            <button
+              onClick={(e) => {
+                if (selectedDraw === "profile") {
+                  setSelectedDraw(null);
+                } else {
+                  setSelectedDraw("profile");
+                  setProfileIsCredits(true);
+                }
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="relative z-20 flex h-full  w-[40px] items-center justify-center rounded-md bg-pink-300 font-[geist]"
+            >
               D
-            </div>
+              {selectedDraw === "profile" && (
+                <div className="absolute right-0 top-[48px] z-50 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
+                  <div className="flex flex-row gap-2 text-sm">
+                    <button
+                      onClick={(e) => {
+                        setProfileIsCredits(true);
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                      className={`flex w-1/2 items-center justify-center rounded-md ${profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"} `}
+                    >
+                      Credits
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        setProfileIsCredits(false);
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                      className={`flex w-1/2 items-center justify-center rounded-md p-1.5  ${!profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"}`}
+                    >
+                      Workspaces
+                    </button>
+                  </div>
+                  {profileIsCredits ? (
+                    <div className="flex flex-col gap-3 rounded-md bg-[#fafafa] p-4">
+                      <div className="flex  items-center justify-center text-sm ">
+                        Current Credits : <span className="font-bold">128</span>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <button className="inline-block items-center justify-center rounded-md bg-[#18181b] p-1.5 text-sm text-[#fafafa] hover:bg-[#2f2f31]">
+                          Buy Credits
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>Workspaces</div>
+                  )}
+                </div>
+              )}
+            </button>
           </div>
         </div>
         <div className="flex flex-auto justify-between p-[12px]">
-          <div className="z-10 flex h-[590px]  w-[296px] flex-col  gap-4 rounded-xl bg-white p-4 font-[Inter] text-[#1a1a1a] shadow-md">
-            <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
-              Layers
-            </div>
-            <div className="flex h-full flex-col gap-2 overflow-y-auto">
-              {svg?.map((subSVG, i) => {
-                return (
-                  <div
-                    draggable
-                    onClick={() => setSelectedPaths([i])}
-                    onDragStart={() => {
-                      dragLayer.current = i;
-                      setSelectedPaths([i]);
-                    }}
-                    onDragEnter={() => (dragOverLayer.current = i)}
-                    onDragEnd={handleSort}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                    }}
-                    key={i}
-                    className={`flex ${selectedPaths.includes(i) ? "bg-[#e5f4ff]" : ""}  flex-row items-center gap-1 gap-2 rounded-sm border-[1px] border-dashed border-[#e6e6e6] p-1.5`}
-                  >
-                    <span>
-                      {subSVG?.tag === "text" ? (
-                        <svg
-                          className="svg"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="10"
-                          height="10"
-                          viewBox="0 0 10 10"
-                        >
-                          <path
-                            fill="#000"
-                            fill-opacity="1"
-                            fill-rule="nonzero"
-                            stroke="none"
-                            d="M0 0h10v3H9V1H5.5v8H7v1H3V9h1.5V1H1v2H0V0z"
-                          ></path>
-                        </svg>
-                      ) : (
-                        <svg
-                          className="svg"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="10"
-                          height="10"
-                          viewBox={`${subSVG?.xMin} ${subSVG?.yMin} ${subSVG?.xMax - subSVG?.xMin} ${subSVG?.yMax - subSVG?.yMin}`}
-                        >
-                          <path
-                            fill={subSVG?.fill}
-                            fill-opacity="1"
-                            fill-rule="nonzero"
-                            stroke={subSVG?.stroke}
-                            stroke-width="24"
-                            d={svgPathToString(subSVG?.shape.d)}
-                          ></path>
-                        </svg>
-                      )}
-                    </span>
-                    <span className="inline-block flex h-full items-center justify-center align-text-bottom text-[11px]">
-                      {subSVG?.tag === "text"
-                        ? subSVG?.shape.content
-                        : "Vector " + i.toString()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {/* <svg id="test" width="100" height="100" viewBox="0 0 100 100" />
+          <AnimatePresence>
+            {svg !== null && svg.length !== 0 && (
+              <motion.div
+                initial={{ x: -300 }}
+                animate={{ x: 0 }}
+                exit={{ x: -300 }}
+                className="z-10 flex h-[590px]  w-[296px] flex-col  gap-4 rounded-xl bg-white p-4 font-[Inter] text-[#1a1a1a] shadow-md"
+              >
+                <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
+                  Layers
+                </div>
+                <div className="flex h-full flex-col gap-2 overflow-y-auto">
+                  {svg?.map((subSVG, i) => {
+                    return (
+                      <div
+                        draggable
+                        onClick={() => setSelectedPaths([i])}
+                        onDragStart={() => {
+                          dragLayer.current = i;
+                          setSelectedPaths([i]);
+                        }}
+                        onDragEnter={() => (dragOverLayer.current = i)}
+                        onDragEnd={handleSort}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                        }}
+                        key={i}
+                        className={`flex ${selectedPaths.includes(i) ? "bg-[#e5f4ff]" : ""}  flex-row items-center gap-1 gap-2 rounded-sm border-[1px] border-dashed border-[#e6e6e6] p-1.5`}
+                      >
+                        <span>
+                          {subSVG?.tag === "text" ? (
+                            <svg
+                              className="svg"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="10"
+                              height="10"
+                              viewBox="0 0 10 10"
+                            >
+                              <path
+                                fill="#000"
+                                fill-opacity="1"
+                                fill-rule="nonzero"
+                                stroke="none"
+                                d="M0 0h10v3H9V1H5.5v8H7v1H3V9h1.5V1H1v2H0V0z"
+                              ></path>
+                            </svg>
+                          ) : (
+                            <svg
+                              className="svg"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="10"
+                              height="10"
+                              viewBox={`${subSVG?.xMin} ${subSVG?.yMin} ${subSVG?.xMax - subSVG?.xMin} ${subSVG?.yMax - subSVG?.yMin}`}
+                            >
+                              <path
+                                fill={subSVG?.fill}
+                                fill-opacity="1"
+                                fill-rule="nonzero"
+                                stroke={subSVG?.stroke}
+                                stroke-width="24"
+                                d={svgPathToString(subSVG?.shape.d)}
+                              ></path>
+                            </svg>
+                          )}
+                        </span>
+                        <span className="inline-block flex h-full items-center justify-center align-text-bottom text-[11px]">
+                          {subSVG?.tag === "text"
+                            ? subSVG?.shape.content
+                            : "Vector " + i.toString()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* <svg id="test" width="100" height="100" viewBox="0 0 100 100" />
             <div>{forText}</div> */}
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <AnimatePresence>
             {selectedPaths.length !== 0 && (
               <motion.div
@@ -3150,7 +3266,14 @@ export default function Editor() {
               tool={tool}
             />
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200  hover:text-white">
+              <div
+                onClick={() => {
+                  console.log(historyIndex);
+                  onReturnHistory();
+                  console.log("RETURN");
+                }}
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200  hover:text-white"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -3173,7 +3296,8 @@ export default function Editor() {
               <div
                 className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-slate-200 bg-white hover:bg-slate-200"
                 onClick={() => {
-                  setSelectedDraw("file");
+                  onForwardHistory();
+                  console.log("FORWARD");
                 }}
               >
                 <svg

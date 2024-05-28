@@ -69,9 +69,10 @@ type GenerateProps = {
 
 export default function Generate({ onSVGComplete }: GenerateProps) {
   const [resultSrc, setResultSrc] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   function startHandler() {
-    setIsLoading(true);
+    setIsLoading(false);
   }
   function finishHandler(url: string) {
     setResultSrc(url);

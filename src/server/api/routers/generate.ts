@@ -68,10 +68,8 @@ export const generateRouter = createTRPCRouter({
           role: "system",
           content: `You are inside a logo building app. You are trying make Dall-E 3 prompts that best fits the users needs. This prompt will be given to the Dall-E 3 api to create logos.
           You have to ask one question, the user will respond, 
-          
-          
-          
-          Respond with the final prompt(of type answer). Also, do not ask the same questions over and over.
+          After doing this back and forth 3 times, 
+          Respond with the final prompt(of type 'answer'). Also, do not ask the same questions over and over.
 
           The format should be a json object. There's three types. 'text', 'select' and 'answer'.
           'text' : ask a user a question that can be answered with a short text input.

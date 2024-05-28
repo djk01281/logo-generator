@@ -8,11 +8,11 @@ export const useSelect = (
   canvasRef: React.RefObject<HTMLCanvasElement>,
   tool: Tool,
 ) => {
-  const [mouseDown, setMouseDown] = useState(false);
+  const [selectMouseDown, setSelectMouseDown] = useState(false);
   const prevPoint = useRef<null | Point>(null);
 
   const onSelectMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setMouseDown(true);
+    setSelectMouseDown(true);
 
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
@@ -30,7 +30,7 @@ export const useSelect = (
     const currentPoint = computePointInCanvas(e);
     if (!currentPoint) return;
 
-    if (mouseDown) {
+    if (selectMouseDown) {
       //   console.log("onSelectMouseMoveDown");
       onMove({ ctx, currentPoint, prevPoint: prevPoint.current });
       prevPoint.current = currentPoint;
@@ -52,15 +52,15 @@ export const useSelect = (
   };
 
   const onSelectMouseUp = () => {
-    setMouseDown(false);
+    setSelectMouseDown(false);
     prevPoint.current = null;
   };
 
   return {
     onSelectMouseUp,
-    setMouseDown,
+    setSelectMouseDown,
     onSelectMouseDown,
     onSelectMouseMove,
-    mouseDown,
+    selectMouseDown,
   };
 };
