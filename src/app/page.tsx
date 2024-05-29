@@ -24,7 +24,7 @@ export default function Home() {
             <div
               className={`font-bricolage inset-0 mt-12 flex w-2/3 flex-col items-center font-serif text-[60px] font-extrabold text-black  sm:flex-row sm:text-[60px]`}
             >
-              <div className="relative flex flex-col leading-none">
+              <div className="font-bricolage relative flex flex-col leading-none">
                 <svg
                   className="absolute left-0 top-0 -translate-x-12 -translate-y-3/4 -rotate-12"
                   width="120"

@@ -13,8 +13,10 @@ import { HexColorPicker } from "react-colorful";
 import { motion, AnimatePresence } from "framer-motion";
 
 import textPath from "../../helper/textPath";
-import { Modak } from "next/font/google";
-import { on } from "events";
+import Comboboxdemo from "~/components/ui/Combobox";
+import { Modak, Leckerli_One, Pacifico } from "next/font/google";
+import ComboboxDemo from "~/components/ui/Combobox";
+import Guidebox from "./_components/GuideBox";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -178,6 +180,12 @@ const modak = Modak({
   variable: "--font-modak",
 });
 
+const pacifico = Pacifico({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-pacifico",
+});
+
 export default function Editor() {
   const [tool, setTool] = useState<Tool>("select");
   const { svg, setSVG, setSelected, moveSelected } = useSVG([]);
@@ -207,7 +215,7 @@ export default function Editor() {
 
   type PointIndex = [number, number];
   const [selectedPoint, setSelectedPoint] = useState<PointIndex[] | null>(null);
-  const [selectedDraw, setSelectedDraw] = useState<string | null>(null);
+  const [selectedDraw, setSelectedDraw] = useState<string | null>("aiInput");
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [isRightClicked, setIsRightClicked] = useState<Point | null>(null);
@@ -269,6 +277,7 @@ export default function Editor() {
   };
 
   const [forText, setForText] = useState<string>("");
+  const [guideIndex, setGuideIndex] = useState<number>(0);
 
   const dragLayer = useRef<number>(0);
   const dragOverLayer = useRef<number>(0);
@@ -312,7 +321,8 @@ export default function Editor() {
     });
 
     clear();
-    ctx.translate(dx, dy);
+    ctx.reset();
+    ctx.transform(scale.x, 0, 0, scale.y, panOffset.x + dx, panOffset.y + dy);
     clear();
     if (!svg) return;
     drawSVG(ctx, svg);
@@ -366,12 +376,12 @@ export default function Editor() {
     }
     const currentPoint = computePointInCanvas(e)!;
     const calculatedPoint = {
-      x: currentPoint.x * (1 / scale.x) - panOffset.x,
-      y: currentPoint.y * (1 / scale.y) - panOffset.y,
+      x: (currentPoint.x - panOffset.x) * (1 / scale.x),
+      y: (currentPoint.y - panOffset.y) * (1 / scale.y),
     };
     const calculatedAddPoint = {
-      x: addPoint!.x * (1 / scale.x) - panOffset.x,
-      y: addPoint!.y * (1 / scale.y) - panOffset.y,
+      x: (addPoint!.x - panOffset.x) * (1 / scale.x),
+      y: (addPoint!.y - panOffset.y) * (1 / scale.y),
     };
     if (!calculatedPoint) {
       console.log("current point is null");
@@ -470,12 +480,12 @@ export default function Editor() {
     }
     const currentPoint = computePointInCanvas(e)!;
     const calculatedPoint = {
-      x: currentPoint.x * (1 / scale.x) - panOffset.x,
-      y: currentPoint.y * (1 / scale.y) - panOffset.y,
+      x: (currentPoint.x - panOffset.x) * (1 / scale.x),
+      y: (currentPoint.y - panOffset.y) * (1 / scale.y),
     };
     const calculatedAddPoint = {
-      x: addPoint.x * (1 / scale.x) - panOffset.x,
-      y: addPoint.y * (1 / scale.y) - panOffset.y,
+      x: (addPoint.x - panOffset.x) * (1 / scale.x),
+      y: (addPoint.y - panOffset.y) * (1 / scale.y),
     };
     if (!calculatedPoint) return;
 
@@ -576,13 +586,13 @@ export default function Editor() {
       });
       //-------------------FIX HERE TO FIX THE TEXT-------------------
     } else if (addShape === "text") {
-      ctx.font = "64px modak";
+      ctx.font = "64px pacifico";
       svg.push({
         fill: color,
         tag: "text",
         shape: {
           content: "Text",
-          font: "montserrat",
+          font: "pacifico",
           size: 64,
           d: [
             {
@@ -592,17 +602,17 @@ export default function Editor() {
             {
               key: "C",
               data: [
-                { x: calculatedAddPoint.x + 200, y: calculatedAddPoint.y },
-                { x: calculatedAddPoint.x + 200, y: calculatedAddPoint.y },
-                { x: calculatedAddPoint.x + 400, y: calculatedAddPoint.y },
+                { x: calculatedAddPoint.x + 80, y: calculatedAddPoint.y },
+                { x: calculatedAddPoint.x + 80, y: calculatedAddPoint.y },
+                { x: calculatedAddPoint.x + 160, y: calculatedAddPoint.y },
               ],
             },
           ],
           path2D: null,
         },
         xMin: calculatedAddPoint.x,
-        xMax: calculatedAddPoint.x + 400,
-        yMin: calculatedAddPoint.y - 64,
+        xMax: calculatedAddPoint.x + 160,
+        yMin: calculatedAddPoint.y - 48,
         yMax: calculatedAddPoint.y,
         offset: { x: 0, y: 0 },
         stroke: "#000000",
@@ -655,7 +665,8 @@ export default function Editor() {
     // });
     setScale({ x: scale.x * (1 + scaleX), y: scale.x * (1 + scaleX) });
     // ctx.translate(xOffSet, yOffSet);
-    ctx.scale(1 + scaleX, 1 + scaleY);
+    ctx.reset();
+    ctx.transform(scale.x, 0, 0, scale.y, panOffset.x, panOffset.y);
     // ctx.translate(-xOffSet, -yOffSet);
 
     clear();
@@ -736,7 +747,8 @@ export default function Editor() {
 
     let isAlreadySelected = false;
 
-    svg.some((subSVG, i) => {
+    const reversedSVG = [...svg].reverse();
+    reversedSVG.some((subSVG, i) => {
       // if (subSVG.tag === "text") {
       //   //TODO : Implement Text Selection
       //   return false;
@@ -744,9 +756,9 @@ export default function Editor() {
       const path2D = subSVG.shape.path2D;
       if (path2D === null) return false;
       if (ctx.isPointInPath(path2D, currentPoint.x, currentPoint.y)) {
-        pathSelected = i;
+        pathSelected = svg.length - 1 - i;
         if (selectedPaths.includes(i)) isAlreadySelected = true;
-        else setSelectedPaths([i]);
+        else setSelectedPaths([svg.length - 1 - i]);
         return true;
       } else {
         return false;
@@ -871,8 +883,9 @@ export default function Editor() {
 
     function draw(letter: string, x: number, y: number) {
       // ctx.translate(x, y);
+      if (textTag.tag !== "text") return;
       ctx.fillStyle = textTag.fill;
-      ctx.font = "64px Modak";
+      ctx.font = `${textTag.shape.size}px ${textTag.shape.font}`;
       ctx.fillText(letter, x, y);
     }
 
@@ -1092,23 +1105,48 @@ export default function Editor() {
 
       if (newPath.shape.d === null) return;
 
+      //figure out if there's an arc in the new Path
+      let hasArc = false;
       newPath.shape.d.map((segment) => {
-        if (
-          segment.key === "A" ||
-          (typeof segment.data === "object" && !Array.isArray(segment.data))
-        )
-          return;
-        segment.data.map((point) => {
-          const rotatedPoint = rotatePoint(
-            point.x,
-            point.y,
-            (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2,
-            (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2,
-            radian,
-          );
-          point.x = rotatedPoint.x;
-          point.y = rotatedPoint.y;
-        });
+        if ("arcParams" in segment) {
+          hasArc = true;
+        }
+      });
+      if (hasArc) {
+        return;
+      }
+
+      newPath.shape.d.map((segment) => {
+        if ("arcParams" in segment) {
+          // const points = [];
+          // points.push({ x: segment.arcParams.dx, y: segment.arcParams.dy });
+          // // points.push({ x: segment.arcParams.rx, y: segment.arcParams.ry });
+          // points.map((point) => {
+          //   const rotatedPoint = rotatePoint(
+          //     point.x,
+          //     point.y,
+          //     (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2,
+          //     (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2,
+          //     radian,
+          //   );
+          //   point.x = rotatedPoint.x;
+          //   point.y = rotatedPoint.y;
+          // });
+          segment.arcParams.rotation += radian;
+          console.log("Rotating Arc");
+        } else {
+          segment.data.map((point) => {
+            const rotatedPoint = rotatePoint(
+              point.x,
+              point.y,
+              (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2,
+              (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2,
+              radian,
+            );
+            point.x = rotatedPoint.x;
+            point.y = rotatedPoint.y;
+          });
+        }
       });
       // const rotatedXmaxYmax = rotatePoint(
       //   svg[selectedPath]!.xMax
@@ -1179,7 +1217,23 @@ export default function Editor() {
         const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
 
         svg[selectedPath]?.shape.d.map((segment) => {
-          if (segment.key === "A") return;
+          if ("arcParams" in segment) {
+            //FIXXXXXXXXX
+
+            segment.arcParams.dx =
+              (segment.arcParams.dx - svg[selectedPath]!.xMax) *
+                (newWidth / oldWidth) +
+              svg[selectedPath]!.xMax;
+            segment.arcParams.dy =
+              (segment.arcParams.dy - svg[selectedPath]!.yMax) *
+                (newHeight / oldHeight) +
+              svg[selectedPath]!.yMax;
+            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
+            segment.arcParams.ry =
+              segment.arcParams.ry * (newHeight / oldHeight);
+
+            return;
+          }
           segment.data.map((point) => {
             point.x =
               (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
@@ -1199,7 +1253,23 @@ export default function Editor() {
         const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
         const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
         svg[selectedPath]?.shape.d.map((segment) => {
-          if (segment.key === "A") return;
+          if ("arcParams" in segment) {
+            //FIXXXXXXXXX
+
+            segment.arcParams.dx =
+              (segment.arcParams.dx - svg[selectedPath]!.xMin) *
+                (newWidth / oldWidth) +
+              svg[selectedPath]!.xMin;
+            segment.arcParams.dy =
+              (segment.arcParams.dy - svg[selectedPath]!.yMax) *
+                (newHeight / oldHeight) +
+              svg[selectedPath]!.yMax;
+            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
+            segment.arcParams.ry =
+              segment.arcParams.ry * (newHeight / oldHeight);
+
+            return;
+          }
           segment.data.map((point) => {
             point.x =
               (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
@@ -1220,7 +1290,23 @@ export default function Editor() {
         const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
         const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
         svg[selectedPath]?.shape.d.map((segment) => {
-          if (segment.key === "A") return;
+          if ("arcParams" in segment) {
+            //FIXXXXXXXXX
+
+            segment.arcParams.dx =
+              (segment.arcParams.dx - svg[selectedPath]!.xMax) *
+                (newWidth / oldWidth) +
+              svg[selectedPath]!.xMax;
+            segment.arcParams.dy =
+              (segment.arcParams.dy - svg[selectedPath]!.yMin) *
+                (newHeight / oldHeight) +
+              svg[selectedPath]!.yMin;
+            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
+            segment.arcParams.ry =
+              segment.arcParams.ry * (newHeight / oldHeight);
+
+            return;
+          }
           segment.data.map((point) => {
             point.x =
               (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
@@ -1240,7 +1326,21 @@ export default function Editor() {
         const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
         const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
         svg[selectedPath]?.shape.d.map((segment) => {
-          if (segment.key === "A") return;
+          if ("arcParams" in segment) {
+            //FIXXXXXXXXX
+
+            segment.arcParams.dx =
+              (segment.arcParams.dx - svg[selectedPath]!.xMin) *
+                (newWidth / oldWidth) +
+              svg[selectedPath]!.xMin;
+            segment.arcParams.dy =
+              (segment.arcParams.dy - svg[selectedPath]!.yMin) *
+                (newHeight / oldHeight) +
+              svg[selectedPath]!.yMin;
+            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
+
+            return;
+          }
 
           segment.data.map((point) => {
             point.x =
@@ -1959,12 +2059,12 @@ export default function Editor() {
     //TODO : Change the selectedPaths only when the mouse is released
     if (!isEditing && selectedPaths.length === 0) {
       const calculatedPoint = {
-        x: currentPoint.x * (1 / scale.x) - panOffset.x,
-        y: currentPoint.y * (1 / scale.y) - panOffset.y,
+        x: (currentPoint.x - panOffset.x) * (1 / scale.x),
+        y: (currentPoint.y - panOffset.y) * (1 / scale.y),
       };
       const calculatedSelectPoint = {
-        x: selectPoint!.x * (1 / scale.x) - panOffset.x,
-        y: selectPoint!.y * (1 / scale.y) - panOffset.y,
+        x: (selectPoint!.x - panOffset.x) * (1 / scale.x),
+        y: (selectPoint!.y - panOffset.y) * (1 / scale.y),
       };
       if (!calculatedPoint) {
         console.log("current point is null");
@@ -2122,12 +2222,12 @@ export default function Editor() {
       const currentPoint = computePointInCanvas(e);
       if (!currentPoint) return;
       const calculatedPoint = {
-        x: currentPoint.x * (1 / scale.x) - panOffset.x,
-        y: currentPoint.y * (1 / scale.y) - panOffset.y,
+        x: (currentPoint.x - panOffset.x) * (1 / scale.x),
+        y: (currentPoint.y - panOffset.y) * (1 / scale.y),
       };
       const calculatedSelectPoint = {
-        x: selectPoint.x * (1 / scale.x) - panOffset.x,
-        y: selectPoint.y * (1 / scale.y) - panOffset.y,
+        x: (selectPoint.x - panOffset.x) * (1 / scale.x),
+        y: (selectPoint.y - panOffset.y) * (1 / scale.y),
       };
       const newSelectedPaths: number[] = [];
       svg.map(({ xMax, xMin, yMax, yMin, offset }, i) => {
@@ -2304,10 +2404,12 @@ export default function Editor() {
     if (svg.length === 0) return;
     const path = svg[svg.length - 1];
     if (path === undefined) return;
-    const { x, y } = computePointInCanvas(e)!;
-    const offset = { x: panOffset.x, y: panOffset.y };
-    const xOffSet = offset.x;
-    const yOffSet = offset.y;
+    let { x, y } = computePointInCanvas(e)!;
+    x = (x - panOffset.x) * (1 / scale.x);
+    y = (y - panOffset.y) * (1 / scale.y);
+    // const offset = { x: panOffset.x, y: panOffset.y };
+    // const xOffSet = offset.x;
+    // const yOffSet = offset.y;
     const d = path.shape.d;
 
     if (d.length !== 0 && d[d.length - 1]!.key === "Z") {
@@ -2333,7 +2435,12 @@ export default function Editor() {
     } else if (d.length === 0) {
       d.push({
         key: "M",
-        data: [{ x: x - xOffSet, y: y - yOffSet }],
+        data: [
+          {
+            x: x,
+            y: y,
+          },
+        ],
       });
     }
     //make the path2Ds of the Points if it's not the first point
@@ -2392,7 +2499,7 @@ export default function Editor() {
       } else {
         d.push({
           key: "L",
-          data: [{ x: x - xOffSet, y: y - yOffSet }],
+          data: [{ x: x, y: y }],
         });
         //Create a path2D of this new line, and add it to the linePath2Ds
         const newPath2D = new Path2D();
@@ -2460,9 +2567,45 @@ export default function Editor() {
   };
   const drawPoint = (ctx: CanvasRenderingContext2D, point: Point) => {
     ctx.beginPath();
-    ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+    ctx.lineWidth = 2 * (1 / scale.x);
+    ctx.arc(point.x, point.y, 5 * (1 / scale.x), 0, 2 * Math.PI);
     ctx.strokeStyle = "#3eadfd";
     ctx.stroke();
+  };
+
+  const getDimensionsOfSelectedPaths = () => {
+    if (
+      !svg ||
+      selectedPaths.length === 0 ||
+      selectedPaths[0] === undefined ||
+      selectedPaths[0] === null ||
+      svg[selectedPaths[0]] === undefined
+    )
+      return {
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0,
+      };
+    let minX = svg[selectedPaths[0]]!.xMin + svg[selectedPaths[0]]!.offset.x;
+    let minY = svg[selectedPaths[0]]!.yMin + svg[selectedPaths[0]]!.offset.y;
+    let maxX = svg[selectedPaths[0]]!.xMax + svg[selectedPaths[0]]!.offset.x;
+    let maxY = svg[selectedPaths[0]]!.yMax + svg[selectedPaths[0]]!.offset.y;
+    selectedPaths.map((selectedPath) => {
+      const path = svg[selectedPath];
+      if (path === undefined) return;
+      minX = Math.min(minX, path.xMin + path.offset.x);
+      minY = Math.min(minY, path.yMin + path.offset.y);
+      maxX = Math.max(maxX, path.xMax + path.offset.x);
+      maxY = Math.max(maxY, path.yMax + path.offset.y);
+    });
+
+    return {
+      x: minX,
+      y: minY,
+      w: maxX - minX,
+      h: maxY - minY,
+    };
   };
 
   const drawDrawPoints = (ctx: CanvasRenderingContext2D, subSVG: SubSVG) => {
@@ -2493,7 +2636,6 @@ export default function Editor() {
     clear();
     drawSVG(ctx, svg);
     drawDrawPoints(ctx, svg[svg.length - 1]!);
-    drawPoint(ctx, { x, y });
 
     //draw line
     const path = svg[svg.length - 1];
@@ -2503,6 +2645,10 @@ export default function Editor() {
     const yOffSet = offset.y;
     const d = path.shape.d;
     if (d.length === 0) return;
+    drawPoint(ctx, {
+      x: (x - panOffset.x) * (1 / scale.x),
+      y: (y - panOffset.y) * (1 / scale.y),
+    });
 
     //FIX : ERROR
     if (d[d.length - 1]?.key === "A") return;
@@ -2511,12 +2657,54 @@ export default function Editor() {
       return;
     const lastPoint = lastAbsoluteSegment.data[0]!;
 
+    ctx.lineWidth = 2 * (1 / scale.x);
     ctx.beginPath();
-    ctx.moveTo(lastPoint.x + xOffSet, lastPoint.y + yOffSet);
-    ctx.lineTo(x, y);
+    ctx.moveTo(lastPoint.x, lastPoint.y);
+    ctx.lineTo(
+      (x - panOffset.x) * (1 / scale.x),
+      (y - panOffset.y) * (1 / scale.y),
+    );
     ctx.strokeStyle = "#3eadfd";
     ctx.stroke();
     ctx.closePath();
+    ctx.lineWidth = 2;
+  };
+
+  const renderFont = () => {
+    if (!svg) return null;
+    if (selectedPaths.length !== 1) return null;
+    if (selectedPaths[0] === undefined) return null;
+    const selectedPath = svg[selectedPaths[0]];
+    if (selectedPath === undefined) return null;
+    if (selectedPath.tag !== "text") return null;
+    return selectedPath.shape.font;
+  };
+
+  const renderFontSize = () => {
+    if (!svg) return null;
+    if (selectedPaths.length !== 1) return null;
+    if (selectedPaths[0] === undefined) return null;
+    const selectedPath = svg[selectedPaths[0]];
+    if (selectedPath === undefined) return null;
+    if (selectedPath.tag !== "text") return null;
+    return selectedPath.shape.size;
+  };
+
+  const [selectedFont, setSelectedFont] = useState("");
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    setSelectedFont(event.target.value);
+    if (!svg) return;
+    if (selectedPaths.length !== 1) return;
+    if (selectedPaths[0] === undefined) return;
+    const selectedPath = svg[selectedPaths[0]];
+    if (selectedPath === undefined) return;
+    if (selectedPath.tag !== "text") return;
+    selectedPath.shape.font = event.target.value;
+    const newSVG = [...svg];
+    newSVG[selectedPaths[0]] = selectedPath;
+    setSVG(newSVG);
+    console.log("font is", event.target.value);
   };
   //Also, when the tool is draw, draw the svgPoints of the current path that is being drawn
   // ------------------- Draw Tool -------------------
@@ -2581,7 +2769,7 @@ export default function Editor() {
 
   return (
     <div
-      className={`  flex h-screen w-screen items-center justify-center bg-[#F3F4F6] ${modak.variable}`}
+      className={`  flex h-screen w-screen items-center justify-center bg-[#F3F4F6] ${modak.variable} ${pacifico.variable}`}
       onClick={(e) => {
         // if (colorPickerRef !== null) {
         //   return;
@@ -2608,8 +2796,22 @@ export default function Editor() {
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                setIsEditing(true);
+                if (selectedPaths.length !== 1) return;
+
+                //check the selected path to see if it's an Elipse
+                let hasCircle = false;
+                if (!svg) return;
+                if (selectedPaths[0] === undefined) return;
+                const selectedPath = svg[selectedPaths[0]];
+                if (selectedPath === undefined) return;
+                const d = selectedPath.shape.d;
+                d.map((segment) => {
+                  if (segment.key === "A") hasCircle = true;
+                });
                 setIsRightClicked(null);
+                if (hasCircle) return;
+
+                setIsEditing(true);
               }}
               className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
             >
@@ -2653,7 +2855,26 @@ export default function Editor() {
           >
             LOGOAI
           </Link>
-          <div className="z-10 flex h-full flex-row gap-4">
+          <div className="relative z-10 flex h-full flex-row gap-4">
+            {guideIndex === 4 && (
+              <div className="absolute  top-full translate-y-4">
+                <Guidebox
+                  isOpened={true}
+                  guideIndex={5}
+                  guideLength={5}
+                  onNext={() => {
+                    console.log("next");
+                    setGuideIndex(-1);
+                    setSelectedDraw(null);
+                  }}
+                  onSkip={() => {
+                    setGuideIndex(-1);
+                  }}
+                  guideTitle="Add Shapes"
+                  guideDescription="By clicking on the shapes and dragging them to the canvas, you can add shapes to your logo"
+                ></Guidebox>
+              </div>
+            )}
             <div className="z-10 flex h-full flex-row items-center justify-center  gap-2 self-center rounded-md bg-white p-1.5 shadow-md">
               <div
                 className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
@@ -2699,6 +2920,26 @@ export default function Editor() {
                           <Generate onSVGComplete={onSVGComplete}></Generate>
                         </motion.div>
                       </AnimatePresence>
+                      {guideIndex === 0 && (
+                        <div className="absolute right-12 top-0 -translate-x-full">
+                          <Guidebox
+                            isOpened={true}
+                            guideIndex={1}
+                            guideLength={5}
+                            onNext={() => {
+                              console.log("next");
+                              setGuideIndex(1);
+
+                              setSelectedDraw("fileInput");
+                            }}
+                            onSkip={() => {
+                              setGuideIndex(-1);
+                            }}
+                            guideTitle="Generate Logo"
+                            guideDescription="You can Generate Logos for your brand by clicking on the Start Button"
+                          ></Guidebox>
+                        </div>
+                      )}
                       <div
                         className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
                         onClick={(e) => {
@@ -2797,6 +3038,45 @@ export default function Editor() {
                           </div>
                         </div>
                       </motion.div>
+                      {guideIndex === 1 && (
+                        <div className="absolute top-full -translate-x-44 translate-y-6">
+                          <Guidebox
+                            isOpened={true}
+                            guideIndex={2}
+                            guideLength={5}
+                            onNext={() => {
+                              console.log("next");
+                              setGuideIndex(2);
+                              setSelectedDraw(null);
+                              // download an svg file from the directory, set it as svg
+
+                              const result =
+                                '<svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="512 512 1536 1536" width="600" height="600"><path fill="#FF0080" stroke="#FF0080" stroke-width="10" d="M512 1024v512h1024V512H512zm522-397.4c23.7 4.5 43.2 15.2 60.1 33.2 18.6 19.8 29.5 44.2 31.5 70.4l.7 8.7 8.6-6.4c16.9-12.6 26.8-17.7 41.9-21.6 44.7-11.4 89.1 5.7 116.7 45 20 28.7 25.9 68.2 15.3 104.6-2.6 9.1-11.7 27.6-16.6 34.1l-4 5.1 5.7 1.7c3.1 1 9.2 3.7 13.6 6.1 4.4 2.3 11.4 5.7 15.7 7.4 21.8 9.1 44.7 31 56.2 53.9 14.1 28 16.3 63.5 5.9 94.2-11.5 33.6-39.2 61.5-71.4 71.9-7.5 2.5-21.7 5.1-27.2 5.1h-3.9l4 4.7c12.8 15.4 21.1 33.8 25.8 57.3 2 10.1 1.5 31.8-1 44-9 44.4-40.3 78.4-82.4 89.5-13.4 3.6-35.3 3.8-49.2.6-17.3-4-36.3-14.1-49.6-26.3l-4.1-3.8-.6 9c-1.9 26.6-12.9 51.1-32.1 71.7-32 34.2-81.1 43.8-123.1 23.9-12.6-5.9-20.2-11.6-31.6-23.3-14.3-14.8-23-29.5-28.5-48.3-2.2-7.3-5.3-25.7-5.4-31.4 0-1.4-1.3-.6-5.5 3.2-6.1 5.6-16.4 12.7-24.2 16.6-15.2 7.6-29.3 10.9-47.3 10.9-17.4 0-29-2.6-46.5-10.4-13.1-5.8-29.8-19.9-40.6-34.2-29.7-39.4-31.1-98.3-3.3-139.4 2.6-3.7 5.9-8.2 7.5-9.8 1.6-1.7 2.9-3.4 2.9-3.8s-1.7-.7-3.7-.7c-10 0-29.7-5.1-40.6-10.6-16.3-8.2-35.3-25.2-45.1-40.3-22.3-34.6-25.3-80.8-7.8-117.6 6.5-13.4 11.3-20.4 21.8-31.4 15.1-15.9 31.8-25.8 51.4-30.5 4.1-1 10-2.9 13.1-4.2s6.2-2.4 6.8-2.4c1.5 0 1.4-1.5-.4-3-2.4-2-11.5-16.9-15.1-24.6-7.4-16.2-10.8-32.3-10.8-50.9 0-34.4 11.9-63.2 35.7-86.2 13.6-13.2 25.5-20.5 41.2-25.6 12.4-4 19-5 33-5s20.6 1 33 5c14 4.5 28.5 12.9 39.1 22.5 3 2.8 5.4 4.4 5.4 3.6 0-2.9 2.1-18.5 3.1-23.3 6.9-32.5 27.7-60.9 56.3-77.2 19.8-11.3 47.4-16 69.6-11.7z"/><path fill="#400000" stroke="#400000" stroke-width="10" d="M973.5 850.5c0 35.7.1 50.2.2 32.2.2-18.1.2-47.3 0-65-.1-17.7-.2-3-.2 32.8zm0 345.5c0 35.5.1 50 .2 32.3.2-17.8.2-46.8 0-64.5-.1-17.8-.2-3.3-.2 32.2z"/><g stroke="#000" stroke-width="10"><path d="M996.1 627.5c-22 4.8-40.2 14.6-55.6 30-19.9 19.8-32.1 47-34.2 76.2l-.6 8.2-5.7-5.2c-13.9-12.9-33.2-22.7-52.5-26.8-8.1-1.8-31.3-1.7-40 0-43.2 8.6-77.7 44.4-87.1 90.1-3.7 18-2.6 41.5 2.7 59.3 4 13.4 14 32.5 21.2 40.4 1.1 1.3 1.9 2.5 1.6 2.7-1.2 1.2-13.3 5.6-19.4 7.1-20.7 5.1-38.4 15.4-53.2 30.8-34.3 35.7-42.9 87.9-21.9 133.9 16.4 35.9 52.1 61.8 88.9 64.5 4.8.3 8.7 1 8.7 1.4 0 .5-1.3 2.3-2.9 4.1-12 13.9-21.6 34.3-26.2 56.3-1.7 7.8-1.7 31.9 0 41.5 8.6 50.3 47.6 89.2 95.3 95.1 15.1 1.9 32.7 0 47-5 12.5-4.3 32.6-16.7 39.7-24.5 3.4-3.6 4.1-3.3 4.1 1.6 0 10.6 3.9 27.8 9.1 40.7 17.5 42.9 56.6 70.1 100.8 70.1 12.4 0 19.2-1 30.9-4.7 29-9 54.1-31.4 67.3-60 5.3-11.3 9.6-26.2 10.3-35.8.4-4.4.9-9.5 1.2-11.3l.5-3.2 6.7 5.7c11.7 9.9 22.4 16.2 35.9 21.1 11.6 4.3 20.3 5.7 34.8 5.7 7.2 0 16.1-.6 20-1.4 38.6-7.8 70.4-36.7 83.5-75.9 8.5-25.5 8.1-53.8-1-79.7-4.8-13.5-11.4-25.2-20.1-35.6-2.2-2.6-3.9-5-3.9-5.3s2.4-.6 5.4-.6c22 0 50.3-12.8 68.7-31 51.9-51.6 44.8-140.8-14.5-181.9-6.7-4.6-10.6-6.6-26.6-14-2.5-1.1-7-3.4-10-5.1-4.7-2.5-7.9-3.8-16.8-6.5-.8-.3.1-2.2 2.7-5.6 5.6-7.4 12.5-21 16.1-31.7 10.3-30.8 8-65.3-6.4-93.4-16.1-31.6-43.2-52.7-77.1-60-7.8-1.6-32.4-1.6-39.5.1-20.2 4.7-29.2 9.1-48.7 23.3-10.6 7.8-9.5 8.6-11.1-7.7-2.3-22.8-13.6-47-30.3-64.9-16.1-17.3-35.5-28.2-58.9-33.1-8.9-1.9-30.1-1.9-38.9 0zm31.4 52c25.8 5.4 45.5 28.7 48.1 56.6 1.3 14.9-3.2 31-12.3 43.6l-5.3 7.4v116.4l-6.8 2.8c-16.8 6.7-37.5 22.1-49.7 36.7l-6.8 8.1-2.8-5c-4.6-8.5-11.3-17.3-18.5-24.2-11.4-10.8-20.2-16-35.1-20.6-8.1-2.4-10.2-2.7-26.3-2.7-21.9-.1-30.5 1.8-47.4 10.3l-11.4 5.7-12.9-13.7c-11.6-12.5-13.1-13.8-16.3-13.8-12.4-.3-27.2-7.2-37.5-17.6-12.2-12.2-18.5-27.7-18.5-45.5 0-46.3 44.7-76.4 84.9-57.3 5.4 2.6 9.4 5.5 15.1 11.2 11.5 11.4 17.6 23.9 18.9 38.8l.6 7.2 42.5 44.9 42.5 45 .3-63.9.2-63.9-3.6-4.7c-19.7-25.6-17.3-62.6 5.5-85.4 14.7-14.8 33.1-20.5 52.6-16.4zm152.2 76c9.5 2.8 18.4 12.9 22.7 25.6 8.1 24.4 4.3 64.9-10.5 110.6-9.9 30.8-32.2 80.6-51.2 114.6-6.1 10.8-7.7 14.6-7.7 17.7 0 6.8 2.9 19.2 6.1 25.7 2.4 5.1 3.7 6.5 7.4 8.3 8.1 3.9 17 .5 29.4-11.5l8.3-8.1-.1-11.9c-.3-21.4 3-36.2 12-53.5 7.9-15 17.2-25.3 31.8-35 4.8-3.3 12.4-6.3 21.6-8.8 8.9-2.3 27.3-2.1 34.6.6 14 5 23.9 15 28.1 28.5 2.2 7.3 2.4 21.6.3 30.6-3.2 13.2-12.2 26.8-23.3 35.1-10.6 7.8-29.9 16.1-52.9 22.6-2.3.6-1.4 2.5 4 7.8 6.8 6.8 14.1 9.1 27.4 8.4 14.1-.7 23.1-6 36.6-21.7 11-12.7 11.4-13.1 15.6-13.1 5.6 0 6.9.8 9.1 5.1 2.5 4.8 2.7 16.2.4 23.9-5.7 19.1-27.4 36.6-51.7 41.6-8.4 1.8-27.9 2-36.9.4-14.7-2.6-27.6-9.5-37.3-20.2l-5.9-6.5-9 7.6c-15.2 12.8-24.9 17.9-38 20.1-17.8 3.2-35.7-6.6-45.8-25-1.8-3.3-3.5-6-3.8-6s-2.7 2.7-5.5 6.1c-6.6 7.9-18.5 17.5-26.1 21.1-7.7 3.6-21.1 5.4-29.3 4-14.4-2.6-25.1-9.6-33.6-22.2-7.4-10.9-9.7-18.6-10.3-34.4l-.4-12.8-7.7.6c-15.5 1.3-14.4.8-16.5 8.8-5.8 22.4-25.6 46.5-45.3 54.9-17.2 7.4-41.2 6.5-58.1-2-7.3-3.7-17-11.6-21.4-17.4l-3.2-4.3-6.3 4.7c-13.1 10-26.7 16.6-42.7 20.7-8.9 2.3-12.1 2.7-26.1 2.7-17.6 0-23.8-1.1-35.4-6.5-8.9-4.2-15.5-9.3-21.6-16.7-13.6-16.5-18.5-34.1-16.5-59.3 2-26.2 10.4-46.7 25.9-63.2 16.7-17.8 33.7-25.8 55.2-25.8 11.4 0 18.5 1.8 25.4 6.5 6.2 4.3 9.8 8.7 13.7 17.1 7.8 16.7 2.8 42.8-9.9 51.8-5.8 4-13.4 4.7-19.6 1.7-7.1-3.4-8.3-8.4-5.2-21.6 2.2-9.8 2-14.1-1-17-1.8-1.9-3.5-2.5-6.5-2.5-12.4 0-24.2 14.4-29 35.5-1.9 8-2.2 11.5-1.8 22.7.6 16.8 2.6 22.8 10.3 30.5 6.8 6.8 13.2 8.9 26.5 8.7 14.7-.2 28.1-5.8 44.4-18.6l6.8-5.3.2-17c.4-21.1 2.7-31.2 11.2-48.5 5.1-10.2 6.7-12.4 15.3-21.1 6.1-6.1 12.2-11.1 16.6-13.6 20.7-12 46.6-13.4 66.2-3.8 17.2 8.5 31.8 29.9 35.7 52.3l1.3 7.7 4.9-.3c4.6-.2 20-2.7 23.6-3.8.9-.3 2.8-2.8 4.3-5.7 7.5-14.4 17.6-26.6 30.4-36.7 13.5-10.6 26.2-16.6 42.3-19.8l9.3-1.9 1.7-15.4c6-52.4 23.2-110.9 39.3-133.4 7.5-10.5 17.8-18.6 27.5-21.6 4.2-1.3 14.4-1 19.7.6zm55.5 14.4c6.3 4 15.5 13.7 19.7 20.6 8 13.2 10.9 32.5 7.2 47.9-3.2 13.3-7.1 20.6-16.1 30-7.2 7.5-20 16.3-20 13.8 0-.6 1.1-5.8 2.5-11.6 5.5-23.1 6.9-34.7 6.9-57.1.1-21.7-.8-29.4-4.6-40.4-1-3-1.8-5.6-1.8-5.8 0-.9 2 0 6.2 2.6zm-253.9 323.8c13.2 20.8 36.5 34.6 60.9 36 19.1 1.1 40.1-4.5 52-13.9l3.7-2.9 4.7 3.6c6.2 4.8 12.3 7.8 21.4 10.7 10.4 3.2 28.9 3.2 40.3 0l7.8-2.2 10.2 10.7c5.6 6 12.9 13.6 16.1 17 5.1 5.5 6.4 6.3 9.5 6.3 5.6 0 18 3.8 24.6 7.5 6.4 3.6 16.3 13.2 21.3 20.5 8.2 12.3 12.1 31.7 9.1 46.2-3 15.2-8.2 24.9-18.6 35.4-10.9 10.8-24.7 16.4-40.3 16.4-10.5-.1-15.6-1.2-24.5-5.5-19.2-9.3-31.6-26.6-34.7-48.5l-1.4-9.2-42.4-45-42.5-45-.3 63.8-.2 63.7 3.9 5.1c4.8 6.2 9.3 15 11.7 23.1 2.9 9.5 2.5 26.7-.9 37-11.8 36.2-49.6 53.3-82.4 37.3-9.3-4.5-22.5-17.7-26.9-26.8-4.7-9.7-6.5-16.5-7.1-27-.9-15.8 3.5-30.4 12.8-42.7l3.9-5.2-.2-63.8-.3-63.8-42.5 44.9-42.5 44.9-.6 6.8c-1.5 15.8-8 29.1-19.5 39.8-11.5 10.8-24.7 16.1-39.9 16.1-9.4 0-17.3-1.8-26.4-6.2-8.8-4.2-21.3-16.7-25.9-25.9-12.9-25.7-8.3-56.8 11.3-76.4 10.2-10.2 21.3-15.6 35.4-17.3l5.7-.7 16.9-17.8c14.1-14.9 17.2-17.7 18.9-17.2 14.8 4.9 20.3 5.8 35.1 5.8 13.1 0 16.3-.3 24.9-2.6 18.9-5.1 35.1-14.9 48.3-29.2 3.7-4.1 6.9-7.4 7-7.5.2 0 1.3 1.7 2.6 3.7z"/><path d="M1161.6 792.7c-10.7 11.5-21.8 72.6-26.9 148.3-.8 10.7-1.3 19.6-1.2 19.7.3.5 14.5-33.6 18.8-45.2 16-43.1 23.7-83 20.8-107.5-2-16.4-5.8-21.4-11.5-15.3zm-81.7 175c-23.7 11.7-41.2 47.7-37 76 1.5 10 4.6 15.5 10.1 17.7 10.9 4.4 21.2-1.3 34.3-18.7l4.3-5.9-1.5-9.6c-.9-6.5-1.4-18.5-1.5-36.4-.1-14.8-.4-26.8-.7-26.8-.4 0-4 1.7-8 3.7zm171.3-1.5c-11.4 5.5-20.4 23.4-21.9 43.5l-.6 8.2 4.9-1.3c14-3.8 28.3-12 34.5-19.9 4-5 6.9-12.8 6.9-18.1-.1-4.8-3.5-11.3-6.9-13-4.2-2.2-11.7-1.9-16.9.6zm-352.7 3.2c-14.6 6.9-23.5 28.1-22.2 53.1.7 13.7 3.3 22.6 8.6 29.3 6.8 8.5 15.9 11.2 26.4 7.6 9.1-3.1 17.7-14.6 21.3-28.3l1.4-5.8-7-7.1c-11.4-11.4-16.2-23.7-16.2-41.5V967h-3.7c-2 0-5.8 1.1-8.6 2.4z"/></g><path fill="#FF8000" stroke="#FF8000" stroke-width="10" d="M1004 680.1c-6.2 1.2-19.5 7.9-25.5 13-6.2 5.1-10.7 11.2-15.1 20.4-4.7 9.8-6.5 17.5-6.5 28 0 4.9.7 11.7 1.6 15 2.1 7.9 7.3 18.8 11.9 24.8l3.6 4.7-.2 65-.3 65-43-45.5-43-45.5-1.1-7.9c-3.5-24.3-16.9-42.7-37.1-51.1-19.2-8-38.9-5.3-56.4 7.7-8 6-15.4 15.7-19.7 25.8-3.4 8.3-5.5 20.9-4.8 28.9 1.5 15.7 10.2 33.7 20.9 43.1 9.3 8.1 24 14.5 33.6 14.5h4.6l12.9 13.8 12.9 13.9 10.6-5.4c6.2-3.1 14.8-6.4 20.6-8 8.8-2.3 12-2.6 26-2.7 17.2 0 23.7 1 36.9 6.1 14.9 5.6 33.2 21.8 42.6 37.7 2.5 4.1 4.8 7.6 5.1 7.6s2.8-2.8 5.5-6.2c10.7-13.3 32-29.4 48.4-36.5l9-3.8V785.9l4.6-6.5c18.8-26.3 15.9-60.8-6.8-83.6-7.3-7.4-18.9-13.7-28.6-15.7-6.1-1.3-16.7-1.3-23.2 0zm228.6 96.5c3.6 13.5 4.9 30.7 3.5 48.2-1.2 16.1-3.9 33.6-7.4 47.9l-2.3 9.2 6-3.2c22.9-12.2 35.4-43 28.6-70.2-1.2-5-3.1-10.8-4.2-13-5.3-10.5-14.1-20.2-23-25.5l-3.5-2zM972 1098.3c-12.4 13.4-27.5 22.8-45.5 28.3-8.5 2.7-10.1 2.8-28 2.8s-19.5-.2-27.9-2.7l-8.9-2.8-2.2 2.1c-1.3 1.2-9 9.3-17.1 18.1l-14.9 15.9h-4.6c-9.6 0-24.3 6.4-33.6 14.5-7.3 6.4-13.7 16.5-17.4 27.5-7.6 22.7-2.3 46.9 14.1 64.3 6.8 7.2 14 11.9 23.9 15.3 5.8 2 9.1 2.5 17.5 2.5 15 0 25.3-3.8 37.1-13.5 12-9.8 19.2-23.6 21.9-41.6l1.1-7.8 43-45.5 43-45.6.3 65.1.2 65.1-3.9 5.1c-4.9 6.3-9.5 16-11.7 24.6-2.6 10.2-1.6 26.1 2.4 36.7 9 24.2 27.9 38.7 52.2 40 17 1 31-4.6 43.6-17.1 22.2-22.1 24.5-58.3 5.3-83.8l-3.9-5.2v-130.1l5.4 5.5c3 3 22.5 23.6 43.4 45.8l37.9 40.2.7 6.9c2.2 24.4 17.7 44.2 41.2 52.7 8.7 3.2 25.2 3.4 33.8.4 19.5-6.7 33.8-21.2 39.9-40.5 3.2-10.4 3.1-28-.3-39-3-10-12.1-24-19.1-29.5-9.2-7.3-23.4-13-32.5-13-3.8 0-4.6-.6-11.4-7.8-4.1-4.2-11.5-11.9-16.4-17l-9-9.3-5.9 1.6c-22.4 6.3-47.4 2.1-64-10.8l-3.7-2.9-3.3 2.5c-17.3 13.1-49 17.8-71.7 10.6-17.2-5.5-30.2-15.6-43-33.6-1.5-2-1.6-1.9-8 5z"/><path fill="#0080FF" stroke="#0080FF" stroke-width="10" d="M1164.2 755.1c-16.5 2.1-32.8 18.9-43.2 44.5-11.8 28.7-22.3 71.3-26.5 106.6-2.7 22.3-1.5 20-10.5 21.3-13.4 1.9-30.2 9.6-43.2 19.8-12.7 10-22.1 21-29.7 34.9-4.2 7.6-4.2 7.7-9.4 8.7-11.5 2.3-17.3 3.1-21.3 3.1-4.2 0-4.3-.1-5-3.8-2.5-15-6.2-24.5-13.3-35-6.4-9.5-14.6-16.8-23.6-21.2-10.4-5-17.8-6.4-31.2-5.8-19.4.9-34.5 7.8-49.4 22.7-18.4 18.4-26.9 41.4-26.9 72.5v14.5l-7.7 6.1c-12.9 10-28.6 17.1-41.3 18.5-7 .8-18.7-1.6-24.5-5-6.2-3.6-11.1-9.8-13.7-17.4-2-5.8-2.3-8.4-2.2-21.6.1-13.3.4-16 2.8-24 3.3-10.9 7.2-17.9 13.3-23.9 5.4-5.4 11.8-8.1 16.9-7.3 7.8 1.3 9.7 6.6 6.9 18.6-1 4.2-1.9 9.7-1.9 12.3-.1 4.1.4 5.2 3.1 8 2.8 2.8 4 3.3 9.6 3.6 5 .3 7.2 0 10.5-1.7 9.2-4.7 15.2-17.9 15.2-33.7 0-27.5-19.4-44.6-47.5-41.8-28.2 2.7-53.4 22.6-66.5 52.5-10.2 23-11.7 54.9-3.7 74.7 10.2 25.3 29.6 39.8 57.6 43.2 24.3 3 56.1-6.2 77.8-22.5 4-3 7.6-5.5 8.1-5.5s1.5 1.2 2.3 2.6c2.1 3.9 12.2 12.9 19.2 17 22.4 13.2 52.7 11.9 72.7-3.1 16.9-12.6 28.8-30.5 34-51.1l1-4.2 6.8-.6c3.7-.4 9.1-.9 12-1.2l5.2-.6v11c0 13.9 1.2 19.6 6.1 29.9 6.9 14.6 20.1 25.3 34.7 28.4 6.7 1.4 19.5.6 26.6-1.6 9.6-2.9 20.2-11.1 31.2-23.8l5.8-6.7 3.5 6.7c5.2 9.8 15.9 20.4 23.6 23.3 19.5 7.3 41.6-.3 65.4-22.6l3.4-3.1 8.1 8.2c9.2 9.3 17.6 14.2 30.5 17.7 9.9 2.8 33 3 43.3.5 18.1-4.4 31.4-13 42.6-27.4 5.9-7.7 8.4-15 8.6-25.3.1-9.4-1.6-13.9-6.1-15.9-5.4-2.5-8.6-.6-16.7 9.4-7.6 9.5-18.8 19.2-25.6 22.4-4.9 2.2-6.8 2.5-17 2.6-12.9 0-17.4-1.4-24.4-7.5-3.4-3-7.2-8.7-6.4-9.5.2-.2 3.9-1.3 8.3-2.5 44.5-11.9 67-32.2 70.6-63.7 1.8-15.8-2.3-29.1-12.1-39-9.6-9.8-22.2-14-39.2-13-30.9 1.9-58 23.7-70.5 56.8-4.4 11.8-6.3 23.5-6.3 39.9v13.6l-8.4 8.2c-9.6 9.4-16.5 13.2-24 13.2-6 0-10.4-2.5-13.3-7.7-2.9-5.1-6-16.7-6.8-25.1l-.7-6.7 8.2-14.5c9.4-16.7 19-35.5 25.6-50.2 2.5-5.7 5.5-12.3 6.6-14.8 9.7-21.4 21-53.7 26.3-75.4 5.6-23.2 7-33.9 6.9-54.1-.1-19.9-1.8-29.3-7-38.4-3.5-6-10-12.8-14.6-15.2-4.7-2.4-13-3.6-19.6-2.8zm4.7 36c3.6 3.9 4.6 10.3 4.6 29.9 0 20.6-1.3 30.3-7 52.5-4.4 16.9-13.8 44.3-21.5 62.5-3.4 8-7.3 17.4-8.8 21-3.5 8.5-3.8 6.7-2.3-16 5.8-87.8 19.1-150.7 32.3-151.9.4-.1 1.6.8 2.7 2zm-77.9 237.1 1.3 8.7-5.2 7c-2.9 3.9-7.7 9.3-10.7 12.1-11.9 10.8-25.8 10-31.6-1.8-3.4-6.9-3.8-25.2-.9-37.4 5.8-24.4 21.1-44.3 39.7-51.6l4.9-2 .6 28.2c.3 15.4 1.2 32 1.9 36.8zm177-63.4c5 2.5 7.4 7.2 7.4 14.7 0 14.8-13.7 28.6-35.6 35.9-10.4 3.5-11.8 3.4-11.8-.7.1-12.1 4.9-28.9 10.8-37.7 8.1-11.8 20-16.9 29.2-12.2zm-356.6 9.5c-1.3 16.9 5.4 33.9 18 45.4 5 4.6 5.2 4.9 4.5 8.8-2.1 12.1-9.5 24.2-17.7 29.2-5.6 3.3-13.1 4.9-18.1 3.8-8.7-1.9-17.7-12-20.4-23.1-8.9-35.2 6.6-71.8 30.6-72.3l3.7-.1z"/></svg>';
+                              const converted = stringToSVGandPath2Ds(result);
+                              setSVG(converted.svg);
+                              setSelectedPaths([0]);
+                              setTool("select");
+
+                              const svg = converted.svg;
+
+                              const ctx = canvasRef.current?.getContext("2d");
+                              if (!ctx) return;
+
+                              clear();
+                              // ctx.translate(-600, -600);
+                              // setPanOffset({ x: -600, y: -600 });
+                              drawSVG(ctx, svg);
+                              drawSVGPoints(ctx, svg);
+                              setSelectedDraw(null);
+                            }}
+                            onSkip={() => {
+                              setGuideIndex(-1);
+                            }}
+                            guideTitle="File Input"
+                            guideDescription="Or you can start with existing SVG Files"
+                          ></Guidebox>
+                        </div>
+                      )}
                     </AnimatePresence>
                   ) : null}
                 </>
@@ -3244,27 +3524,95 @@ export default function Editor() {
                   <div className="font-bold">Dimensions</div>
                   <div className="flex w-full flex-col gap-4">
                     <div className="flex w-full flex-row">
-                      <div className="w-1/2">W</div>
-                      <div className="w-1/2">X</div>
+                      <div className="flex w-1/2 flex-row gap-3">
+                        <div>W</div>
+                        <div>{getDimensionsOfSelectedPaths().w}</div>
+                      </div>
+                      <div className="flex w-1/2 flex-row gap-3">
+                        <div>X</div>
+                        <div>{getDimensionsOfSelectedPaths().x}</div>
+                      </div>
                     </div>
                     <div className="flex w-full flex-row">
-                      <div className="w-1/2">X</div>
-                      <div className="w-1/2">Y</div>
+                      <div className="flex w-1/2 flex-row gap-3">
+                        <div>H</div>
+                        <div>{getDimensionsOfSelectedPaths().h}</div>
+                      </div>
+                      <div className="flex w-1/2 flex-row gap-3">
+                        <div>Y</div>
+                        <div>{getDimensionsOfSelectedPaths().y}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
+                {svg &&
+                  selectedPaths.length === 1 &&
+                  selectedPaths[0] !== undefined &&
+                  svg[selectedPaths[0]]?.tag === "text" &&
+                  svg[selectedPaths[0]]!.shape &&
+                  "font" in svg[selectedPaths[0]]!.shape && (
+                    <div className="flex flex-col gap-4 border-b-[1px] border-[#e6e6e6] p-1 pb-4 text-xs">
+                      <div className="font-bold">Fonts</div>
+                      <div className="flex w-full flex-col gap-4">
+                        <div className="flex w-full flex-row">
+                          <div className="flex w-1/2 flex-row gap-3"></div>
+                        </div>
+                        <div className="flex w-full flex-row">
+                          <div className="flex w-1/2 flex-row gap-3">
+                            <div>
+                              <label htmlFor="fontSelector">Font</label>
+                              <select
+                                id="fontSelector"
+                                value={selectedFont}
+                                onChange={handleChange}
+                              >
+                                <option value="roboto">roboto</option>
+                                <option value="pacifico">pacifico</option>
+                                <option value="modak">modak</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex w-1/2 flex-row gap-3">
+                            <div>Size</div>
+                            <div>{renderFontSize()}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
         <div className="z-10 h-[80px] w-full flex-none p-[20px]">
-          <div className="flex justify-center gap-2">
+          <div className="relative flex justify-center gap-2">
             <ToolBox
               handleToolChange={(tool: Tool) => {
                 setTool(tool);
               }}
               tool={tool}
             />
+            {guideIndex === 2 && (
+              <div className="absolute bottom-full -translate-y-4">
+                <Guidebox
+                  isOpened={true}
+                  guideIndex={3}
+                  guideLength={5}
+                  onNext={() => {
+                    console.log("next");
+                    setGuideIndex(3);
+                    setIsEditing(true);
+                    setTool("select");
+                    setSelectedDraw(null);
+                  }}
+                  onSkip={() => {
+                    setGuideIndex(-1);
+                  }}
+                  guideTitle="Pan / Select"
+                  guideDescription="You can Select the Hand Tool to Pan the Canvas or Select the Select Tool to Select the Drawings"
+                ></Guidebox>
+              </div>
+            )}
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
               <div
                 onClick={() => {
@@ -3337,15 +3685,37 @@ export default function Editor() {
           ref={canvasRef}
           width={600}
           height={600}
-          className={` ${modak.className} z-2 absolute inset-0 m-auto rounded-lg bg-white ${
+          className={` ${modak.className} ${pacifico.className} z-2 absolute inset-0 m-auto rounded-lg bg-white ${
             tool === "hand" ? "cursor-grab" : ""
           } ${mouseDown ? "cursor-grabbing" : ""}`}
         ></canvas>
         {isEditingText && (
           <input
             ref={textareaRef}
-            className={`font-modak absolute   hidden resize-none border-2 border-[#18a0fb] font-bold ring-0 ring-offset-0`}
+            className={`font-pacifico absolute   hidden resize-none border-2 border-[#18a0fb] font-bold ring-0 ring-offset-0`}
           ></input>
+        )}
+        {guideIndex === 3 && (
+          <div className="absolute left-full translate-x-4">
+            <Guidebox
+              isOpened={true}
+              guideIndex={4}
+              guideLength={5}
+              onNext={() => {
+                console.log("next");
+                setGuideIndex(4);
+                setIsEditing(false);
+                setSelectedDraw(null);
+                setAddShape("rect");
+                setTool("add");
+              }}
+              onSkip={() => {
+                setGuideIndex(-1);
+              }}
+              guideTitle="Edit"
+              guideDescription="You can also Right-Click on the path to Edit or Delete it"
+            ></Guidebox>
+          </div>
         )}
       </div>
     </div>
