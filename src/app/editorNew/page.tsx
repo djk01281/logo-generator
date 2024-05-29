@@ -13,9 +13,7 @@ import { HexColorPicker } from "react-colorful";
 import { motion, AnimatePresence } from "framer-motion";
 
 import textPath from "../../helper/textPath";
-import Comboboxdemo from "~/components/ui/Combobox";
 import { Modak, Leckerli_One, Pacifico } from "next/font/google";
-import ComboboxDemo from "~/components/ui/Combobox";
 import Guidebox from "./_components/GuideBox";
 
 const colorMap: Record<string, string> = {
