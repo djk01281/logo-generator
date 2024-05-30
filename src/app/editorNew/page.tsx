@@ -2780,7 +2780,7 @@ export default function Editor() {
         setSelectedDraw(null);
       }}
     >
-      <div className=" flex h-full w-full flex-col">
+      <div className=" flex h-full font-sans w-full flex-col">
         {isRightClicked !== null ? (
           <div
             className={`absolute z-20 flex w-32 flex-col gap-2 rounded-md bg-[#1e1e1e] p-2  text-xs font-light text-white shadow-md`}

@@ -63,11 +63,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={` ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${modak.variable} ${modak.className} ${montserrat.variable}`}
+      className={` ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
     >
-      <body
-        className={`font-sans ${inter.variable}  ${just.variable} ${bricolage.variable}`}
-      >
+      <body className={`font-mono`}>
         <TRPCReactProvider>
           <NextAuthProvider>
             <main>{children}</main>
