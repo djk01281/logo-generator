@@ -2780,7 +2780,7 @@ export default function Editor() {
         setSelectedDraw(null);
       }}
     >
-      <div className=" flex h-full font-sans w-full flex-col">
+      <div className=" flex h-full w-full flex-col font-sans">
         {isRightClicked !== null ? (
           <div
             className={`absolute z-20 flex w-32 flex-col gap-2 rounded-md bg-[#1e1e1e] p-2  text-xs font-light text-white shadow-md`}
@@ -3600,6 +3600,7 @@ export default function Editor() {
                     console.log("next");
                     setGuideIndex(3);
                     setIsEditing(true);
+                    setSelectedPaths([0]);
                     setTool("select");
                     setSelectedDraw(null);
                   }}
@@ -3611,7 +3612,7 @@ export default function Editor() {
                 ></Guidebox>
               </div>
             )}
-            <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
+            {/* <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
               <div
                 onClick={() => {
                   console.log(historyIndex);
@@ -3664,7 +3665,7 @@ export default function Editor() {
                   />
                 </svg>
               </div>
-            </div>
+            </div> */}
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
               <div className="flex h-[30px] w-[60px] items-center justify-center rounded-md bg-slate-200 bg-white font-[geist] text-xs hover:bg-slate-200">
                 {Math.round(scale.x * 100)}%
