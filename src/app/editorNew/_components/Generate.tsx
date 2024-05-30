@@ -72,7 +72,7 @@ export default function Generate({ onSVGComplete }: GenerateProps) {
 
   const [isLoading, setIsLoading] = useState(false);
   function startHandler() {
-    setIsLoading(false);
+    setIsLoading(true);
   }
   function finishHandler(url: string) {
     setResultSrc(url);
