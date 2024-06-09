@@ -26,7 +26,7 @@ export const convertRouter = createTRPCRouter({
       };
       try {
         const response = await fetch(
-          "https://vectorize-api.vercel.app/generate",
+          "fastapi-production-33b8.up.railway.app/generate",
           requestOptions,
         );
         const result = (await response.json()) as convertedResultType;
