@@ -3,7 +3,12 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../trpc/react";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../../components/ui/tooltip";
 export default function SignInForm() {
   const handleEmailSignInClick = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -39,7 +44,7 @@ export default function SignInForm() {
       </h1>
       <div className="mb-10 flex flex-col items-center gap-2">
         <button
-          className="flex w-64 gap-2 rounded rounded-md border-[1px] border-black bg-white px-6 py-3  font-medium no-underline transition hover:bg-blue-200"
+          className=" flex w-64 gap-1.5 rounded rounded-md border-[1px] border-black bg-white px-4 py-3  font-medium no-underline transition hover:bg-blue-200"
           onClick={
             sessionData
               ? () => {
@@ -92,12 +97,28 @@ export default function SignInForm() {
             type="email"
             onChange={(event) => setEmail(event.target.value)}
           />
-          <button
-            onClick={handleEmailSignInClick}
-            className="w-64 rounded-md bg-[#171717] px-10 py-3 font-medium text-white no-underline transition hover:bg-[#383838]"
-          >
-            Continue
-          </button>
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger>
+                {" "}
+                <button
+                  onClick={() => {
+                    console.log("Temporarily Disabled");
+                  }}
+                  className="w-64 rounded-md bg-[#171717] px-10 py-3 font-medium text-white no-underline transition hover:bg-[#383838]"
+                >
+                  Continue
+                </button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className=" border-black bg-white text-black"
+                sideOffset={10}
+              >
+                <p className="font-semibold">🚧 Disabled Temporarily 🚧</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </form>
       </div>
     </div>
