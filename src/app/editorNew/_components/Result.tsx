@@ -1,6 +1,7 @@
 "use client";
 import { use, useEffect, useState } from "react";
 import { api } from "../../../trpc/react";
+import { Progress } from "../../../components/ui/progress";
 
 type convertedResultType = {
   svg: string;
@@ -143,11 +144,15 @@ export default function Result({
               src={imgSrc}
               alt="result"
             />
-            <div className="mb-8 text-[14px] font-normal text-[#666666]">
-              You can either convert the result to{" "}
-              <span className="font-semibold text-[#171717]">SVG format</span>,
-              or <span className="font-semibold text-[#171717]">download</span>{" "}
-              the image.
+            <div className="mb-6 flex flex-col">
+              <div className="mb-8 text-[14px] font-normal text-[#666666]">
+                You can either convert the result to{" "}
+                <span className="font-semibold text-[#171717]">SVG format</span>
+                , or{" "}
+                <span className="font-semibold text-[#171717]">download</span>{" "}
+                the image.
+              </div>
+              {clicked && <Progress value={convertingProgress}></Progress>}
             </div>
           </>
         ) : (
@@ -159,7 +164,7 @@ export default function Result({
               <div className="flex h-3 overflow-hidden rounded-full">
                 <div
                   style={{ width: `${progress}%` }}
-                  className="flex flex-col justify-center whitespace-nowrap bg-teal-500 text-center text-white"
+                  className=" flex flex-col justify-center whitespace-nowrap bg-teal-500 text-center text-white"
                 ></div>
               </div>
             </div>
@@ -196,6 +201,7 @@ export default function Result({
         <select></select>
           
         </button> */}
+
             {isConverted ? (
               <button
                 className="rounded-md border-[#383838] border-black bg-[#171717] px-10 py-3 font-sans text-[14px]  text-white no-underline transition  hover:border-[1px] hover:bg-[#383838]"
