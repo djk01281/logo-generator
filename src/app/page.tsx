@@ -69,10 +69,10 @@ export default function Home() {
 
 async function AuthShowcase() {
   const session = await getServerAuthSession();
-
+  // TODO : Only allow signed users to go to edtior
   return (
     <div className="flex h-[128px] w-full flex-col items-start justify-start  gap-4">
-      {session?.user && (
+      {
         <div className="relative flex">
           <Link
             href="/editorNew"
@@ -125,7 +125,7 @@ c124 10 359 9 471 -2z"
             </g>
           </svg>
         </div>
-      )}
+      }
       {!session?.user && (
         <div className="relative flex">
           <Link
