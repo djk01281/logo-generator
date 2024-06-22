@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { getServerAuthSession } from "~/server/auth";
-import Image from "next/image";
-import Arrow from "./arrow.svg";
 import Navbar from "./_components/Navbar";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function Home() {
   return (
@@ -74,7 +73,7 @@ async function AuthShowcase() {
 
   return (
     <div className="flex h-[128px] w-full flex-col items-start justify-start  gap-4">
-      {
+      <SignedIn>
         <div className="relative flex">
           <Link
             href="/editorNew"
@@ -127,15 +126,16 @@ c124 10 359 9 471 -2z"
             </g>
           </svg>
         </div>
-      }
-      {/* {!session?.user && (
+      </SignedIn>
+      <SignedOut>
         <div className="relative flex">
-          <Link
-            href="/signIn"
-            className={` transform rounded-md bg-blue-500  px-6 py-3 text-center font-medium text-white no-underline  transition hover:translate-y-[-2px] hover:border-[1px] hover:border-violet-500 hover:bg-violet-500`}
-          >
-            Get Started
-          </Link>
+          <SignInButton mode="modal">
+            <button
+              className={` transform rounded-md bg-blue-500  px-6 py-3 text-center font-medium text-white no-underline  transition hover:translate-y-[-2px] hover:border-[1px] hover:border-violet-500 hover:bg-violet-500`}
+            >
+              Get Started
+            </button>
+          </SignInButton>
           <svg
             version="1.0"
             xmlns="http://www.w3.org/2000/svg"
@@ -181,7 +181,7 @@ c124 10 359 9 471 -2z"
             </g>
           </svg>
         </div>
-      )} */}
+      </SignedOut>
     </div>
   );
 }

@@ -11,10 +11,11 @@ import Generate from "./_components/Generate";
 import SVGPathCommander from "svg-path-commander";
 import { HexColorPicker } from "react-colorful";
 import { motion, AnimatePresence } from "framer-motion";
-
+import Image from "next/image";
 import textPath from "../../helper/textPath";
 import { Modak, Leckerli_One, Pacifico } from "next/font/google";
 import Guidebox from "./_components/GuideBox";
+import { useUser } from "@clerk/nextjs";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -185,6 +186,7 @@ const pacifico = Pacifico({
 });
 
 export default function Editor() {
+  const { user } = useUser();
   const [tool, setTool] = useState<Tool>("select");
   const { svg, setSVG, setSelected, moveSelected } = useSVG([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -3322,7 +3324,8 @@ export default function Editor() {
                 </svg>
               </div>
             </div>
-            <button
+
+            <div
               onClick={(e) => {
                 if (selectedDraw === "profile") {
                   setSelectedDraw(null);
@@ -3333,11 +3336,18 @@ export default function Editor() {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="relative z-20 flex h-full  w-[40px] items-center justify-center rounded-md bg-pink-300 font-[geist]"
+              className=" relativeh-[40px] w-[40px] cursor-pointer overflow-clip rounded"
             >
-              D
+              {user && (
+                <Image
+                  src={user?.imageUrl ?? ""}
+                  alt="Profile Image"
+                  width={40}
+                  height={40}
+                ></Image>
+              )}
               {selectedDraw === "profile" && (
-                <div className="absolute right-0 top-[48px] z-50 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
+                <div className="absolute right-2 top-[68px] z-50 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
                   <div className="flex flex-row gap-2 text-sm">
                     <button
                       onClick={(e) => {
@@ -3376,7 +3386,7 @@ export default function Editor() {
                   )}
                 </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
         <div className="flex flex-auto justify-between p-[12px]">

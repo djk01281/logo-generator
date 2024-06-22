@@ -16,7 +16,10 @@ const config = {
    */
 
   images: {
-    domains: ["logo--generator.s3.ap-northeast-2.amazonaws.com"],
+    domains: [
+      "logo--generator.s3.ap-northeast-2.amazonaws.com",
+      "img.clerk.com",
+    ],
   },
 };
 

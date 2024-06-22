@@ -1,6 +1,6 @@
 import "~/styles/globals.css";
 import { Montserrat } from "next/font/google";
-
+import { ClerkProvider } from "@clerk/nextjs";
 import {
   Inter,
   Just_Another_Hand,
@@ -61,17 +61,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={` ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
-    >
-      <body className={`font-mono`}>
-        <TRPCReactProvider>
-          <NextAuthProvider>
-            <main>{children}</main>
-          </NextAuthProvider>
-        </TRPCReactProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={` ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
+      >
+        <body className={`font-mono`}>
+          <TRPCReactProvider>
+            <NextAuthProvider>
+              <main>{children}</main>
+            </NextAuthProvider>
+          </TRPCReactProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
