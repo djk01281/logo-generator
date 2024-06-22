@@ -69,7 +69,9 @@ export default function Home() {
 
 async function AuthShowcase() {
   const session = await getServerAuthSession();
-  // TODO : Only allow signed users to go to edtior
+
+  // TODO : Only allow signed in users to access the editor
+
   return (
     <div className="flex h-[128px] w-full flex-col items-start justify-start  gap-4">
       {
@@ -126,7 +128,7 @@ c124 10 359 9 471 -2z"
           </svg>
         </div>
       }
-      {!session?.user && (
+      {/* {!session?.user && (
         <div className="relative flex">
           <Link
             href="/signIn"
@@ -179,7 +181,7 @@ c124 10 359 9 471 -2z"
             </g>
           </svg>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
