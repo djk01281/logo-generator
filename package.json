@@ -43,6 +43,7 @@
     "cmdk": "^1.0.0",
     "framer": "^2.4.1",
     "geist": "^1.2.1",
+    "lucide": "^0.396.0",
     "lucide-react": "^0.379.0",
     "mailgun.js": "^9.4.1",
     "motion": "^10.17.0",

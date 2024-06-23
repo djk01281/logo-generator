@@ -10,6 +10,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 
 const historySchema = z.object({
   role: z.string(),
@@ -59,6 +60,27 @@ export const generateRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       try {
         console.log("Getting Prompts");
+        if (input.length === 0) {
+          const user = await currentUser();
+          if (!user) {
+            return {
+              type: "text",
+              response: "Please login",
+            };
+          }
+          const credits = Number(user.publicMetadata?.credits || 0);
+          if (credits === 0) {
+            return {
+              type: "text",
+              response: "You have no credits left. Please buy more credits",
+            };
+          }
+          await clerkClient.users.updateUserMetadata(user.id, {
+            publicMetadata: {
+              credits: credits - 1,
+            },
+          });
+        }
         // const prompt = `a clean vector logo,with simple distinguishable lines, white background, with text "${input.name}", a color of ${input.themeColor}, in the style of ${input.style}, in the theme of ${input.theme}`;
 
         //then you'll ask another question and so forth. When you can, try to give the user options.

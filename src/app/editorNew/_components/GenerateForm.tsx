@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button, LoadingButton } from "../../_components/Button";
 import { Select } from "./Select";
 import { ChatBubble, LoadingBubble } from "./Chat";
+import { Zap } from "lucide-react";
+import { useClerk, useUser } from "@clerk/nextjs";
+import { AddFreeCredits } from "~/lib/actions";
+import { set } from "zod";
 
 type GenerateFormProps = {
   onStart: () => void;
@@ -25,6 +29,8 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
   const generateMutation = api.generate.create.useMutation();
   const createHistoryMutation = api.history.create.useMutation();
   const getPromptMutation = api.generate.getPrompt.useMutation();
+
+  const [noCredits, setNoCredits] = useState(false);
 
   const handleSubmitAsync = async (prompt: string) => {
     onStart();
@@ -64,15 +70,47 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
         setSelect([]);
       }
     }
+    await session?.reload();
   };
 
   const handleBtnClick = async () => {
     setFormHistory([...formHistory, { role: "user", content: input }]);
     await getPromptAsync([...formHistory, { role: "user", content: input }]);
+    await session?.reload();
+  };
+
+  const { user } = useUser();
+  const { session } = useClerk();
+  const credits = user?.publicMetadata?.credits;
+  const isNewUser = credits === undefined;
+  const handleFreeCredits = async () => {
+    setNoCredits(false);
+    await AddFreeCredits();
+    await session?.reload();
   };
 
   return (
     <div className="w-full p-4">
+      <div className="mx-1.5 mb-2 flex flex-row justify-between text-sm">
+        {user && (
+          <div className="flex flex-row items-center gap-0.5">
+            <Zap size={"20"} stroke="#a855f7" />
+            <div className="flex items-center justify-center text-slate-500">
+              {`Credits : ${typeof credits === "number" ? credits : 0}`}
+            </div>
+          </div>
+        )}
+        {user && isNewUser && (
+          <div>
+            <button
+              onClick={handleFreeCredits}
+              className="rounded-sm bg-[#18181b] p-2 text-white hover:bg-slate-800"
+            >
+              Free Credits
+            </button>
+          </div>
+        )}
+      </div>
       {!started ? (
         <div className="flex w-full flex-col items-center justify-center  gap-1 rounded-md border-[1px] border-[#f87171] bg-red-100 p-3">
           <div className="font-[geist] font-bold text-rose-950">
@@ -84,6 +122,11 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
           <Button
             text="start"
             fn={() => {
+              if (typeof credits !== "number" || credits === 0) {
+                setNoCredits(true);
+                return;
+              }
+
               setStarted(true);
               void getPromptAsync([]);
             }}
@@ -116,7 +159,7 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
                             placeholder="Your Answer"
                             maxLength={30}
                             value={input}
-                            className="relative w-full animate-fade-down resize-none rounded-[6px] border-[1px] border-[#eaeaea] p-[12px] text-[14px] font-normal outline-none ring-black animate-delay-500 animate-duration-[750ms] animate-once animate-ease-in animate-ease-out focus:border-black focus:ring-0 focus:ring-offset-0"
+                            className="animate-fade-down animate-delay-500 animate-duration-[750ms] animate-once animate-ease-in animate-ease-out relative w-full resize-none rounded-[6px] border-[1px] border-[#eaeaea] p-[12px] text-[14px] font-normal outline-none ring-black focus:border-black focus:ring-0 focus:ring-offset-0"
                           ></textarea>
                           <div className="absolute bottom-1.5 right-1.5 text-slate-500">{`${input.length}/30`}</div>
                         </div>
@@ -152,6 +195,9 @@ const GenerateForm: React.FC<GenerateFormProps> = ({ onStart, onFinish }) => {
           </div>
         </div>
       )}
+      <div className="mt-2 flex items-center justify-end text-sm text-red-500">
+        <div>{noCredits && "Please buy more credits."}</div>
+      </div>
     </div>
   );
 };
