@@ -27,7 +27,7 @@ const Guidebox: React.FC<GuideboxProps> = ({
     <motion.div
       initial={{ scale: 0.9 }}
       whileInView={{ scale: 1 }}
-      className="flex w-72 flex-col gap-2 rounded-lg bg-purple-500 p-4 text-sm text-white shadow-lg"
+      className="z-50 flex w-72 flex-col  gap-2 rounded-lg bg-purple-500 p-4 text-sm text-white shadow-lg"
     >
       <div className="">
         {guideIndex} / {guideLength}

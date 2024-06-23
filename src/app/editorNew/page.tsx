@@ -187,6 +187,13 @@ const pacifico = Pacifico({
 
 export default function Editor() {
   const { user } = useUser();
+  let credits = 0;
+  if (user?.publicMetadata) {
+    if (typeof user.publicMetadata.credits === "number") {
+      credits = user.publicMetadata.credits;
+    }
+  }
+
   const [tool, setTool] = useState<Tool>("select");
   const { svg, setSVG, setSelected, moveSelected } = useSVG([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -199,6 +206,7 @@ export default function Editor() {
     handMouseUpHandler,
     handOnWheelMove,
   } = useHand(onPan, onZoom, canvasRef, tool);
+
   const {
     onSelectMouseDown,
     onSelectMouseUp,
@@ -2855,7 +2863,7 @@ export default function Editor() {
           >
             LOGOAI
           </Link>
-          <div className="relative z-10 flex h-full flex-row gap-4">
+          <div className="relative z-50 flex h-full flex-row gap-4">
             {guideIndex === 4 && (
               <div className="absolute  top-full translate-y-4">
                 <Guidebox
@@ -3330,6 +3338,8 @@ export default function Editor() {
                 if (selectedDraw === "profile") {
                   setSelectedDraw(null);
                 } else {
+                  setSelectedPaths([]);
+                  setSelectPoint(null);
                   setSelectedDraw("profile");
                   setProfileIsCredits(true);
                 }
@@ -3347,44 +3357,47 @@ export default function Editor() {
                 ></Image>
               )}
               {selectedDraw === "profile" && (
-                <div className="absolute right-2 top-[68px] z-50 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
-                  <div className="flex flex-row gap-2 text-sm">
-                    <button
-                      onClick={(e) => {
-                        setProfileIsCredits(true);
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
-                      className={`flex w-1/2 items-center justify-center rounded-md ${profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"} `}
-                    >
-                      Credits
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        setProfileIsCredits(false);
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
-                      className={`flex w-1/2 items-center justify-center rounded-md p-1.5  ${!profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"}`}
-                    >
-                      Workspaces
-                    </button>
-                  </div>
-                  {profileIsCredits ? (
-                    <div className="flex flex-col gap-3 rounded-md bg-[#fafafa] p-4">
-                      <div className="flex  items-center justify-center text-sm ">
-                        Current Credits : <span className="font-bold">128</span>
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <button className="inline-block items-center justify-center rounded-md bg-[#18181b] p-1.5 text-sm text-[#fafafa] hover:bg-[#2f2f31]">
-                          Buy Credits
-                        </button>
-                      </div>
+                <AnimatePresence>
+                  <motion.div className="absolute right-2 top-[68px] z-40 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
+                    <div className=" relative flex flex-row gap-2 text-sm">
+                      <button
+                        onClick={(e) => {
+                          setProfileIsCredits(true);
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                        className={`z-50 flex w-1/2 items-center justify-center rounded-md ${profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"} `}
+                      >
+                        Credits
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          setProfileIsCredits(false);
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                        className={`flex w-1/2 items-center justify-center rounded-md p-1.5  ${!profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"}`}
+                      >
+                        Workspaces
+                      </button>
                     </div>
-                  ) : (
-                    <div>Workspaces</div>
-                  )}
-                </div>
+                    {profileIsCredits ? (
+                      <div className="flex flex-col gap-3 rounded-md bg-[#fafafa] p-4">
+                        <div className="flex  items-center justify-center text-sm ">
+                          Current Credits :{" "}
+                          <span className="font-bold">{credits}</span>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <button className="inline-block items-center justify-center rounded-md bg-[#18181b] p-1.5 text-sm text-[#fafafa] hover:bg-[#2f2f31]">
+                            Buy Credits
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>Workspaces</div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               )}
             </div>
           </div>
@@ -3475,7 +3488,7 @@ export default function Editor() {
                 initial={{ x: 300 }}
                 animate={{ x: 0 }}
                 exit={{ x: 300 }}
-                className={` z-10 flex   h-[590px]   w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
+                className={`z-10 flex   h-[590px]   w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Properties
@@ -3705,7 +3718,7 @@ export default function Editor() {
           ></input>
         )}
         {guideIndex === 3 && (
-          <div className="absolute left-full translate-x-4">
+          <div className="absolute left-full z-50 translate-x-4">
             <Guidebox
               isOpened={true}
               guideIndex={4}
