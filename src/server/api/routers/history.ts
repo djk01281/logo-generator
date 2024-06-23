@@ -86,7 +86,7 @@ export const historyRouter = createTRPCRouter({
       const { s3Url, imageKey } = await saveToS3(input.url);
       await ctx.db.history.create({
         data: {
-          authorId: ctx.session.user.id,
+          authorId: ctx.userId,
           imageKey: imageKey,
           prompt: "some prompt for now",
         },
