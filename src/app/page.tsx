@@ -77,7 +77,7 @@ async function AuthShowcase() {
         <div className="relative flex">
           <Link
             href="/editorNew"
-            className={` transform rounded-md bg-blue-500  px-6 py-3 text-center font-medium text-white no-underline  transition hover:translate-y-[-2px] hover:border-[1px] hover:border-violet-500 hover:bg-violet-500`}
+            className={` transform rounded-md bg-blue-500  px-6 py-3 text-center font-medium text-white no-underline  transition  hover:border-violet-500 hover:bg-violet-500`}
           >
             Get Started
           </Link>

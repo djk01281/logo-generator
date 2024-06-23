@@ -12,6 +12,7 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import Image from "next/image";
+import { RedirectToUserProfile } from "@clerk/nextjs";
 
 const just = Just_Another_Hand({
   weight: ["400"],
