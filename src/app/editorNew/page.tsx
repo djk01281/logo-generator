@@ -16,6 +16,12 @@ import textPath from "../../helper/textPath";
 import { Modak, Leckerli_One, Pacifico } from "next/font/google";
 import Guidebox from "./_components/GuideBox";
 import { useUser } from "@clerk/nextjs";
+import { Button } from "../../components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -2775,6 +2781,12 @@ export default function Editor() {
 
   const [profileIsCredits, setProfileIsCredits] = useState<boolean>(true);
 
+  const downloadImage = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const link = event.currentTarget;
+    link.setAttribute("download", "logo.png");
+    const image = canvasRef.current?.toDataURL("image/png");
+    if (image) link.setAttribute("href", image);
+  };
   return (
     <div
       className={`  flex h-screen w-screen items-center justify-center bg-[#F3F4F6] ${modak.variable} ${pacifico.variable}`}
@@ -2856,373 +2868,334 @@ export default function Editor() {
           </div>
         ) : null}
 
-        <div className="flex h-[80px]  w-full flex-none justify-between p-[20px]">
-          <Link
-            className={` ${just.className} z-10 flex items-center justify-center rounded-xl bg-red-400 px-2 pt-1 text-center text-[20px] leading-snug text-white`}
-            href="/"
-          >
-            LOGOAI
-          </Link>
-          <div className="relative z-50 flex h-full flex-row gap-4">
-            {guideIndex === 4 && (
-              <div className="absolute  top-full translate-y-4">
-                <Guidebox
-                  isOpened={true}
-                  guideIndex={5}
-                  guideLength={5}
-                  onNext={() => {
-                    console.log("next");
-                    setGuideIndex(-1);
-                    setSelectedDraw(null);
-                  }}
-                  onSkip={() => {
-                    setGuideIndex(-1);
-                  }}
-                  guideTitle="Add Shapes"
-                  guideDescription="By clicking on the shapes and dragging them to the canvas, you can add shapes to your logo"
-                ></Guidebox>
-              </div>
-            )}
-            <div className="z-10 flex h-full flex-row items-center justify-center  gap-2 self-center rounded-md bg-white p-1.5 shadow-md">
-              <div
-                className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
-                  selectedDraw === "aiInput" ? "bg-violet-300" : ""
-                } flex items-center justify-center rounded-md`}
-                onClick={(e) => {
-                  setSelectedDraw("aiInput");
-                  e.stopPropagation();
-                }}
-                ref={aiPopUpRef}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  stroke="black"
-                  // className="hover:stroke-white"
-                >
-                  <path
-                    d="M5.91165 3.16664C5.94923 3.09576 6.05077 3.09577 6.08835 3.16664L7.89127 6.56722C7.90064 6.5849 7.9151 6.59936 7.93278 6.60873L11.3334 8.41165C11.4042 8.44923 11.4042 8.55077 11.3334 8.58835L7.93278 10.3913C7.9151 10.4006 7.90064 10.4151 7.89127 10.4328L6.08835 13.8334C6.05077 13.9042 5.94923 13.9042 5.91165 13.8334L4.10873 10.4328C4.09936 10.4151 4.0849 10.4006 4.06722 10.3913L0.666643 8.58835C0.595765 8.55077 0.595765 8.44923 0.666643 8.41165L4.06722 6.60873C4.0849 6.59936 4.09936 6.5849 4.10873 6.56722L5.91165 3.16664Z"
-                    stroke="inherit"
-                  ></path>
-                  <path
-                    d="M15.5 3L13.5 0.5L11.5 3L13.5 5.5L15.5 3Z"
-                    stroke="inherit"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></path>
-                  <path
-                    d="M13.5 10.5V14.5M11.5 12.5H15.5"
-                    stroke="inherit"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></path>
-                </svg>
-                <>
-                  {selectedDraw === "aiInput" ? (
-                    <div className="absolute left-0 top-full z-10 flex -translate-x-1.5 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
-                      <AnimatePresence>
-                        <motion.div initial={{ y: -20 }} animate={{ y: 0 }}>
-                          <Generate onSVGComplete={onSVGComplete}></Generate>
-                        </motion.div>
-                      </AnimatePresence>
-                      {guideIndex === 0 && (
-                        <div className="absolute right-12 top-0 -translate-x-full">
-                          <Guidebox
-                            isOpened={true}
-                            guideIndex={1}
-                            guideLength={5}
-                            onNext={() => {
-                              console.log("next");
-                              setGuideIndex(1);
-
-                              setSelectedDraw("fileInput");
-                            }}
-                            onSkip={() => {
-                              setGuideIndex(-1);
-                            }}
-                            guideTitle="Generate Logo"
-                            guideDescription="You can Generate Logos for your brand by clicking on the Start Button"
-                          ></Guidebox>
-                        </div>
-                      )}
-                      <div
-                        className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
-                        onClick={(e) => {
-                          setSelectedDraw(null);
-                          e.stopPropagation();
-                        }}
-                      >
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 16 16"
-                          fill="grey"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            className="fillDefault fillActive"
-                            d="M15.0996 13.6L9.39961 7.9L15.0996 2.2C15.4996 1.8 15.4996 1.2 15.0996 0.8C14.6996 0.4 14.0996 0.4 13.6996 0.8L7.99965 6.5L2.29963 0.8C1.89963 0.4 1.29961 0.4 0.899609 0.8C0.499609 1.2 0.499609 1.8 0.899609 2.2L6.59962 7.9L0.899609 13.6C0.499609 14 0.499609 14.6 0.899609 15C1.09961 15.2 1.39962 15.3 1.59962 15.3C1.89962 15.3 2.09963 15.2 2.29963 15L7.99965 9.3L13.6996 15C13.8996 15.2 14.1996 15.3 14.3996 15.3C14.6996 15.3 14.8996 15.2 15.0996 15C15.4996 14.7 15.4996 14 15.0996 13.6Z"
-                          ></path>
-                        </svg>
-                      </div>
-                    </div>
-                  ) : null}
-                </>
-              </div>
-              <div className="h-full w-[1px] bg-[#f3f5f7]"></div>
-              <div
-                className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
-                  selectedDraw === "fileInput" ? "bg-violet-300" : ""
-                } flex items-center justify-center rounded-md`}
-                onClick={(e) => {
-                  setSelectedDraw("fileInput");
-                  e.stopPropagation();
-                }}
-                ref={filePopUpRef}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="black"
-                  width={18}
-                  height={18}
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                  />
-                </svg>
-                <>
-                  {selectedDraw === "fileInput" ? (
-                    <AnimatePresence>
-                      <motion.div
-                        initial={{ y: 4 }}
-                        animate={{ y: 24 }}
-                        className="absolute left-0 top-full z-10 flex w-60 translate-y-6 items-center justify-center rounded-lg bg-white p-4 shadow-md"
-                      >
-                        <input
-                          type="file"
-                          accept=".svg"
-                          onChange={(e) => handleFileChange(e)}
-                          className="absolute h-full w-60 appearance-none opacity-0"
-                          ref={fileInputRef}
-                        />
-                        <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-[geist] text-[14px]">
-                          <div className="mb-1 flex w-full items-center justify-center">
-                            <svg
-                              version="1.0"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 48 48"
-                              enable-background="new 0 0 48 48"
-                              width={36}
-                              height={36}
-                            >
-                              <path
-                                fill="#4053f7"
-                                d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"
-                              />
-                              <path
-                                fill="#4053f7"
-                                d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"
-                              />
-                            </svg>
-                          </div>
-                          <div className="mb-2 flex w-full items-center justify-center font-medium">
-                            Drag and Drop Files
-                          </div>
-                          <div className="mb-2.5 flex w-full items-center justify-center text-xs font-medium text-slate-500">
-                            OR
-                          </div>
-                          <div className="flex w-full items-center justify-center">
-                            <button className="rounded-md bg-[#4053f7] p-2 text-white">
-                              Browse Files
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                      {guideIndex === 1 && (
-                        <div className="absolute top-full -translate-x-44 translate-y-6">
-                          <Guidebox
-                            isOpened={true}
-                            guideIndex={2}
-                            guideLength={5}
-                            onNext={() => {
-                              console.log("next");
-                              setGuideIndex(2);
-                              setSelectedDraw(null);
-                              // download an svg file from the directory, set it as svg
-
-                              const result =
-                                '<svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="512 512 1536 1536" width="600" height="600"><path fill="#FF0080" stroke="#FF0080" stroke-width="10" d="M512 1024v512h1024V512H512zm522-397.4c23.7 4.5 43.2 15.2 60.1 33.2 18.6 19.8 29.5 44.2 31.5 70.4l.7 8.7 8.6-6.4c16.9-12.6 26.8-17.7 41.9-21.6 44.7-11.4 89.1 5.7 116.7 45 20 28.7 25.9 68.2 15.3 104.6-2.6 9.1-11.7 27.6-16.6 34.1l-4 5.1 5.7 1.7c3.1 1 9.2 3.7 13.6 6.1 4.4 2.3 11.4 5.7 15.7 7.4 21.8 9.1 44.7 31 56.2 53.9 14.1 28 16.3 63.5 5.9 94.2-11.5 33.6-39.2 61.5-71.4 71.9-7.5 2.5-21.7 5.1-27.2 5.1h-3.9l4 4.7c12.8 15.4 21.1 33.8 25.8 57.3 2 10.1 1.5 31.8-1 44-9 44.4-40.3 78.4-82.4 89.5-13.4 3.6-35.3 3.8-49.2.6-17.3-4-36.3-14.1-49.6-26.3l-4.1-3.8-.6 9c-1.9 26.6-12.9 51.1-32.1 71.7-32 34.2-81.1 43.8-123.1 23.9-12.6-5.9-20.2-11.6-31.6-23.3-14.3-14.8-23-29.5-28.5-48.3-2.2-7.3-5.3-25.7-5.4-31.4 0-1.4-1.3-.6-5.5 3.2-6.1 5.6-16.4 12.7-24.2 16.6-15.2 7.6-29.3 10.9-47.3 10.9-17.4 0-29-2.6-46.5-10.4-13.1-5.8-29.8-19.9-40.6-34.2-29.7-39.4-31.1-98.3-3.3-139.4 2.6-3.7 5.9-8.2 7.5-9.8 1.6-1.7 2.9-3.4 2.9-3.8s-1.7-.7-3.7-.7c-10 0-29.7-5.1-40.6-10.6-16.3-8.2-35.3-25.2-45.1-40.3-22.3-34.6-25.3-80.8-7.8-117.6 6.5-13.4 11.3-20.4 21.8-31.4 15.1-15.9 31.8-25.8 51.4-30.5 4.1-1 10-2.9 13.1-4.2s6.2-2.4 6.8-2.4c1.5 0 1.4-1.5-.4-3-2.4-2-11.5-16.9-15.1-24.6-7.4-16.2-10.8-32.3-10.8-50.9 0-34.4 11.9-63.2 35.7-86.2 13.6-13.2 25.5-20.5 41.2-25.6 12.4-4 19-5 33-5s20.6 1 33 5c14 4.5 28.5 12.9 39.1 22.5 3 2.8 5.4 4.4 5.4 3.6 0-2.9 2.1-18.5 3.1-23.3 6.9-32.5 27.7-60.9 56.3-77.2 19.8-11.3 47.4-16 69.6-11.7z"/><path fill="#400000" stroke="#400000" stroke-width="10" d="M973.5 850.5c0 35.7.1 50.2.2 32.2.2-18.1.2-47.3 0-65-.1-17.7-.2-3-.2 32.8zm0 345.5c0 35.5.1 50 .2 32.3.2-17.8.2-46.8 0-64.5-.1-17.8-.2-3.3-.2 32.2z"/><g stroke="#000" stroke-width="10"><path d="M996.1 627.5c-22 4.8-40.2 14.6-55.6 30-19.9 19.8-32.1 47-34.2 76.2l-.6 8.2-5.7-5.2c-13.9-12.9-33.2-22.7-52.5-26.8-8.1-1.8-31.3-1.7-40 0-43.2 8.6-77.7 44.4-87.1 90.1-3.7 18-2.6 41.5 2.7 59.3 4 13.4 14 32.5 21.2 40.4 1.1 1.3 1.9 2.5 1.6 2.7-1.2 1.2-13.3 5.6-19.4 7.1-20.7 5.1-38.4 15.4-53.2 30.8-34.3 35.7-42.9 87.9-21.9 133.9 16.4 35.9 52.1 61.8 88.9 64.5 4.8.3 8.7 1 8.7 1.4 0 .5-1.3 2.3-2.9 4.1-12 13.9-21.6 34.3-26.2 56.3-1.7 7.8-1.7 31.9 0 41.5 8.6 50.3 47.6 89.2 95.3 95.1 15.1 1.9 32.7 0 47-5 12.5-4.3 32.6-16.7 39.7-24.5 3.4-3.6 4.1-3.3 4.1 1.6 0 10.6 3.9 27.8 9.1 40.7 17.5 42.9 56.6 70.1 100.8 70.1 12.4 0 19.2-1 30.9-4.7 29-9 54.1-31.4 67.3-60 5.3-11.3 9.6-26.2 10.3-35.8.4-4.4.9-9.5 1.2-11.3l.5-3.2 6.7 5.7c11.7 9.9 22.4 16.2 35.9 21.1 11.6 4.3 20.3 5.7 34.8 5.7 7.2 0 16.1-.6 20-1.4 38.6-7.8 70.4-36.7 83.5-75.9 8.5-25.5 8.1-53.8-1-79.7-4.8-13.5-11.4-25.2-20.1-35.6-2.2-2.6-3.9-5-3.9-5.3s2.4-.6 5.4-.6c22 0 50.3-12.8 68.7-31 51.9-51.6 44.8-140.8-14.5-181.9-6.7-4.6-10.6-6.6-26.6-14-2.5-1.1-7-3.4-10-5.1-4.7-2.5-7.9-3.8-16.8-6.5-.8-.3.1-2.2 2.7-5.6 5.6-7.4 12.5-21 16.1-31.7 10.3-30.8 8-65.3-6.4-93.4-16.1-31.6-43.2-52.7-77.1-60-7.8-1.6-32.4-1.6-39.5.1-20.2 4.7-29.2 9.1-48.7 23.3-10.6 7.8-9.5 8.6-11.1-7.7-2.3-22.8-13.6-47-30.3-64.9-16.1-17.3-35.5-28.2-58.9-33.1-8.9-1.9-30.1-1.9-38.9 0zm31.4 52c25.8 5.4 45.5 28.7 48.1 56.6 1.3 14.9-3.2 31-12.3 43.6l-5.3 7.4v116.4l-6.8 2.8c-16.8 6.7-37.5 22.1-49.7 36.7l-6.8 8.1-2.8-5c-4.6-8.5-11.3-17.3-18.5-24.2-11.4-10.8-20.2-16-35.1-20.6-8.1-2.4-10.2-2.7-26.3-2.7-21.9-.1-30.5 1.8-47.4 10.3l-11.4 5.7-12.9-13.7c-11.6-12.5-13.1-13.8-16.3-13.8-12.4-.3-27.2-7.2-37.5-17.6-12.2-12.2-18.5-27.7-18.5-45.5 0-46.3 44.7-76.4 84.9-57.3 5.4 2.6 9.4 5.5 15.1 11.2 11.5 11.4 17.6 23.9 18.9 38.8l.6 7.2 42.5 44.9 42.5 45 .3-63.9.2-63.9-3.6-4.7c-19.7-25.6-17.3-62.6 5.5-85.4 14.7-14.8 33.1-20.5 52.6-16.4zm152.2 76c9.5 2.8 18.4 12.9 22.7 25.6 8.1 24.4 4.3 64.9-10.5 110.6-9.9 30.8-32.2 80.6-51.2 114.6-6.1 10.8-7.7 14.6-7.7 17.7 0 6.8 2.9 19.2 6.1 25.7 2.4 5.1 3.7 6.5 7.4 8.3 8.1 3.9 17 .5 29.4-11.5l8.3-8.1-.1-11.9c-.3-21.4 3-36.2 12-53.5 7.9-15 17.2-25.3 31.8-35 4.8-3.3 12.4-6.3 21.6-8.8 8.9-2.3 27.3-2.1 34.6.6 14 5 23.9 15 28.1 28.5 2.2 7.3 2.4 21.6.3 30.6-3.2 13.2-12.2 26.8-23.3 35.1-10.6 7.8-29.9 16.1-52.9 22.6-2.3.6-1.4 2.5 4 7.8 6.8 6.8 14.1 9.1 27.4 8.4 14.1-.7 23.1-6 36.6-21.7 11-12.7 11.4-13.1 15.6-13.1 5.6 0 6.9.8 9.1 5.1 2.5 4.8 2.7 16.2.4 23.9-5.7 19.1-27.4 36.6-51.7 41.6-8.4 1.8-27.9 2-36.9.4-14.7-2.6-27.6-9.5-37.3-20.2l-5.9-6.5-9 7.6c-15.2 12.8-24.9 17.9-38 20.1-17.8 3.2-35.7-6.6-45.8-25-1.8-3.3-3.5-6-3.8-6s-2.7 2.7-5.5 6.1c-6.6 7.9-18.5 17.5-26.1 21.1-7.7 3.6-21.1 5.4-29.3 4-14.4-2.6-25.1-9.6-33.6-22.2-7.4-10.9-9.7-18.6-10.3-34.4l-.4-12.8-7.7.6c-15.5 1.3-14.4.8-16.5 8.8-5.8 22.4-25.6 46.5-45.3 54.9-17.2 7.4-41.2 6.5-58.1-2-7.3-3.7-17-11.6-21.4-17.4l-3.2-4.3-6.3 4.7c-13.1 10-26.7 16.6-42.7 20.7-8.9 2.3-12.1 2.7-26.1 2.7-17.6 0-23.8-1.1-35.4-6.5-8.9-4.2-15.5-9.3-21.6-16.7-13.6-16.5-18.5-34.1-16.5-59.3 2-26.2 10.4-46.7 25.9-63.2 16.7-17.8 33.7-25.8 55.2-25.8 11.4 0 18.5 1.8 25.4 6.5 6.2 4.3 9.8 8.7 13.7 17.1 7.8 16.7 2.8 42.8-9.9 51.8-5.8 4-13.4 4.7-19.6 1.7-7.1-3.4-8.3-8.4-5.2-21.6 2.2-9.8 2-14.1-1-17-1.8-1.9-3.5-2.5-6.5-2.5-12.4 0-24.2 14.4-29 35.5-1.9 8-2.2 11.5-1.8 22.7.6 16.8 2.6 22.8 10.3 30.5 6.8 6.8 13.2 8.9 26.5 8.7 14.7-.2 28.1-5.8 44.4-18.6l6.8-5.3.2-17c.4-21.1 2.7-31.2 11.2-48.5 5.1-10.2 6.7-12.4 15.3-21.1 6.1-6.1 12.2-11.1 16.6-13.6 20.7-12 46.6-13.4 66.2-3.8 17.2 8.5 31.8 29.9 35.7 52.3l1.3 7.7 4.9-.3c4.6-.2 20-2.7 23.6-3.8.9-.3 2.8-2.8 4.3-5.7 7.5-14.4 17.6-26.6 30.4-36.7 13.5-10.6 26.2-16.6 42.3-19.8l9.3-1.9 1.7-15.4c6-52.4 23.2-110.9 39.3-133.4 7.5-10.5 17.8-18.6 27.5-21.6 4.2-1.3 14.4-1 19.7.6zm55.5 14.4c6.3 4 15.5 13.7 19.7 20.6 8 13.2 10.9 32.5 7.2 47.9-3.2 13.3-7.1 20.6-16.1 30-7.2 7.5-20 16.3-20 13.8 0-.6 1.1-5.8 2.5-11.6 5.5-23.1 6.9-34.7 6.9-57.1.1-21.7-.8-29.4-4.6-40.4-1-3-1.8-5.6-1.8-5.8 0-.9 2 0 6.2 2.6zm-253.9 323.8c13.2 20.8 36.5 34.6 60.9 36 19.1 1.1 40.1-4.5 52-13.9l3.7-2.9 4.7 3.6c6.2 4.8 12.3 7.8 21.4 10.7 10.4 3.2 28.9 3.2 40.3 0l7.8-2.2 10.2 10.7c5.6 6 12.9 13.6 16.1 17 5.1 5.5 6.4 6.3 9.5 6.3 5.6 0 18 3.8 24.6 7.5 6.4 3.6 16.3 13.2 21.3 20.5 8.2 12.3 12.1 31.7 9.1 46.2-3 15.2-8.2 24.9-18.6 35.4-10.9 10.8-24.7 16.4-40.3 16.4-10.5-.1-15.6-1.2-24.5-5.5-19.2-9.3-31.6-26.6-34.7-48.5l-1.4-9.2-42.4-45-42.5-45-.3 63.8-.2 63.7 3.9 5.1c4.8 6.2 9.3 15 11.7 23.1 2.9 9.5 2.5 26.7-.9 37-11.8 36.2-49.6 53.3-82.4 37.3-9.3-4.5-22.5-17.7-26.9-26.8-4.7-9.7-6.5-16.5-7.1-27-.9-15.8 3.5-30.4 12.8-42.7l3.9-5.2-.2-63.8-.3-63.8-42.5 44.9-42.5 44.9-.6 6.8c-1.5 15.8-8 29.1-19.5 39.8-11.5 10.8-24.7 16.1-39.9 16.1-9.4 0-17.3-1.8-26.4-6.2-8.8-4.2-21.3-16.7-25.9-25.9-12.9-25.7-8.3-56.8 11.3-76.4 10.2-10.2 21.3-15.6 35.4-17.3l5.7-.7 16.9-17.8c14.1-14.9 17.2-17.7 18.9-17.2 14.8 4.9 20.3 5.8 35.1 5.8 13.1 0 16.3-.3 24.9-2.6 18.9-5.1 35.1-14.9 48.3-29.2 3.7-4.1 6.9-7.4 7-7.5.2 0 1.3 1.7 2.6 3.7z"/><path d="M1161.6 792.7c-10.7 11.5-21.8 72.6-26.9 148.3-.8 10.7-1.3 19.6-1.2 19.7.3.5 14.5-33.6 18.8-45.2 16-43.1 23.7-83 20.8-107.5-2-16.4-5.8-21.4-11.5-15.3zm-81.7 175c-23.7 11.7-41.2 47.7-37 76 1.5 10 4.6 15.5 10.1 17.7 10.9 4.4 21.2-1.3 34.3-18.7l4.3-5.9-1.5-9.6c-.9-6.5-1.4-18.5-1.5-36.4-.1-14.8-.4-26.8-.7-26.8-.4 0-4 1.7-8 3.7zm171.3-1.5c-11.4 5.5-20.4 23.4-21.9 43.5l-.6 8.2 4.9-1.3c14-3.8 28.3-12 34.5-19.9 4-5 6.9-12.8 6.9-18.1-.1-4.8-3.5-11.3-6.9-13-4.2-2.2-11.7-1.9-16.9.6zm-352.7 3.2c-14.6 6.9-23.5 28.1-22.2 53.1.7 13.7 3.3 22.6 8.6 29.3 6.8 8.5 15.9 11.2 26.4 7.6 9.1-3.1 17.7-14.6 21.3-28.3l1.4-5.8-7-7.1c-11.4-11.4-16.2-23.7-16.2-41.5V967h-3.7c-2 0-5.8 1.1-8.6 2.4z"/></g><path fill="#FF8000" stroke="#FF8000" stroke-width="10" d="M1004 680.1c-6.2 1.2-19.5 7.9-25.5 13-6.2 5.1-10.7 11.2-15.1 20.4-4.7 9.8-6.5 17.5-6.5 28 0 4.9.7 11.7 1.6 15 2.1 7.9 7.3 18.8 11.9 24.8l3.6 4.7-.2 65-.3 65-43-45.5-43-45.5-1.1-7.9c-3.5-24.3-16.9-42.7-37.1-51.1-19.2-8-38.9-5.3-56.4 7.7-8 6-15.4 15.7-19.7 25.8-3.4 8.3-5.5 20.9-4.8 28.9 1.5 15.7 10.2 33.7 20.9 43.1 9.3 8.1 24 14.5 33.6 14.5h4.6l12.9 13.8 12.9 13.9 10.6-5.4c6.2-3.1 14.8-6.4 20.6-8 8.8-2.3 12-2.6 26-2.7 17.2 0 23.7 1 36.9 6.1 14.9 5.6 33.2 21.8 42.6 37.7 2.5 4.1 4.8 7.6 5.1 7.6s2.8-2.8 5.5-6.2c10.7-13.3 32-29.4 48.4-36.5l9-3.8V785.9l4.6-6.5c18.8-26.3 15.9-60.8-6.8-83.6-7.3-7.4-18.9-13.7-28.6-15.7-6.1-1.3-16.7-1.3-23.2 0zm228.6 96.5c3.6 13.5 4.9 30.7 3.5 48.2-1.2 16.1-3.9 33.6-7.4 47.9l-2.3 9.2 6-3.2c22.9-12.2 35.4-43 28.6-70.2-1.2-5-3.1-10.8-4.2-13-5.3-10.5-14.1-20.2-23-25.5l-3.5-2zM972 1098.3c-12.4 13.4-27.5 22.8-45.5 28.3-8.5 2.7-10.1 2.8-28 2.8s-19.5-.2-27.9-2.7l-8.9-2.8-2.2 2.1c-1.3 1.2-9 9.3-17.1 18.1l-14.9 15.9h-4.6c-9.6 0-24.3 6.4-33.6 14.5-7.3 6.4-13.7 16.5-17.4 27.5-7.6 22.7-2.3 46.9 14.1 64.3 6.8 7.2 14 11.9 23.9 15.3 5.8 2 9.1 2.5 17.5 2.5 15 0 25.3-3.8 37.1-13.5 12-9.8 19.2-23.6 21.9-41.6l1.1-7.8 43-45.5 43-45.6.3 65.1.2 65.1-3.9 5.1c-4.9 6.3-9.5 16-11.7 24.6-2.6 10.2-1.6 26.1 2.4 36.7 9 24.2 27.9 38.7 52.2 40 17 1 31-4.6 43.6-17.1 22.2-22.1 24.5-58.3 5.3-83.8l-3.9-5.2v-130.1l5.4 5.5c3 3 22.5 23.6 43.4 45.8l37.9 40.2.7 6.9c2.2 24.4 17.7 44.2 41.2 52.7 8.7 3.2 25.2 3.4 33.8.4 19.5-6.7 33.8-21.2 39.9-40.5 3.2-10.4 3.1-28-.3-39-3-10-12.1-24-19.1-29.5-9.2-7.3-23.4-13-32.5-13-3.8 0-4.6-.6-11.4-7.8-4.1-4.2-11.5-11.9-16.4-17l-9-9.3-5.9 1.6c-22.4 6.3-47.4 2.1-64-10.8l-3.7-2.9-3.3 2.5c-17.3 13.1-49 17.8-71.7 10.6-17.2-5.5-30.2-15.6-43-33.6-1.5-2-1.6-1.9-8 5z"/><path fill="#0080FF" stroke="#0080FF" stroke-width="10" d="M1164.2 755.1c-16.5 2.1-32.8 18.9-43.2 44.5-11.8 28.7-22.3 71.3-26.5 106.6-2.7 22.3-1.5 20-10.5 21.3-13.4 1.9-30.2 9.6-43.2 19.8-12.7 10-22.1 21-29.7 34.9-4.2 7.6-4.2 7.7-9.4 8.7-11.5 2.3-17.3 3.1-21.3 3.1-4.2 0-4.3-.1-5-3.8-2.5-15-6.2-24.5-13.3-35-6.4-9.5-14.6-16.8-23.6-21.2-10.4-5-17.8-6.4-31.2-5.8-19.4.9-34.5 7.8-49.4 22.7-18.4 18.4-26.9 41.4-26.9 72.5v14.5l-7.7 6.1c-12.9 10-28.6 17.1-41.3 18.5-7 .8-18.7-1.6-24.5-5-6.2-3.6-11.1-9.8-13.7-17.4-2-5.8-2.3-8.4-2.2-21.6.1-13.3.4-16 2.8-24 3.3-10.9 7.2-17.9 13.3-23.9 5.4-5.4 11.8-8.1 16.9-7.3 7.8 1.3 9.7 6.6 6.9 18.6-1 4.2-1.9 9.7-1.9 12.3-.1 4.1.4 5.2 3.1 8 2.8 2.8 4 3.3 9.6 3.6 5 .3 7.2 0 10.5-1.7 9.2-4.7 15.2-17.9 15.2-33.7 0-27.5-19.4-44.6-47.5-41.8-28.2 2.7-53.4 22.6-66.5 52.5-10.2 23-11.7 54.9-3.7 74.7 10.2 25.3 29.6 39.8 57.6 43.2 24.3 3 56.1-6.2 77.8-22.5 4-3 7.6-5.5 8.1-5.5s1.5 1.2 2.3 2.6c2.1 3.9 12.2 12.9 19.2 17 22.4 13.2 52.7 11.9 72.7-3.1 16.9-12.6 28.8-30.5 34-51.1l1-4.2 6.8-.6c3.7-.4 9.1-.9 12-1.2l5.2-.6v11c0 13.9 1.2 19.6 6.1 29.9 6.9 14.6 20.1 25.3 34.7 28.4 6.7 1.4 19.5.6 26.6-1.6 9.6-2.9 20.2-11.1 31.2-23.8l5.8-6.7 3.5 6.7c5.2 9.8 15.9 20.4 23.6 23.3 19.5 7.3 41.6-.3 65.4-22.6l3.4-3.1 8.1 8.2c9.2 9.3 17.6 14.2 30.5 17.7 9.9 2.8 33 3 43.3.5 18.1-4.4 31.4-13 42.6-27.4 5.9-7.7 8.4-15 8.6-25.3.1-9.4-1.6-13.9-6.1-15.9-5.4-2.5-8.6-.6-16.7 9.4-7.6 9.5-18.8 19.2-25.6 22.4-4.9 2.2-6.8 2.5-17 2.6-12.9 0-17.4-1.4-24.4-7.5-3.4-3-7.2-8.7-6.4-9.5.2-.2 3.9-1.3 8.3-2.5 44.5-11.9 67-32.2 70.6-63.7 1.8-15.8-2.3-29.1-12.1-39-9.6-9.8-22.2-14-39.2-13-30.9 1.9-58 23.7-70.5 56.8-4.4 11.8-6.3 23.5-6.3 39.9v13.6l-8.4 8.2c-9.6 9.4-16.5 13.2-24 13.2-6 0-10.4-2.5-13.3-7.7-2.9-5.1-6-16.7-6.8-25.1l-.7-6.7 8.2-14.5c9.4-16.7 19-35.5 25.6-50.2 2.5-5.7 5.5-12.3 6.6-14.8 9.7-21.4 21-53.7 26.3-75.4 5.6-23.2 7-33.9 6.9-54.1-.1-19.9-1.8-29.3-7-38.4-3.5-6-10-12.8-14.6-15.2-4.7-2.4-13-3.6-19.6-2.8zm4.7 36c3.6 3.9 4.6 10.3 4.6 29.9 0 20.6-1.3 30.3-7 52.5-4.4 16.9-13.8 44.3-21.5 62.5-3.4 8-7.3 17.4-8.8 21-3.5 8.5-3.8 6.7-2.3-16 5.8-87.8 19.1-150.7 32.3-151.9.4-.1 1.6.8 2.7 2zm-77.9 237.1 1.3 8.7-5.2 7c-2.9 3.9-7.7 9.3-10.7 12.1-11.9 10.8-25.8 10-31.6-1.8-3.4-6.9-3.8-25.2-.9-37.4 5.8-24.4 21.1-44.3 39.7-51.6l4.9-2 .6 28.2c.3 15.4 1.2 32 1.9 36.8zm177-63.4c5 2.5 7.4 7.2 7.4 14.7 0 14.8-13.7 28.6-35.6 35.9-10.4 3.5-11.8 3.4-11.8-.7.1-12.1 4.9-28.9 10.8-37.7 8.1-11.8 20-16.9 29.2-12.2zm-356.6 9.5c-1.3 16.9 5.4 33.9 18 45.4 5 4.6 5.2 4.9 4.5 8.8-2.1 12.1-9.5 24.2-17.7 29.2-5.6 3.3-13.1 4.9-18.1 3.8-8.7-1.9-17.7-12-20.4-23.1-8.9-35.2 6.6-71.8 30.6-72.3l3.7-.1z"/></svg>';
-                              const converted = stringToSVGandPath2Ds(result);
-                              setSVG(converted.svg);
-                              setSelectedPaths([0]);
-                              setTool("select");
-
-                              const svg = converted.svg;
-
-                              const ctx = canvasRef.current?.getContext("2d");
-                              if (!ctx) return;
-
-                              clear();
-                              // ctx.translate(-600, -600);
-                              // setPanOffset({ x: -600, y: -600 });
-                              drawSVG(ctx, svg);
-                              drawSVGPoints(ctx, svg);
-                              setSelectedDraw(null);
-                            }}
-                            onSkip={() => {
-                              setGuideIndex(-1);
-                            }}
-                            guideTitle="File Input"
-                            guideDescription="Or you can start with existing SVG Files"
-                          ></Guidebox>
-                        </div>
-                      )}
-                    </AnimatePresence>
-                  ) : null}
-                </>
-              </div>
-              <div
-                className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "rect" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
-                onClick={(e) => {
-                  setTool("add");
-                  setAddShape("rect");
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="_typeIcon_12syx_29"
-                  color="black"
-                >
-                  <rect
-                    stroke="black"
-                    x="1.5"
-                    y="1.5"
-                    stroke-width="1.2"
-                    width="13"
-                    height="13"
-                    rx="2"
-                    fill="none"
-                    fill-rule="evenodd"
-                  ></rect>
-                </svg>
-              </div>
-              <div
-                className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "circle" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
-                onClick={(e) => {
-                  setTool("add");
-                  setAddShape("circle");
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="_typeIcon_12syx_29"
-                  color="black"
-                >
-                  <circle
-                    stroke="black"
-                    cx="8"
-                    cy="8"
-                    r="6.5"
-                    fill="none"
-                    fill-rule="evenodd"
-                    stroke-width="1.2"
-                  ></circle>
-                </svg>
-              </div>
-              <div
-                className={`flex h-[30px] w-[30px] items-center ${tool == "add" && addShape == "text" ? "bg-violet-300" : ""} justify-center rounded-md text-[18px] font-light hover:bg-violet-300`}
-                onClick={(e) => {
-                  setTool("add");
-                  setAddShape("text");
-                }}
-              >
-                T
-              </div>
-              <div
-                onClick={(e) => {
-                  setTool("draw");
-
-                  setIsDrawing(true);
-                  //add a new empty path to the svg
-                  if (!svg) return;
-                  const newPath: AbsoluteSegment[] = [];
-                  const newPath2D = new Path2D("");
-                  const newSVG = [...svg];
-                  const { x, y } = computePointInCanvas(e)!;
-                  newSVG.push({
-                    tag: "path",
-                    shape: { path2D: newPath2D, d: newPath },
-                    xMax: x,
-                    xMin: x,
-                    yMax: y,
-                    yMin: y,
-                    rotation: 0,
-                    offset: { x: 0, y: 0 },
-                    fill: "white",
-                    stroke: "black",
-                  });
-                  setSVG(newSVG);
-                  setLinePath2Ds([]);
-                }}
-                className={`flex h-[30px] w-[30px] ${tool == "draw" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9.49641 2.64768C9.65292 2.67176 9.79251 2.75949 9.88208 2.89007L14.2237 9.21965C14.4037 9.48202 14.5 9.79272 14.5 10.1109C14.5 10.5261 14.3361 10.9246 14.0439 11.2196L11.2541 14.0362C10.9602 14.333 10.5598 14.5 10.1421 14.5C9.82732 14.5 9.51985 14.4051 9.25985 14.2276L2.8938 9.88327C2.76081 9.79251 2.67142 9.65066 2.64694 9.49153L1.50615 2.07635C1.45478 1.74245 1.74246 1.45476 2.07636 1.50613L9.49641 2.64768Z"
-                    stroke="black"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></path>
-                  <path
-                    d="M2.00002 1.9999L6.50002 6.4999"
-                    stroke="black"
-                    stroke-linecap="round"
-                  ></path>
-                  <path
-                    d="M12.8691 7.93213L7.8966 12.9093"
-                    stroke="black"
-                  ></path>
-                  <circle
-                    cx="7"
-                    cy="7"
-                    r="1"
-                    transform="rotate(90 7 7)"
-                    fill="black"
-                  ></circle>
-                </svg>
-              </div>
-            </div>
-            {tool === "draw" ? (
-              <div className="z-10 flex flex-row items-center justify-center gap-2 rounded-md bg-white p-[6px] shadow-md">
+        <div className="flex grid h-[80px] w-full flex-none grid-cols-3  p-[20px]">
+          <div className="justify-self-start">
+            <Link
+              className={` ${just.className} z-10 flex h-full items-center justify-center rounded-xl bg-red-400 px-2 pt-1 text-center text-[20px] leading-snug text-white`}
+              href="/"
+            >
+              LOGOAI
+            </Link>
+          </div>
+          <div className="justify-self-center">
+            <div className="relative z-50 flex h-full flex-row gap-4  bg-red-200">
+              {guideIndex === 4 && (
+                <div className="absolute  top-full translate-y-4">
+                  <Guidebox
+                    isOpened={true}
+                    guideIndex={5}
+                    guideLength={5}
+                    onNext={() => {
+                      console.log("next");
+                      setGuideIndex(-1);
+                      setSelectedDraw(null);
+                    }}
+                    onSkip={() => {
+                      setGuideIndex(-1);
+                    }}
+                    guideTitle="Add Shapes"
+                    guideDescription="By clicking on the shapes and dragging them to the canvas, you can add shapes to your logo"
+                  ></Guidebox>
+                </div>
+              )}
+              <div className="z-10 flex h-full flex-row items-center justify-center  gap-2 self-center rounded-md bg-white p-1.5 shadow-md">
                 <div
-                  onClick={() => {
-                    setIsDrawing(true);
-                    setIsBending(false);
+                  className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
+                    selectedDraw === "aiInput" ? "bg-violet-300" : ""
+                  } flex items-center justify-center rounded-md`}
+                  onClick={(e) => {
+                    setSelectedDraw("aiInput");
+                    e.stopPropagation();
                   }}
-                  className={` ${isDrawing == true ? "bg-[#0b99ff]" : ""} flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-[#0b99ff]  `}
+                  ref={aiPopUpRef}
                 >
                   <svg
-                    className="svg "
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    stroke="black"
+                    // className="hover:stroke-white"
+                  >
+                    <path
+                      d="M5.91165 3.16664C5.94923 3.09576 6.05077 3.09577 6.08835 3.16664L7.89127 6.56722C7.90064 6.5849 7.9151 6.59936 7.93278 6.60873L11.3334 8.41165C11.4042 8.44923 11.4042 8.55077 11.3334 8.58835L7.93278 10.3913C7.9151 10.4006 7.90064 10.4151 7.89127 10.4328L6.08835 13.8334C6.05077 13.9042 5.94923 13.9042 5.91165 13.8334L4.10873 10.4328C4.09936 10.4151 4.0849 10.4006 4.06722 10.3913L0.666643 8.58835C0.595765 8.55077 0.595765 8.44923 0.666643 8.41165L4.06722 6.60873C4.0849 6.59936 4.09936 6.5849 4.10873 6.56722L5.91165 3.16664Z"
+                      stroke="inherit"
+                    ></path>
+                    <path
+                      d="M15.5 3L13.5 0.5L11.5 3L13.5 5.5L15.5 3Z"
+                      stroke="inherit"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                    <path
+                      d="M13.5 10.5V14.5M11.5 12.5H15.5"
+                      stroke="inherit"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                  <>
+                    {selectedDraw === "aiInput" ? (
+                      <div className="absolute left-0 top-full z-10 flex -translate-x-1.5 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
+                        <AnimatePresence>
+                          <motion.div initial={{ y: -20 }} animate={{ y: 0 }}>
+                            <Generate onSVGComplete={onSVGComplete}></Generate>
+                          </motion.div>
+                        </AnimatePresence>
+                        {guideIndex === 0 && (
+                          <div className="absolute right-12 top-0 -translate-x-full">
+                            <Guidebox
+                              isOpened={true}
+                              guideIndex={1}
+                              guideLength={5}
+                              onNext={() => {
+                                console.log("next");
+                                setGuideIndex(1);
+
+                                setSelectedDraw("fileInput");
+                              }}
+                              onSkip={() => {
+                                setGuideIndex(-1);
+                              }}
+                              guideTitle="Generate Logo"
+                              guideDescription="You can Generate Logos for your brand by clicking on the Start Button"
+                            ></Guidebox>
+                          </div>
+                        )}
+                        <div
+                          className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
+                          onClick={(e) => {
+                            setSelectedDraw(null);
+                            e.stopPropagation();
+                          }}
+                        >
+                          <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 16 16"
+                            fill="grey"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              className="fillDefault fillActive"
+                              d="M15.0996 13.6L9.39961 7.9L15.0996 2.2C15.4996 1.8 15.4996 1.2 15.0996 0.8C14.6996 0.4 14.0996 0.4 13.6996 0.8L7.99965 6.5L2.29963 0.8C1.89963 0.4 1.29961 0.4 0.899609 0.8C0.499609 1.2 0.499609 1.8 0.899609 2.2L6.59962 7.9L0.899609 13.6C0.499609 14 0.499609 14.6 0.899609 15C1.09961 15.2 1.39962 15.3 1.59962 15.3C1.89962 15.3 2.09963 15.2 2.29963 15L7.99965 9.3L13.6996 15C13.8996 15.2 14.1996 15.3 14.3996 15.3C14.6996 15.3 14.8996 15.2 15.0996 15C15.4996 14.7 15.4996 14 15.0996 13.6Z"
+                            ></path>
+                          </svg>
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                </div>
+                <div className="h-full w-[1px] bg-[#f3f5f7]"></div>
+                <div
+                  className={`relative h-[30px] w-[30px] hover:bg-violet-300 ${
+                    selectedDraw === "fileInput" ? "bg-violet-300" : ""
+                  } flex items-center justify-center rounded-md`}
+                  onClick={(e) => {
+                    setSelectedDraw("fileInput");
+                    e.stopPropagation();
+                  }}
+                  ref={filePopUpRef}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="black"
+                    width={18}
+                    height={18}
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                    />
+                  </svg>
+                  <>
+                    {selectedDraw === "fileInput" ? (
+                      <AnimatePresence>
+                        <motion.div
+                          initial={{ y: 4 }}
+                          animate={{ y: 24 }}
+                          className="absolute left-0 top-full z-10 flex w-60 translate-y-6 items-center justify-center rounded-lg bg-white p-4 shadow-md"
+                        >
+                          <input
+                            type="file"
+                            accept=".svg"
+                            onChange={(e) => handleFileChange(e)}
+                            className="absolute h-full w-60 appearance-none opacity-0"
+                            ref={fileInputRef}
+                          />
+                          <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-[geist] text-[14px]">
+                            <div className="mb-1 flex w-full items-center justify-center">
+                              <svg
+                                version="1.0"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 48 48"
+                                enable-background="new 0 0 48 48"
+                                width={36}
+                                height={36}
+                              >
+                                <path
+                                  fill="#4053f7"
+                                  d="M40,12H22l-4-4H8c-2.2,0-4,1.8-4,4v8h40v-4C44,13.8,42.2,12,40,12z"
+                                />
+                                <path
+                                  fill="#4053f7"
+                                  d="M40,12H8c-2.2,0-4,1.8-4,4v20c0,2.2,1.8,4,4,4h32c2.2,0,4-1.8,4-4V16C44,13.8,42.2,12,40,12z"
+                                />
+                              </svg>
+                            </div>
+                            <div className="mb-2 flex w-full items-center justify-center font-medium">
+                              Drag and Drop Files
+                            </div>
+                            <div className="mb-2.5 flex w-full items-center justify-center text-xs font-medium text-slate-500">
+                              OR
+                            </div>
+                            <div className="flex w-full items-center justify-center">
+                              <button className="rounded-md bg-[#4053f7] p-2 text-white">
+                                Browse Files
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                        {guideIndex === 1 && (
+                          <div className="absolute top-full -translate-x-44 translate-y-6">
+                            <Guidebox
+                              isOpened={true}
+                              guideIndex={2}
+                              guideLength={5}
+                              onNext={() => {
+                                console.log("next");
+                                setGuideIndex(2);
+                                setSelectedDraw(null);
+                                // download an svg file from the directory, set it as svg
+
+                                const result =
+                                  '<svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="512 512 1536 1536" width="600" height="600"><path fill="#FF0080" stroke="#FF0080" stroke-width="10" d="M512 1024v512h1024V512H512zm522-397.4c23.7 4.5 43.2 15.2 60.1 33.2 18.6 19.8 29.5 44.2 31.5 70.4l.7 8.7 8.6-6.4c16.9-12.6 26.8-17.7 41.9-21.6 44.7-11.4 89.1 5.7 116.7 45 20 28.7 25.9 68.2 15.3 104.6-2.6 9.1-11.7 27.6-16.6 34.1l-4 5.1 5.7 1.7c3.1 1 9.2 3.7 13.6 6.1 4.4 2.3 11.4 5.7 15.7 7.4 21.8 9.1 44.7 31 56.2 53.9 14.1 28 16.3 63.5 5.9 94.2-11.5 33.6-39.2 61.5-71.4 71.9-7.5 2.5-21.7 5.1-27.2 5.1h-3.9l4 4.7c12.8 15.4 21.1 33.8 25.8 57.3 2 10.1 1.5 31.8-1 44-9 44.4-40.3 78.4-82.4 89.5-13.4 3.6-35.3 3.8-49.2.6-17.3-4-36.3-14.1-49.6-26.3l-4.1-3.8-.6 9c-1.9 26.6-12.9 51.1-32.1 71.7-32 34.2-81.1 43.8-123.1 23.9-12.6-5.9-20.2-11.6-31.6-23.3-14.3-14.8-23-29.5-28.5-48.3-2.2-7.3-5.3-25.7-5.4-31.4 0-1.4-1.3-.6-5.5 3.2-6.1 5.6-16.4 12.7-24.2 16.6-15.2 7.6-29.3 10.9-47.3 10.9-17.4 0-29-2.6-46.5-10.4-13.1-5.8-29.8-19.9-40.6-34.2-29.7-39.4-31.1-98.3-3.3-139.4 2.6-3.7 5.9-8.2 7.5-9.8 1.6-1.7 2.9-3.4 2.9-3.8s-1.7-.7-3.7-.7c-10 0-29.7-5.1-40.6-10.6-16.3-8.2-35.3-25.2-45.1-40.3-22.3-34.6-25.3-80.8-7.8-117.6 6.5-13.4 11.3-20.4 21.8-31.4 15.1-15.9 31.8-25.8 51.4-30.5 4.1-1 10-2.9 13.1-4.2s6.2-2.4 6.8-2.4c1.5 0 1.4-1.5-.4-3-2.4-2-11.5-16.9-15.1-24.6-7.4-16.2-10.8-32.3-10.8-50.9 0-34.4 11.9-63.2 35.7-86.2 13.6-13.2 25.5-20.5 41.2-25.6 12.4-4 19-5 33-5s20.6 1 33 5c14 4.5 28.5 12.9 39.1 22.5 3 2.8 5.4 4.4 5.4 3.6 0-2.9 2.1-18.5 3.1-23.3 6.9-32.5 27.7-60.9 56.3-77.2 19.8-11.3 47.4-16 69.6-11.7z"/><path fill="#400000" stroke="#400000" stroke-width="10" d="M973.5 850.5c0 35.7.1 50.2.2 32.2.2-18.1.2-47.3 0-65-.1-17.7-.2-3-.2 32.8zm0 345.5c0 35.5.1 50 .2 32.3.2-17.8.2-46.8 0-64.5-.1-17.8-.2-3.3-.2 32.2z"/><g stroke="#000" stroke-width="10"><path d="M996.1 627.5c-22 4.8-40.2 14.6-55.6 30-19.9 19.8-32.1 47-34.2 76.2l-.6 8.2-5.7-5.2c-13.9-12.9-33.2-22.7-52.5-26.8-8.1-1.8-31.3-1.7-40 0-43.2 8.6-77.7 44.4-87.1 90.1-3.7 18-2.6 41.5 2.7 59.3 4 13.4 14 32.5 21.2 40.4 1.1 1.3 1.9 2.5 1.6 2.7-1.2 1.2-13.3 5.6-19.4 7.1-20.7 5.1-38.4 15.4-53.2 30.8-34.3 35.7-42.9 87.9-21.9 133.9 16.4 35.9 52.1 61.8 88.9 64.5 4.8.3 8.7 1 8.7 1.4 0 .5-1.3 2.3-2.9 4.1-12 13.9-21.6 34.3-26.2 56.3-1.7 7.8-1.7 31.9 0 41.5 8.6 50.3 47.6 89.2 95.3 95.1 15.1 1.9 32.7 0 47-5 12.5-4.3 32.6-16.7 39.7-24.5 3.4-3.6 4.1-3.3 4.1 1.6 0 10.6 3.9 27.8 9.1 40.7 17.5 42.9 56.6 70.1 100.8 70.1 12.4 0 19.2-1 30.9-4.7 29-9 54.1-31.4 67.3-60 5.3-11.3 9.6-26.2 10.3-35.8.4-4.4.9-9.5 1.2-11.3l.5-3.2 6.7 5.7c11.7 9.9 22.4 16.2 35.9 21.1 11.6 4.3 20.3 5.7 34.8 5.7 7.2 0 16.1-.6 20-1.4 38.6-7.8 70.4-36.7 83.5-75.9 8.5-25.5 8.1-53.8-1-79.7-4.8-13.5-11.4-25.2-20.1-35.6-2.2-2.6-3.9-5-3.9-5.3s2.4-.6 5.4-.6c22 0 50.3-12.8 68.7-31 51.9-51.6 44.8-140.8-14.5-181.9-6.7-4.6-10.6-6.6-26.6-14-2.5-1.1-7-3.4-10-5.1-4.7-2.5-7.9-3.8-16.8-6.5-.8-.3.1-2.2 2.7-5.6 5.6-7.4 12.5-21 16.1-31.7 10.3-30.8 8-65.3-6.4-93.4-16.1-31.6-43.2-52.7-77.1-60-7.8-1.6-32.4-1.6-39.5.1-20.2 4.7-29.2 9.1-48.7 23.3-10.6 7.8-9.5 8.6-11.1-7.7-2.3-22.8-13.6-47-30.3-64.9-16.1-17.3-35.5-28.2-58.9-33.1-8.9-1.9-30.1-1.9-38.9 0zm31.4 52c25.8 5.4 45.5 28.7 48.1 56.6 1.3 14.9-3.2 31-12.3 43.6l-5.3 7.4v116.4l-6.8 2.8c-16.8 6.7-37.5 22.1-49.7 36.7l-6.8 8.1-2.8-5c-4.6-8.5-11.3-17.3-18.5-24.2-11.4-10.8-20.2-16-35.1-20.6-8.1-2.4-10.2-2.7-26.3-2.7-21.9-.1-30.5 1.8-47.4 10.3l-11.4 5.7-12.9-13.7c-11.6-12.5-13.1-13.8-16.3-13.8-12.4-.3-27.2-7.2-37.5-17.6-12.2-12.2-18.5-27.7-18.5-45.5 0-46.3 44.7-76.4 84.9-57.3 5.4 2.6 9.4 5.5 15.1 11.2 11.5 11.4 17.6 23.9 18.9 38.8l.6 7.2 42.5 44.9 42.5 45 .3-63.9.2-63.9-3.6-4.7c-19.7-25.6-17.3-62.6 5.5-85.4 14.7-14.8 33.1-20.5 52.6-16.4zm152.2 76c9.5 2.8 18.4 12.9 22.7 25.6 8.1 24.4 4.3 64.9-10.5 110.6-9.9 30.8-32.2 80.6-51.2 114.6-6.1 10.8-7.7 14.6-7.7 17.7 0 6.8 2.9 19.2 6.1 25.7 2.4 5.1 3.7 6.5 7.4 8.3 8.1 3.9 17 .5 29.4-11.5l8.3-8.1-.1-11.9c-.3-21.4 3-36.2 12-53.5 7.9-15 17.2-25.3 31.8-35 4.8-3.3 12.4-6.3 21.6-8.8 8.9-2.3 27.3-2.1 34.6.6 14 5 23.9 15 28.1 28.5 2.2 7.3 2.4 21.6.3 30.6-3.2 13.2-12.2 26.8-23.3 35.1-10.6 7.8-29.9 16.1-52.9 22.6-2.3.6-1.4 2.5 4 7.8 6.8 6.8 14.1 9.1 27.4 8.4 14.1-.7 23.1-6 36.6-21.7 11-12.7 11.4-13.1 15.6-13.1 5.6 0 6.9.8 9.1 5.1 2.5 4.8 2.7 16.2.4 23.9-5.7 19.1-27.4 36.6-51.7 41.6-8.4 1.8-27.9 2-36.9.4-14.7-2.6-27.6-9.5-37.3-20.2l-5.9-6.5-9 7.6c-15.2 12.8-24.9 17.9-38 20.1-17.8 3.2-35.7-6.6-45.8-25-1.8-3.3-3.5-6-3.8-6s-2.7 2.7-5.5 6.1c-6.6 7.9-18.5 17.5-26.1 21.1-7.7 3.6-21.1 5.4-29.3 4-14.4-2.6-25.1-9.6-33.6-22.2-7.4-10.9-9.7-18.6-10.3-34.4l-.4-12.8-7.7.6c-15.5 1.3-14.4.8-16.5 8.8-5.8 22.4-25.6 46.5-45.3 54.9-17.2 7.4-41.2 6.5-58.1-2-7.3-3.7-17-11.6-21.4-17.4l-3.2-4.3-6.3 4.7c-13.1 10-26.7 16.6-42.7 20.7-8.9 2.3-12.1 2.7-26.1 2.7-17.6 0-23.8-1.1-35.4-6.5-8.9-4.2-15.5-9.3-21.6-16.7-13.6-16.5-18.5-34.1-16.5-59.3 2-26.2 10.4-46.7 25.9-63.2 16.7-17.8 33.7-25.8 55.2-25.8 11.4 0 18.5 1.8 25.4 6.5 6.2 4.3 9.8 8.7 13.7 17.1 7.8 16.7 2.8 42.8-9.9 51.8-5.8 4-13.4 4.7-19.6 1.7-7.1-3.4-8.3-8.4-5.2-21.6 2.2-9.8 2-14.1-1-17-1.8-1.9-3.5-2.5-6.5-2.5-12.4 0-24.2 14.4-29 35.5-1.9 8-2.2 11.5-1.8 22.7.6 16.8 2.6 22.8 10.3 30.5 6.8 6.8 13.2 8.9 26.5 8.7 14.7-.2 28.1-5.8 44.4-18.6l6.8-5.3.2-17c.4-21.1 2.7-31.2 11.2-48.5 5.1-10.2 6.7-12.4 15.3-21.1 6.1-6.1 12.2-11.1 16.6-13.6 20.7-12 46.6-13.4 66.2-3.8 17.2 8.5 31.8 29.9 35.7 52.3l1.3 7.7 4.9-.3c4.6-.2 20-2.7 23.6-3.8.9-.3 2.8-2.8 4.3-5.7 7.5-14.4 17.6-26.6 30.4-36.7 13.5-10.6 26.2-16.6 42.3-19.8l9.3-1.9 1.7-15.4c6-52.4 23.2-110.9 39.3-133.4 7.5-10.5 17.8-18.6 27.5-21.6 4.2-1.3 14.4-1 19.7.6zm55.5 14.4c6.3 4 15.5 13.7 19.7 20.6 8 13.2 10.9 32.5 7.2 47.9-3.2 13.3-7.1 20.6-16.1 30-7.2 7.5-20 16.3-20 13.8 0-.6 1.1-5.8 2.5-11.6 5.5-23.1 6.9-34.7 6.9-57.1.1-21.7-.8-29.4-4.6-40.4-1-3-1.8-5.6-1.8-5.8 0-.9 2 0 6.2 2.6zm-253.9 323.8c13.2 20.8 36.5 34.6 60.9 36 19.1 1.1 40.1-4.5 52-13.9l3.7-2.9 4.7 3.6c6.2 4.8 12.3 7.8 21.4 10.7 10.4 3.2 28.9 3.2 40.3 0l7.8-2.2 10.2 10.7c5.6 6 12.9 13.6 16.1 17 5.1 5.5 6.4 6.3 9.5 6.3 5.6 0 18 3.8 24.6 7.5 6.4 3.6 16.3 13.2 21.3 20.5 8.2 12.3 12.1 31.7 9.1 46.2-3 15.2-8.2 24.9-18.6 35.4-10.9 10.8-24.7 16.4-40.3 16.4-10.5-.1-15.6-1.2-24.5-5.5-19.2-9.3-31.6-26.6-34.7-48.5l-1.4-9.2-42.4-45-42.5-45-.3 63.8-.2 63.7 3.9 5.1c4.8 6.2 9.3 15 11.7 23.1 2.9 9.5 2.5 26.7-.9 37-11.8 36.2-49.6 53.3-82.4 37.3-9.3-4.5-22.5-17.7-26.9-26.8-4.7-9.7-6.5-16.5-7.1-27-.9-15.8 3.5-30.4 12.8-42.7l3.9-5.2-.2-63.8-.3-63.8-42.5 44.9-42.5 44.9-.6 6.8c-1.5 15.8-8 29.1-19.5 39.8-11.5 10.8-24.7 16.1-39.9 16.1-9.4 0-17.3-1.8-26.4-6.2-8.8-4.2-21.3-16.7-25.9-25.9-12.9-25.7-8.3-56.8 11.3-76.4 10.2-10.2 21.3-15.6 35.4-17.3l5.7-.7 16.9-17.8c14.1-14.9 17.2-17.7 18.9-17.2 14.8 4.9 20.3 5.8 35.1 5.8 13.1 0 16.3-.3 24.9-2.6 18.9-5.1 35.1-14.9 48.3-29.2 3.7-4.1 6.9-7.4 7-7.5.2 0 1.3 1.7 2.6 3.7z"/><path d="M1161.6 792.7c-10.7 11.5-21.8 72.6-26.9 148.3-.8 10.7-1.3 19.6-1.2 19.7.3.5 14.5-33.6 18.8-45.2 16-43.1 23.7-83 20.8-107.5-2-16.4-5.8-21.4-11.5-15.3zm-81.7 175c-23.7 11.7-41.2 47.7-37 76 1.5 10 4.6 15.5 10.1 17.7 10.9 4.4 21.2-1.3 34.3-18.7l4.3-5.9-1.5-9.6c-.9-6.5-1.4-18.5-1.5-36.4-.1-14.8-.4-26.8-.7-26.8-.4 0-4 1.7-8 3.7zm171.3-1.5c-11.4 5.5-20.4 23.4-21.9 43.5l-.6 8.2 4.9-1.3c14-3.8 28.3-12 34.5-19.9 4-5 6.9-12.8 6.9-18.1-.1-4.8-3.5-11.3-6.9-13-4.2-2.2-11.7-1.9-16.9.6zm-352.7 3.2c-14.6 6.9-23.5 28.1-22.2 53.1.7 13.7 3.3 22.6 8.6 29.3 6.8 8.5 15.9 11.2 26.4 7.6 9.1-3.1 17.7-14.6 21.3-28.3l1.4-5.8-7-7.1c-11.4-11.4-16.2-23.7-16.2-41.5V967h-3.7c-2 0-5.8 1.1-8.6 2.4z"/></g><path fill="#FF8000" stroke="#FF8000" stroke-width="10" d="M1004 680.1c-6.2 1.2-19.5 7.9-25.5 13-6.2 5.1-10.7 11.2-15.1 20.4-4.7 9.8-6.5 17.5-6.5 28 0 4.9.7 11.7 1.6 15 2.1 7.9 7.3 18.8 11.9 24.8l3.6 4.7-.2 65-.3 65-43-45.5-43-45.5-1.1-7.9c-3.5-24.3-16.9-42.7-37.1-51.1-19.2-8-38.9-5.3-56.4 7.7-8 6-15.4 15.7-19.7 25.8-3.4 8.3-5.5 20.9-4.8 28.9 1.5 15.7 10.2 33.7 20.9 43.1 9.3 8.1 24 14.5 33.6 14.5h4.6l12.9 13.8 12.9 13.9 10.6-5.4c6.2-3.1 14.8-6.4 20.6-8 8.8-2.3 12-2.6 26-2.7 17.2 0 23.7 1 36.9 6.1 14.9 5.6 33.2 21.8 42.6 37.7 2.5 4.1 4.8 7.6 5.1 7.6s2.8-2.8 5.5-6.2c10.7-13.3 32-29.4 48.4-36.5l9-3.8V785.9l4.6-6.5c18.8-26.3 15.9-60.8-6.8-83.6-7.3-7.4-18.9-13.7-28.6-15.7-6.1-1.3-16.7-1.3-23.2 0zm228.6 96.5c3.6 13.5 4.9 30.7 3.5 48.2-1.2 16.1-3.9 33.6-7.4 47.9l-2.3 9.2 6-3.2c22.9-12.2 35.4-43 28.6-70.2-1.2-5-3.1-10.8-4.2-13-5.3-10.5-14.1-20.2-23-25.5l-3.5-2zM972 1098.3c-12.4 13.4-27.5 22.8-45.5 28.3-8.5 2.7-10.1 2.8-28 2.8s-19.5-.2-27.9-2.7l-8.9-2.8-2.2 2.1c-1.3 1.2-9 9.3-17.1 18.1l-14.9 15.9h-4.6c-9.6 0-24.3 6.4-33.6 14.5-7.3 6.4-13.7 16.5-17.4 27.5-7.6 22.7-2.3 46.9 14.1 64.3 6.8 7.2 14 11.9 23.9 15.3 5.8 2 9.1 2.5 17.5 2.5 15 0 25.3-3.8 37.1-13.5 12-9.8 19.2-23.6 21.9-41.6l1.1-7.8 43-45.5 43-45.6.3 65.1.2 65.1-3.9 5.1c-4.9 6.3-9.5 16-11.7 24.6-2.6 10.2-1.6 26.1 2.4 36.7 9 24.2 27.9 38.7 52.2 40 17 1 31-4.6 43.6-17.1 22.2-22.1 24.5-58.3 5.3-83.8l-3.9-5.2v-130.1l5.4 5.5c3 3 22.5 23.6 43.4 45.8l37.9 40.2.7 6.9c2.2 24.4 17.7 44.2 41.2 52.7 8.7 3.2 25.2 3.4 33.8.4 19.5-6.7 33.8-21.2 39.9-40.5 3.2-10.4 3.1-28-.3-39-3-10-12.1-24-19.1-29.5-9.2-7.3-23.4-13-32.5-13-3.8 0-4.6-.6-11.4-7.8-4.1-4.2-11.5-11.9-16.4-17l-9-9.3-5.9 1.6c-22.4 6.3-47.4 2.1-64-10.8l-3.7-2.9-3.3 2.5c-17.3 13.1-49 17.8-71.7 10.6-17.2-5.5-30.2-15.6-43-33.6-1.5-2-1.6-1.9-8 5z"/><path fill="#0080FF" stroke="#0080FF" stroke-width="10" d="M1164.2 755.1c-16.5 2.1-32.8 18.9-43.2 44.5-11.8 28.7-22.3 71.3-26.5 106.6-2.7 22.3-1.5 20-10.5 21.3-13.4 1.9-30.2 9.6-43.2 19.8-12.7 10-22.1 21-29.7 34.9-4.2 7.6-4.2 7.7-9.4 8.7-11.5 2.3-17.3 3.1-21.3 3.1-4.2 0-4.3-.1-5-3.8-2.5-15-6.2-24.5-13.3-35-6.4-9.5-14.6-16.8-23.6-21.2-10.4-5-17.8-6.4-31.2-5.8-19.4.9-34.5 7.8-49.4 22.7-18.4 18.4-26.9 41.4-26.9 72.5v14.5l-7.7 6.1c-12.9 10-28.6 17.1-41.3 18.5-7 .8-18.7-1.6-24.5-5-6.2-3.6-11.1-9.8-13.7-17.4-2-5.8-2.3-8.4-2.2-21.6.1-13.3.4-16 2.8-24 3.3-10.9 7.2-17.9 13.3-23.9 5.4-5.4 11.8-8.1 16.9-7.3 7.8 1.3 9.7 6.6 6.9 18.6-1 4.2-1.9 9.7-1.9 12.3-.1 4.1.4 5.2 3.1 8 2.8 2.8 4 3.3 9.6 3.6 5 .3 7.2 0 10.5-1.7 9.2-4.7 15.2-17.9 15.2-33.7 0-27.5-19.4-44.6-47.5-41.8-28.2 2.7-53.4 22.6-66.5 52.5-10.2 23-11.7 54.9-3.7 74.7 10.2 25.3 29.6 39.8 57.6 43.2 24.3 3 56.1-6.2 77.8-22.5 4-3 7.6-5.5 8.1-5.5s1.5 1.2 2.3 2.6c2.1 3.9 12.2 12.9 19.2 17 22.4 13.2 52.7 11.9 72.7-3.1 16.9-12.6 28.8-30.5 34-51.1l1-4.2 6.8-.6c3.7-.4 9.1-.9 12-1.2l5.2-.6v11c0 13.9 1.2 19.6 6.1 29.9 6.9 14.6 20.1 25.3 34.7 28.4 6.7 1.4 19.5.6 26.6-1.6 9.6-2.9 20.2-11.1 31.2-23.8l5.8-6.7 3.5 6.7c5.2 9.8 15.9 20.4 23.6 23.3 19.5 7.3 41.6-.3 65.4-22.6l3.4-3.1 8.1 8.2c9.2 9.3 17.6 14.2 30.5 17.7 9.9 2.8 33 3 43.3.5 18.1-4.4 31.4-13 42.6-27.4 5.9-7.7 8.4-15 8.6-25.3.1-9.4-1.6-13.9-6.1-15.9-5.4-2.5-8.6-.6-16.7 9.4-7.6 9.5-18.8 19.2-25.6 22.4-4.9 2.2-6.8 2.5-17 2.6-12.9 0-17.4-1.4-24.4-7.5-3.4-3-7.2-8.7-6.4-9.5.2-.2 3.9-1.3 8.3-2.5 44.5-11.9 67-32.2 70.6-63.7 1.8-15.8-2.3-29.1-12.1-39-9.6-9.8-22.2-14-39.2-13-30.9 1.9-58 23.7-70.5 56.8-4.4 11.8-6.3 23.5-6.3 39.9v13.6l-8.4 8.2c-9.6 9.4-16.5 13.2-24 13.2-6 0-10.4-2.5-13.3-7.7-2.9-5.1-6-16.7-6.8-25.1l-.7-6.7 8.2-14.5c9.4-16.7 19-35.5 25.6-50.2 2.5-5.7 5.5-12.3 6.6-14.8 9.7-21.4 21-53.7 26.3-75.4 5.6-23.2 7-33.9 6.9-54.1-.1-19.9-1.8-29.3-7-38.4-3.5-6-10-12.8-14.6-15.2-4.7-2.4-13-3.6-19.6-2.8zm4.7 36c3.6 3.9 4.6 10.3 4.6 29.9 0 20.6-1.3 30.3-7 52.5-4.4 16.9-13.8 44.3-21.5 62.5-3.4 8-7.3 17.4-8.8 21-3.5 8.5-3.8 6.7-2.3-16 5.8-87.8 19.1-150.7 32.3-151.9.4-.1 1.6.8 2.7 2zm-77.9 237.1 1.3 8.7-5.2 7c-2.9 3.9-7.7 9.3-10.7 12.1-11.9 10.8-25.8 10-31.6-1.8-3.4-6.9-3.8-25.2-.9-37.4 5.8-24.4 21.1-44.3 39.7-51.6l4.9-2 .6 28.2c.3 15.4 1.2 32 1.9 36.8zm177-63.4c5 2.5 7.4 7.2 7.4 14.7 0 14.8-13.7 28.6-35.6 35.9-10.4 3.5-11.8 3.4-11.8-.7.1-12.1 4.9-28.9 10.8-37.7 8.1-11.8 20-16.9 29.2-12.2zm-356.6 9.5c-1.3 16.9 5.4 33.9 18 45.4 5 4.6 5.2 4.9 4.5 8.8-2.1 12.1-9.5 24.2-17.7 29.2-5.6 3.3-13.1 4.9-18.1 3.8-8.7-1.9-17.7-12-20.4-23.1-8.9-35.2 6.6-71.8 30.6-72.3l3.7-.1z"/></svg>';
+                                const converted = stringToSVGandPath2Ds(result);
+                                setSVG(converted.svg);
+                                setSelectedPaths([0]);
+                                setTool("select");
+
+                                const svg = converted.svg;
+
+                                const ctx = canvasRef.current?.getContext("2d");
+                                if (!ctx) return;
+
+                                clear();
+                                // ctx.translate(-600, -600);
+                                // setPanOffset({ x: -600, y: -600 });
+                                drawSVG(ctx, svg);
+                                drawSVGPoints(ctx, svg);
+                                setSelectedDraw(null);
+                              }}
+                              onSkip={() => {
+                                setGuideIndex(-1);
+                              }}
+                              guideTitle="File Input"
+                              guideDescription="Or you can start with existing SVG Files"
+                            ></Guidebox>
+                          </div>
+                        )}
+                      </AnimatePresence>
+                    ) : null}
+                  </>
+                </div>
+                <div
+                  className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "rect" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
+                  onClick={(e) => {
+                    setTool("add");
+                    setAddShape("rect");
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="_typeIcon_12syx_29"
+                    color="black"
+                  >
+                    <rect
+                      stroke="black"
+                      x="1.5"
+                      y="1.5"
+                      stroke-width="1.2"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      fill="none"
+                      fill-rule="evenodd"
+                    ></rect>
+                  </svg>
+                </div>
+                <div
+                  className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "circle" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
+                  onClick={(e) => {
+                    setTool("add");
+                    setAddShape("circle");
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="_typeIcon_12syx_29"
+                    color="black"
+                  >
+                    <circle
+                      stroke="black"
+                      cx="8"
+                      cy="8"
+                      r="6.5"
+                      fill="none"
+                      fill-rule="evenodd"
+                      stroke-width="1.2"
+                    ></circle>
+                  </svg>
+                </div>
+                <div
+                  className={`flex h-[30px] w-[30px] items-center ${tool == "add" && addShape == "text" ? "bg-violet-300" : ""} justify-center rounded-md text-[18px] font-light hover:bg-violet-300`}
+                  onClick={(e) => {
+                    setTool("add");
+                    setAddShape("text");
+                  }}
+                >
+                  T
+                </div>
+                <div
+                  onClick={(e) => {
+                    setTool("draw");
+
+                    setIsDrawing(true);
+                    //add a new empty path to the svg
+                    if (!svg) return;
+                    const newPath: AbsoluteSegment[] = [];
+                    const newPath2D = new Path2D("");
+                    const newSVG = [...svg];
+                    const { x, y } = computePointInCanvas(e)!;
+                    newSVG.push({
+                      tag: "path",
+                      shape: { path2D: newPath2D, d: newPath },
+                      xMax: x,
+                      xMin: x,
+                      yMax: y,
+                      yMin: y,
+                      rotation: 0,
+                      offset: { x: 0, y: 0 },
+                      fill: "white",
+                      stroke: "black",
+                    });
+                    setSVG(newSVG);
+                    setLinePath2Ds([]);
+                  }}
+                  className={`flex h-[30px] w-[30px] ${tool == "draw" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
+                >
+                  <svg
                     width="16"
                     height="16"
                     viewBox="0 0 16 16"
@@ -3253,152 +3226,207 @@ export default function Editor() {
                     ></circle>
                   </svg>
                 </div>
-                <div
-                  onClick={() => {
-                    setIsBending(true);
-                    setIsDrawing(false);
-                  }}
-                  className={`${isBending ? "bg-[#0b99ff]" : ""} flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-[#0b99ff]`}
-                >
+              </div>
+              {tool === "draw" ? (
+                <div className="z-10 flex flex-row items-center justify-center gap-2 rounded-md bg-white p-[6px] shadow-md">
+                  <div
+                    onClick={() => {
+                      setIsDrawing(true);
+                      setIsBending(false);
+                    }}
+                    className={` ${isDrawing == true ? "bg-[#0b99ff]" : ""} flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-[#0b99ff]  `}
+                  >
+                    <svg
+                      className="svg "
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9.49641 2.64768C9.65292 2.67176 9.79251 2.75949 9.88208 2.89007L14.2237 9.21965C14.4037 9.48202 14.5 9.79272 14.5 10.1109C14.5 10.5261 14.3361 10.9246 14.0439 11.2196L11.2541 14.0362C10.9602 14.333 10.5598 14.5 10.1421 14.5C9.82732 14.5 9.51985 14.4051 9.25985 14.2276L2.8938 9.88327C2.76081 9.79251 2.67142 9.65066 2.64694 9.49153L1.50615 2.07635C1.45478 1.74245 1.74246 1.45476 2.07636 1.50613L9.49641 2.64768Z"
+                        stroke="black"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></path>
+                      <path
+                        d="M2.00002 1.9999L6.50002 6.4999"
+                        stroke="black"
+                        stroke-linecap="round"
+                      ></path>
+                      <path
+                        d="M12.8691 7.93213L7.8966 12.9093"
+                        stroke="black"
+                      ></path>
+                      <circle
+                        cx="7"
+                        cy="7"
+                        r="1"
+                        transform="rotate(90 7 7)"
+                        fill="black"
+                      ></circle>
+                    </svg>
+                  </div>
+                  <div
+                    onClick={() => {
+                      setIsBending(true);
+                      setIsDrawing(false);
+                    }}
+                    className={`${isBending ? "bg-[#0b99ff]" : ""} flex h-[30px] w-[30px] items-center justify-center rounded-md hover:bg-[#0b99ff]`}
+                  >
+                    <svg
+                      className="svg   "
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                    >
+                      <path
+                        fill="#000"
+                        fill-opacity="1"
+                        fill-rule="evenodd"
+                        stroke="none"
+                        d="M14.5 6C15.88 6 17 4.88 17 3.5 17 2.12 15.88 1 14.5 1c-1.21 0-2.218.859-2.45 2h-.55C6.806 3 3 6.806 3 11.5v.55c-1.141.232-2 1.24-2 2.45C1 15.88 2.12 17 3.5 17 4.88 17 6 15.88 6 14.5c0-1.21-.859-2.218-2-2.45v-.55C4 7.358 7.358 4 11.5 4h.55c.232 1.141 1.24 2 2.45 2zM16 3.5c0 .828-.672 1.5-1.5 1.5-.828 0-1.5-.672-1.5-1.5 0-.828.672-1.5 1.5-1.5.828 0 1.5.672 1.5 1.5zm-11 11c0 .828-.672 1.5-1.5 1.5-.828 0-1.5-.672-1.5-1.5 0-.828.672-1.5 1.5-1.5.828 0 1.5.672 1.5 1.5z"
+                      ></path>
+                    </svg>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setTool("select");
+                    }}
+                    className="flex h-[30px] items-center justify-center rounded-md bg-[#18181b] p-2 text-xs text-white"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="justify-self-end">
+            <div className="z-10 flex  h-[40px] items-center gap-2 rounded-md font-normal">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button className="h-full shadow-md">Feedback</Button>
+                </PopoverTrigger>
+                <PopoverContent sideOffset={8}>Content</PopoverContent>
+              </Popover>
+
+              <div className="flex h-full items-center gap-2 rounded-md bg-white p-1 shadow-md">
+                {/* <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200">
                   <svg
-                    className="svg   "
-                    xmlns="http://www.w3.org/2000/svg"
                     width="18"
                     height="18"
                     viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g transform="matrix(0.96403766,0,0,0.96419055,0.02351096,-0.45900725)">
+                      <path
+                        className="strokeDefault"
+                        d="M 9.80036,18.0706 H 8.19992 c -0.53907,0 -0.99777,-0.4051 -1.06139,-0.9442 L 6.96777,15.7871 C 6.62626,15.6766 6.29813,15.5393 5.98675,15.382 l -1.06808,0.8303 c -0.43192,0.3349 -1.0413,0.298 -1.4163,-0.0904 l -1.125,-1.125 C 1.99233,14.6253 1.9555,14.0159 2.29032,13.584 L 3.11733,12.5126 C 2.95661,12.2012 2.81934,11.873 2.71219,11.5315 L 1.36956,11.3608 C 0.833845,11.2972 0.428711,10.8384 0.428711,10.2994 V 8.69894 c 0,-0.53906 0.405134,-0.99777 0.944199,-1.06138 L 2.71219,7.4668 C 2.82268,7.12528 2.95996,6.79715 3.11733,6.48577 L 2.29032,5.41769 C 1.9555,4.98577 1.99233,4.37639 2.38072,3.99805 l 1.125,-1.125 C 3.87737,2.488 4.48675,2.45117 4.91867,2.78599 L 5.98675,3.61635 C 6.29813,3.45564 6.62626,3.32171 6.96777,3.21122 L 7.13853,1.86858 C 7.20215,1.33287 7.66085,0.927734 8.19992,0.927734 h 1.60044 c 0.53904,0 0.99774,0.405136 1.06134,0.944196 l 0.1708,1.33929 c 0.3415,0.11049 0.6696,0.24776 0.981,0.40513 L 13.0816,2.78599 C 13.5135,2.45117 14.1229,2.488 14.4979,2.8764 l 1.125,1.12499 c 0.3851,0.37166 0.4219,0.98103 0.0871,1.41295 l -0.827,1.07143 c 0.1607,0.31138 0.2979,0.63951 0.4051,0.98103 l 1.3426,0.17076 c 0.5357,0.06361 0.9409,0.52232 0.9409,1.06138 v 1.60046 c 0,0.539 -0.4052,0.9978 -0.9442,1.0614 l -1.3393,0.1707 c -0.1105,0.3415 -0.2478,0.6697 -0.4051,0.9811 l 0.8303,1.068 c 0.3348,0.432 0.298,1.0413 -0.0904,1.4163 l -1.125,1.125 c -0.3716,0.3851 -0.981,0.4219 -1.4129,0.0871 l -1.0715,-0.827 c -0.3114,0.1607 -0.6395,0.298 -0.981,0.4051 l -0.1708,1.3426 c -0.0636,0.5358 -0.5223,0.9409 -1.06134,0.9409 z M 5.94992,14.5985 c 0.06026,0 0.12053,0.0134 0.1741,0.0435 0.39509,0.221 0.82032,0.3985 1.26563,0.5257 0.13727,0.0402 0.23772,0.1574 0.25446,0.298 l 0.2009,1.5703 c 0.02008,0.1808 0.17745,0.3181 0.35156,0.3181 h 1.60044 c 0.17746,0 0.33149,-0.1373 0.35159,-0.3148 l 0.2009,-1.5736 c 0.0167,-0.1406 0.1172,-0.2578 0.2544,-0.298 0.4487,-0.1272 0.8739,-0.3047 1.2657,-0.5257 0.1238,-0.0703 0.2812,-0.0569 0.3917,0.0302 l 1.2489,0.9709 c 0.144,0.1105 0.3449,0.1038 0.4687,-0.0234 l 1.1317,-1.1317 c 0.1306,-0.1272 0.1407,-0.3281 0.0268,-0.4721 l -0.971,-1.2489 c -0.087,-0.1138 -0.1004,-0.2678 -0.0301,-0.3917 0.221,-0.3951 0.3984,-0.8203 0.5257,-1.2656 0.0401,-0.1373 0.1573,-0.2378 0.298,-0.2545 l 1.5703,-0.2009 c 0.1808,-0.0234 0.3181,-0.1775 0.3181,-0.3549 V 8.69894 c 0,-0.17746 -0.1373,-0.33147 -0.3148,-0.35156 L 14.96,8.14648 C 14.8193,8.12974 14.7021,8.0293 14.662,7.89202 14.5347,7.44336 14.3573,7.01814 14.1363,6.62639 14.066,6.50251 14.0794,6.34514 14.1664,6.23465 l 0.971,-1.24888 C 15.2479,4.8418 15.2412,4.6409 15.114,4.51702 L 13.9823,3.38532 C 13.8584,3.25474 13.6542,3.2447 13.5102,3.35854 L 12.2613,4.32952 C 12.1475,4.41657 11.9934,4.42997 11.8662,4.35965 11.4745,4.13867 11.0492,3.96456 10.6006,3.83398 10.4633,3.79381 10.3629,3.67662 10.3461,3.53599 L 10.1452,1.96568 C 10.1218,1.78488 9.96777,1.6476 9.79032,1.6476 H 8.18987 c -0.17745,0 -0.33147,0.13728 -0.35156,0.31473 L 7.63742,3.53599 C 7.62068,3.67662 7.52023,3.79381 7.38295,3.83398 6.93429,3.96122 6.50907,4.13867 6.11733,4.35965 5.99344,4.42997 5.83608,4.41657 5.72224,4.32952 L 4.47335,3.35854 C 4.32938,3.24805 4.12849,3.25474 4.0046,3.38198 L 2.88295,4.51032 C 2.75237,4.63756 2.74233,4.83845 2.85617,4.98242 L 3.82715,6.23131 C 3.9142,6.34514 3.92759,6.49916 3.85728,6.62305 3.6363,7.01814 3.45884,7.44336 3.33161,7.88867 3.29143,8.02595 3.17425,8.12639 3.03362,8.14314 L 1.46331,8.34403 C 1.28251,8.36412 1.14523,8.52148 1.14523,8.69559 V 10.296 c 0,0.1775 0.13728,0.3315 0.31473,0.3516 l 1.57366,0.2009 c 0.14063,0.0167 0.25781,0.1172 0.29799,0.2545 0.12723,0.4486 0.30469,0.8738 0.52567,1.2656 0.07031,0.1239 0.05692,0.2812 -0.03013,0.3917 l -0.97098,1.2489 c -0.11049,0.144 -0.1038,0.3449 0.02343,0.4688 l 1.1317,1.1317 c 0.12388,0.1305 0.32478,0.1406 0.4721,0.0267 l 1.24888,-0.9709 c 0.06362,-0.0402 0.14063,-0.067 0.21764,-0.067 z"
+                        stroke-width="0.8"
+                        stroke="#222429"
+                      ></path>
+                      <path
+                        className="strokeDefault strokeActive"
+                        d="m 9.00014,13.0717 c -1.96875,0 -3.57254,-1.6038 -3.57254,-3.57254 0,-1.96875 1.60379,-3.57255 3.57254,-3.57255 1.96876,0 3.57256,1.6038 3.57256,3.57255 0,1.96874 -1.6038,3.57254 -3.57256,3.57254 z m 0,-6.42857 c -1.57701,0 -2.85603,1.28237 -2.85603,2.85603 0,1.57364 1.28237,2.85604 2.85603,2.85604 1.57366,0 2.85606,-1.2824 2.85606,-2.85604 0,-1.57366 -1.279,-2.85603 -2.85606,-2.85603 z"
+                        stroke-width="0.8"
+                        stroke="#222429"
+                      ></path>
+                    </g>
+                  </svg>
+                </div> */}
+                <a
+                  onClick={downloadImage}
+                  className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200 "
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.8"
+                    stroke="#222429"
+                    width={20}
+                    height={20}
                   >
                     <path
-                      fill="#000"
-                      fill-opacity="1"
-                      fill-rule="evenodd"
-                      stroke="none"
-                      d="M14.5 6C15.88 6 17 4.88 17 3.5 17 2.12 15.88 1 14.5 1c-1.21 0-2.218.859-2.45 2h-.55C6.806 3 3 6.806 3 11.5v.55c-1.141.232-2 1.24-2 2.45C1 15.88 2.12 17 3.5 17 4.88 17 6 15.88 6 14.5c0-1.21-.859-2.218-2-2.45v-.55C4 7.358 7.358 4 11.5 4h.55c.232 1.141 1.24 2 2.45 2zM16 3.5c0 .828-.672 1.5-1.5 1.5-.828 0-1.5-.672-1.5-1.5 0-.828.672-1.5 1.5-1.5.828 0 1.5.672 1.5 1.5zm-11 11c0 .828-.672 1.5-1.5 1.5-.828 0-1.5-.672-1.5-1.5 0-.828.672-1.5 1.5-1.5.828 0 1.5.672 1.5 1.5z"
-                    ></path>
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                    />
                   </svg>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setTool("select");
-                  }}
-                  className="flex h-[30px] items-center justify-center rounded-md bg-[#18181b] p-2 text-xs text-white"
-                >
-                  Done
-                </button>
+                </a>
               </div>
-            ) : null}
-          </div>
-          <div className="z-10 flex  h-[40px] items-center gap-4 rounded-md">
-            <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <g transform="matrix(0.96403766,0,0,0.96419055,0.02351096,-0.45900725)">
-                    <path
-                      className="strokeDefault"
-                      d="M 9.80036,18.0706 H 8.19992 c -0.53907,0 -0.99777,-0.4051 -1.06139,-0.9442 L 6.96777,15.7871 C 6.62626,15.6766 6.29813,15.5393 5.98675,15.382 l -1.06808,0.8303 c -0.43192,0.3349 -1.0413,0.298 -1.4163,-0.0904 l -1.125,-1.125 C 1.99233,14.6253 1.9555,14.0159 2.29032,13.584 L 3.11733,12.5126 C 2.95661,12.2012 2.81934,11.873 2.71219,11.5315 L 1.36956,11.3608 C 0.833845,11.2972 0.428711,10.8384 0.428711,10.2994 V 8.69894 c 0,-0.53906 0.405134,-0.99777 0.944199,-1.06138 L 2.71219,7.4668 C 2.82268,7.12528 2.95996,6.79715 3.11733,6.48577 L 2.29032,5.41769 C 1.9555,4.98577 1.99233,4.37639 2.38072,3.99805 l 1.125,-1.125 C 3.87737,2.488 4.48675,2.45117 4.91867,2.78599 L 5.98675,3.61635 C 6.29813,3.45564 6.62626,3.32171 6.96777,3.21122 L 7.13853,1.86858 C 7.20215,1.33287 7.66085,0.927734 8.19992,0.927734 h 1.60044 c 0.53904,0 0.99774,0.405136 1.06134,0.944196 l 0.1708,1.33929 c 0.3415,0.11049 0.6696,0.24776 0.981,0.40513 L 13.0816,2.78599 C 13.5135,2.45117 14.1229,2.488 14.4979,2.8764 l 1.125,1.12499 c 0.3851,0.37166 0.4219,0.98103 0.0871,1.41295 l -0.827,1.07143 c 0.1607,0.31138 0.2979,0.63951 0.4051,0.98103 l 1.3426,0.17076 c 0.5357,0.06361 0.9409,0.52232 0.9409,1.06138 v 1.60046 c 0,0.539 -0.4052,0.9978 -0.9442,1.0614 l -1.3393,0.1707 c -0.1105,0.3415 -0.2478,0.6697 -0.4051,0.9811 l 0.8303,1.068 c 0.3348,0.432 0.298,1.0413 -0.0904,1.4163 l -1.125,1.125 c -0.3716,0.3851 -0.981,0.4219 -1.4129,0.0871 l -1.0715,-0.827 c -0.3114,0.1607 -0.6395,0.298 -0.981,0.4051 l -0.1708,1.3426 c -0.0636,0.5358 -0.5223,0.9409 -1.06134,0.9409 z M 5.94992,14.5985 c 0.06026,0 0.12053,0.0134 0.1741,0.0435 0.39509,0.221 0.82032,0.3985 1.26563,0.5257 0.13727,0.0402 0.23772,0.1574 0.25446,0.298 l 0.2009,1.5703 c 0.02008,0.1808 0.17745,0.3181 0.35156,0.3181 h 1.60044 c 0.17746,0 0.33149,-0.1373 0.35159,-0.3148 l 0.2009,-1.5736 c 0.0167,-0.1406 0.1172,-0.2578 0.2544,-0.298 0.4487,-0.1272 0.8739,-0.3047 1.2657,-0.5257 0.1238,-0.0703 0.2812,-0.0569 0.3917,0.0302 l 1.2489,0.9709 c 0.144,0.1105 0.3449,0.1038 0.4687,-0.0234 l 1.1317,-1.1317 c 0.1306,-0.1272 0.1407,-0.3281 0.0268,-0.4721 l -0.971,-1.2489 c -0.087,-0.1138 -0.1004,-0.2678 -0.0301,-0.3917 0.221,-0.3951 0.3984,-0.8203 0.5257,-1.2656 0.0401,-0.1373 0.1573,-0.2378 0.298,-0.2545 l 1.5703,-0.2009 c 0.1808,-0.0234 0.3181,-0.1775 0.3181,-0.3549 V 8.69894 c 0,-0.17746 -0.1373,-0.33147 -0.3148,-0.35156 L 14.96,8.14648 C 14.8193,8.12974 14.7021,8.0293 14.662,7.89202 14.5347,7.44336 14.3573,7.01814 14.1363,6.62639 14.066,6.50251 14.0794,6.34514 14.1664,6.23465 l 0.971,-1.24888 C 15.2479,4.8418 15.2412,4.6409 15.114,4.51702 L 13.9823,3.38532 C 13.8584,3.25474 13.6542,3.2447 13.5102,3.35854 L 12.2613,4.32952 C 12.1475,4.41657 11.9934,4.42997 11.8662,4.35965 11.4745,4.13867 11.0492,3.96456 10.6006,3.83398 10.4633,3.79381 10.3629,3.67662 10.3461,3.53599 L 10.1452,1.96568 C 10.1218,1.78488 9.96777,1.6476 9.79032,1.6476 H 8.18987 c -0.17745,0 -0.33147,0.13728 -0.35156,0.31473 L 7.63742,3.53599 C 7.62068,3.67662 7.52023,3.79381 7.38295,3.83398 6.93429,3.96122 6.50907,4.13867 6.11733,4.35965 5.99344,4.42997 5.83608,4.41657 5.72224,4.32952 L 4.47335,3.35854 C 4.32938,3.24805 4.12849,3.25474 4.0046,3.38198 L 2.88295,4.51032 C 2.75237,4.63756 2.74233,4.83845 2.85617,4.98242 L 3.82715,6.23131 C 3.9142,6.34514 3.92759,6.49916 3.85728,6.62305 3.6363,7.01814 3.45884,7.44336 3.33161,7.88867 3.29143,8.02595 3.17425,8.12639 3.03362,8.14314 L 1.46331,8.34403 C 1.28251,8.36412 1.14523,8.52148 1.14523,8.69559 V 10.296 c 0,0.1775 0.13728,0.3315 0.31473,0.3516 l 1.57366,0.2009 c 0.14063,0.0167 0.25781,0.1172 0.29799,0.2545 0.12723,0.4486 0.30469,0.8738 0.52567,1.2656 0.07031,0.1239 0.05692,0.2812 -0.03013,0.3917 l -0.97098,1.2489 c -0.11049,0.144 -0.1038,0.3449 0.02343,0.4688 l 1.1317,1.1317 c 0.12388,0.1305 0.32478,0.1406 0.4721,0.0267 l 1.24888,-0.9709 c 0.06362,-0.0402 0.14063,-0.067 0.21764,-0.067 z"
-                      stroke-width="0.8"
-                      stroke="#222429"
-                    ></path>
-                    <path
-                      className="strokeDefault strokeActive"
-                      d="m 9.00014,13.0717 c -1.96875,0 -3.57254,-1.6038 -3.57254,-3.57254 0,-1.96875 1.60379,-3.57255 3.57254,-3.57255 1.96876,0 3.57256,1.6038 3.57256,3.57255 0,1.96874 -1.6038,3.57254 -3.57256,3.57254 z m 0,-6.42857 c -1.57701,0 -2.85603,1.28237 -2.85603,2.85603 0,1.57364 1.28237,2.85604 2.85603,2.85604 1.57366,0 2.85606,-1.2824 2.85606,-2.85604 0,-1.57366 -1.279,-2.85603 -2.85606,-2.85603 z"
-                      stroke-width="0.8"
-                      stroke="#222429"
-                    ></path>
-                  </g>
-                </svg>
-              </div>
-              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200 ">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.8"
-                  stroke="#222429"
-                  width={20}
-                  height={20}
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-                  />
-                </svg>
-              </div>
-            </div>
 
-            <div
-              onClick={(e) => {
-                if (selectedDraw === "profile") {
-                  setSelectedDraw(null);
-                } else {
-                  setSelectedPaths([]);
-                  setSelectPoint(null);
-                  setSelectedDraw("profile");
-                  setProfileIsCredits(true);
-                }
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className=" relativeh-[40px] w-[40px] cursor-pointer overflow-clip rounded"
-            >
-              {user && (
-                <Image
-                  src={user?.imageUrl ?? ""}
-                  alt="Profile Image"
-                  width={40}
-                  height={40}
-                ></Image>
-              )}
-              {selectedDraw === "profile" && (
-                <AnimatePresence>
-                  <motion.div className="absolute right-2 top-[68px] z-40 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
-                    <div className=" relative flex flex-row gap-2 text-sm">
-                      <button
-                        onClick={(e) => {
-                          setProfileIsCredits(true);
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                        className={`z-50 flex w-1/2 items-center justify-center rounded-md ${profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"} `}
-                      >
-                        Credits
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          setProfileIsCredits(false);
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                        className={`flex w-1/2 items-center justify-center rounded-md p-1.5  ${!profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"}`}
-                      >
-                        Workspaces
-                      </button>
-                    </div>
-                    {profileIsCredits ? (
-                      <div className="flex flex-col gap-3 rounded-md bg-[#fafafa] p-4">
-                        <div className="flex  items-center justify-center text-sm ">
-                          Current Credits :{" "}
-                          <span className="font-bold">{credits}</span>
-                        </div>
-                        <div className="flex items-center justify-center">
-                          <button className="inline-block items-center justify-center rounded-md bg-[#18181b] p-1.5 text-sm text-[#fafafa] hover:bg-[#2f2f31]">
-                            Buy Credits
-                          </button>
-                        </div>
+              <div
+                onClick={(e) => {
+                  if (selectedDraw === "profile") {
+                    setSelectedDraw(null);
+                  } else {
+                    setSelectedPaths([]);
+                    setSelectPoint(null);
+                    setSelectedDraw("profile");
+                    setProfileIsCredits(true);
+                  }
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className=" relativeh-[40px] w-[40px] cursor-pointer overflow-clip rounded"
+              >
+                {user && (
+                  <Image
+                    src={user?.imageUrl ?? ""}
+                    alt="Profile Image"
+                    width={40}
+                    height={40}
+                  ></Image>
+                )}
+                {selectedDraw === "profile" && (
+                  <AnimatePresence>
+                    <motion.div className="absolute right-2 top-[68px] z-40 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
+                      <div className=" relative flex flex-row gap-2 text-sm">
+                        <button
+                          onClick={(e) => {
+                            setProfileIsCredits(true);
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                          className={`z-50 flex w-1/2 items-center justify-center rounded-md ${profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"} `}
+                        >
+                          Credits
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            setProfileIsCredits(false);
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                          className={`flex w-1/2 items-center justify-center rounded-md p-1.5  ${!profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"}`}
+                        >
+                          Workspaces
+                        </button>
                       </div>
-                    ) : (
-                      <div>Workspaces</div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              )}
+                      {profileIsCredits ? (
+                        <div className="flex flex-col gap-3 rounded-md bg-[#fafafa] p-4">
+                          <div className="flex  items-center justify-center text-sm ">
+                            Current Credits :{" "}
+                            <span className="font-bold">{credits}</span>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <button className="inline-block items-center justify-center rounded-md bg-[#18181b] p-1.5 text-sm text-[#fafafa] hover:bg-[#2f2f31]">
+                              Buy Credits
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>Workspaces</div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+              </div>
             </div>
           </div>
         </div>
