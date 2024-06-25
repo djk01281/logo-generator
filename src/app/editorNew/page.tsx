@@ -22,6 +22,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
+import { Feedback } from "./_components/Feedback";
+import { api } from "~/trpc/react";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -2780,7 +2782,7 @@ export default function Editor() {
   };
 
   const [profileIsCredits, setProfileIsCredits] = useState<boolean>(true);
-
+  const feedbackMutation = api.user.feedback.useMutation();
   const downloadImage = (event: React.MouseEvent<HTMLAnchorElement>) => {
     const link = event.currentTarget;
     link.setAttribute("download", "logo.png");
@@ -3310,10 +3312,28 @@ export default function Editor() {
                 <PopoverTrigger asChild>
                   <Button className="h-full shadow-md">Feedback</Button>
                 </PopoverTrigger>
-                <PopoverContent sideOffset={8}>Content</PopoverContent>
+                <PopoverContent
+                  className="overflow-hidden rounded-xl p-0"
+                  sideOffset={8}
+                >
+                  <Feedback
+                    onFeedback={async (feedback) => {
+                      console.log("Feedback", feedback);
+                      if (!user) return;
+                      const email = user.emailAddresses[0]?.emailAddress;
+                      if (!email) return;
+
+                      const result = await feedbackMutation.mutateAsync({
+                        feedback: feedback.feedbackString,
+                        emoji: feedback.emoji,
+                        email: email,
+                      });
+                    }}
+                  ></Feedback>
+                </PopoverContent>
               </Popover>
 
-              <div className="flex h-full items-center gap-2 rounded-md bg-white p-1 shadow-md">
+              <div className="flex h-full items-center gap-2 rounded-md bg-white p-1 shadow-md hover:cursor-pointer">
                 {/* <div className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200">
                   <svg
                     width="18"

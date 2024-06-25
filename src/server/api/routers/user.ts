@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const userRouter = createTRPCRouter({
   isValidated: publicProcedure
@@ -54,6 +54,25 @@ export const userRouter = createTRPCRouter({
       }
 
       return user.email;
+    }),
+
+  feedback: protectedProcedure
+    .input(
+      z.object({
+        feedback: z.string(),
+        emoji: z.string(),
+        email: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await ctx.db.feedback.create({
+        data: {
+          feedback: input.feedback,
+          emoji: input.emoji,
+          authorEmail: input.email,
+        },
+      });
+      return true;
     }),
 });
 

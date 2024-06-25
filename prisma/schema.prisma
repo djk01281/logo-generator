@@ -30,6 +30,16 @@ model Example {
     @@index([name])
 }
 
+model Feedback {
+    id          Int      @id @default(autoincrement())
+    authorEmail String
+    createdAt   DateTime @default(now())
+    feedback    String
+    emoji       String
+
+    @@index([id])
+}
+
 model History {
     id       Int     @id @default(autoincrement())
     prompt   String
