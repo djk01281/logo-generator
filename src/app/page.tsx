@@ -100,7 +100,7 @@ export default function Home() {
                         clip-rule="evenodd"
                       ></path>
                     </svg>
-                    onvert it to Vector
+                    Convert it to Vector
                   </div>
                   <div className="flex flex-row items-center gap-1">
                     <svg
