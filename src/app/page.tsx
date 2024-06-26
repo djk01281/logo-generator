@@ -4,6 +4,7 @@ import Navbar from "./_components/Navbar";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import BackgroundVideo from "next-video/background-video";
 import sample from "../../videos/LandingPage-zoomed.mp4";
+import { Check } from "lucide-react";
 
 export default function Home() {
   return (
@@ -53,30 +54,98 @@ export default function Home() {
                 Elevate your brand with effortless logo design using our
                 AI-powered, in-browser logo generator.
               </div>
-              <AuthShowcase />
+              <AuthShowcase color="red" />
             </div>
           </div>
         </div>
-        <div>
-          <BackgroundVideo src={sample}></BackgroundVideo>
+        <div className="flex w-full flex-row justify-center bg-[#4d9efe]">
+          <div className="flex w-full flex-row items-center justify-center  py-24 font-modak  xl:w-[1284px]">
+            <div className=" w-2/3 px-8">
+              <div className="w-full overflow-clip rounded-lg  p-0 shadow-lg">
+                <BackgroundVideo src={sample}></BackgroundVideo>
+              </div>
+            </div>
+            <div className="font-bricolage flex w-1/3  flex-col items-center justify-center gap-4 p-8 text-5xl font-extrabold text-[#2f303c]">
+              <div className="text-slate-100">Create & Edit</div>
+              <div className="text-3xl font-bold text-slate-200">
+                New Logos in One Place
+              </div>
+              <div className="text-sm  font-normal text-white">
+                <div className="flex w-80 flex-col rounded-md border-[1px] border-dashed p-4">
+                  <div className="flex flex-row items-center gap-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="h-4 w-4 shrink-0 opacity-75"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    Create Logos with AI
+                  </div>
+                  <div className="flex flex-row items-center gap-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="h-4 w-4 shrink-0 opacity-75"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    onvert it to Vector
+                  </div>
+                  <div className="flex flex-row items-center gap-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="h-4 w-4 shrink-0 opacity-75"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    Edit the Logo
+                  </div>
+                </div>
+                <div className="flex flex-row items-start">
+                  <AuthShowcase color="black"></AuthShowcase>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </>
   );
 }
 
-async function AuthShowcase() {
+type AuthShowcaseProps = {
+  color: string;
+};
+
+async function AuthShowcase({ color }: AuthShowcaseProps) {
   const session = await getServerAuthSession();
 
   // TODO : Only allow signed in users to access the editor
 
   return (
-    <div className="flex h-[128px] w-2/3  flex-col items-center justify-start  gap-4">
+    <div className="flex  flex-col items-center justify-start">
       <SignedIn>
-        <div className="relative flex flex-row items-center gap-4">
+        <div className="relative flex flex-row items-center">
           <Link
             href="/editorNew"
-            className={` mt-6 transform rounded-md bg-[#f87171] px-10 py-3 text-center text-sm font-semibold text-white  no-underline transition hover:bg-red-300`}
+            className={` mt-6 transform rounded-md  ${color === "red" ? "bg-[#f87171]" : "bg-[#171717]"} px-10 py-3 text-center text-sm font-semibold text-white  no-underline transition hover:bg-red-300`}
           >
             Try For Free
           </Link>
@@ -130,7 +199,7 @@ c124 10 359 9 471 -2z"
         <div className="relative flex">
           <SignInButton mode="modal">
             <button
-              className={` mt-6 transform rounded-md bg-[#f87171] px-10 py-3 text-center text-sm font-semibold text-white  no-underline transition hover:bg-red-300`}
+              className={` mt-6 transform rounded-md ${color === "red" ? "bg-[#f87171]" : "bg-[#171717"} px-10 py-3 text-center text-sm font-semibold text-white  no-underline transition hover:bg-red-300`}
             >
               Try For Free
             </button>
