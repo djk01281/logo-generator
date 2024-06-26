@@ -13,11 +13,11 @@
     "start": "next start"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/client-s3": "^3.600.0",
     "@aws-sdk/hash-node": "^3.374.0",
     "@aws-sdk/lib-storage": "^3.456.0",
     "@aws-sdk/protocol-http": "^3.374.0",
-    "@aws-sdk/s3-request-presigner": "^3.428.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0",
     "@aws-sdk/url-parser": "^3.374.0",
     "@aws-sdk/util-format-url": "^3.428.0",
     "@clerk/nextjs": "^5.1.6",
