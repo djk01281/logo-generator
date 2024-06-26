@@ -2,26 +2,25 @@ import Link from "next/link";
 import { getServerAuthSession } from "~/server/auth";
 import Navbar from "./_components/Navbar";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import BackgroundVideo from "next-video/background-video";
+import sample from "../../videos/LandingPage-zoomed.mp4";
 
 export default function Home() {
   return (
     <>
       <Navbar></Navbar>
-      <main className=" relative flex min-h-[90vh] w-full flex-col items-center justify-center bg-white font-sans ">
-        <div className="absolute h-full w-full">
-          <canvas></canvas>
-        </div>
-        <div className="absolute h-5/6 w-5/6 sm:w-[36rem]">
+      <main className=" relative flex   w-full flex-col items-center justify-center bg-white font-sans ">
+        <div className="absolute h-full  w-5/6 sm:w-[36rem]">
           <div className="relative h-full w-full">
-            <div className="absolute left-4 top-36 h-1/4 w-1/2 rounded-full bg-purple-300 opacity-50 mix-blend-multiply blur-2xl filter sm:h-64 sm:w-64 sm:blur-3xl"></div>
-            <div className="absolute right-4 top-36 h-1/4 w-1/2 rounded-full bg-yellow-300 opacity-50 mix-blend-multiply blur-2xl filter sm:h-64 sm:w-64 sm:blur-3xl"></div>
-            <div className="absolute left-1/2 top-60 h-1/4 w-1/2 -translate-x-1/2 transform rounded-full bg-pink-300 opacity-50 mix-blend-multiply blur-2xl filter sm:h-64 sm:w-64 sm:blur-3xl"></div>
+            <div className="absolute left-4 top-36 h-[37.5%] w-[75%] rounded-full bg-purple-300 opacity-50 mix-blend-multiply blur-[30px] filter sm:h-[24rem] sm:w-[24rem] sm:blur-[40px]"></div>
+            <div className="absolute right-4 top-36 h-[37.5%] w-[75%] rounded-full bg-yellow-300 opacity-50 mix-blend-multiply blur-[30px] filter sm:h-[24rem] sm:w-[24rem] sm:blur-[40px]"></div>
+            <div className="absolute left-1/2 top-60 h-[37.5%] w-[75%] -translate-x-1/2 transform rounded-full bg-pink-300 opacity-50 mix-blend-multiply blur-[30px] filter sm:h-[24rem] sm:w-[24rem] sm:blur-[40px]"></div>
           </div>
         </div>
-        <div className="mt-32 flex w-full">
+        <div className="mt-32 flex w-full items-center justify-center ">
           <div className="container  flex w-2/3 flex-col items-center justify-center gap-12 px-4 py-16 ">
             <div
-              className={`font-bricolage inset-0 mt-12 flex w-2/3 flex-col items-center font-serif text-[60px] font-extrabold text-black  sm:flex-row sm:text-[60px]`}
+              className={`font-bricolage mt-12 flex flex-col  items-center justify-center font-serif text-[60px] font-extrabold text-black  sm:flex-row sm:text-[60px]`}
             >
               <div className="font-bricolage relative flex flex-col leading-none">
                 <svg
@@ -48,18 +47,18 @@ export default function Home() {
               </div>
             </div>
             <div
-              className={`sans text-l mb-8 flex w-2/3 justify-start font-[geist] font-medium text-[#5c5b61]`}
+              className={`sans text-l mb-8  flex w-2/3 flex-col  items-center justify-center gap-6 font-[geist] font-medium text-[#5c5b61]`}
             >
               <div className="w-2/3 font-[just]">
                 Elevate your brand with effortless logo design using our
                 AI-powered, in-browser logo generator.
               </div>
-            </div>
-            <div className="w-2/3">
               <AuthShowcase />
             </div>
           </div>
-          <div className="h-full w-1/3"></div>
+        </div>
+        <div>
+          <BackgroundVideo src={sample}></BackgroundVideo>
         </div>
       </main>
     </>
@@ -72,23 +71,23 @@ async function AuthShowcase() {
   // TODO : Only allow signed in users to access the editor
 
   return (
-    <div className="flex h-[128px] w-full flex-col items-start justify-start  gap-4">
+    <div className="flex h-[128px] w-2/3  flex-col items-center justify-start  gap-4">
       <SignedIn>
-        <div className="relative flex">
+        <div className="relative flex flex-row items-center gap-4">
           <Link
             href="/editorNew"
-            className={` transform rounded-md bg-blue-500  px-6 py-3 text-center font-medium text-white no-underline  transition  hover:border-violet-500 hover:bg-violet-500`}
+            className={` mt-6 transform rounded-md bg-[#f87171] px-10 py-3 text-center text-sm font-semibold text-white  no-underline transition hover:bg-red-300`}
           >
-            Get Started
+            Try For Free
           </Link>
-          <svg
+          {/* <svg
             version="1.0"
             xmlns="http://www.w3.org/2000/svg"
             width="48"
             height="48"
             viewBox="0 0 1400.000000 1400.000000"
             preserveAspectRatio="xMidYMid meet"
-            className="absolute inset-x-full top-0 -translate-y-1/3 translate-x-1 rotate-180"
+            className="rotate-180"
           >
             <g
               transform="translate(0.000000,1400.000000) scale(0.100000,-0.100000)"
@@ -124,19 +123,19 @@ c215 -20 438 -68 584 -126 181 -72 360 -217 482 -392 82 -117 162 -318 198
 c124 10 359 9 471 -2z"
               />
             </g>
-          </svg>
+          </svg> */}
         </div>
       </SignedIn>
       <SignedOut>
         <div className="relative flex">
           <SignInButton mode="modal">
             <button
-              className={` transform rounded-md bg-blue-500  px-6 py-3 text-center font-medium text-white no-underline  transition hover:translate-y-[-2px] hover:border-[1px] hover:border-violet-500 hover:bg-violet-500`}
+              className={` mt-6 transform rounded-md bg-[#f87171] px-10 py-3 text-center text-sm font-semibold text-white  no-underline transition hover:bg-red-300`}
             >
-              Get Started
+              Try For Free
             </button>
           </SignInButton>
-          <svg
+          {/* <svg
             version="1.0"
             xmlns="http://www.w3.org/2000/svg"
             width="48"
@@ -179,7 +178,7 @@ c215 -20 438 -68 584 -126 181 -72 360 -217 482 -392 82 -117 162 -318 198
 c124 10 359 9 471 -2z"
               />
             </g>
-          </svg>
+          </svg> */}
         </div>
       </SignedOut>
     </div>
