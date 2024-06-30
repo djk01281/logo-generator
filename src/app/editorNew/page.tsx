@@ -3266,14 +3266,14 @@ export default function Editor() {
 
               <div
                 onClick={(e) => {
-                  if (selectedDraw === "profile") {
-                    setSelectedDraw(null);
-                  } else {
-                    setSelectedPaths([]);
-                    setSelectPoint(null);
-                    setSelectedDraw("profile");
-                    setProfileIsCredits(true);
-                  }
+                  // if (selectedDraw === "profile") {
+                  //   setSelectedDraw(null);
+                  // } else {
+                  //   setSelectedPaths([]);
+                  //   setSelectPoint(null);
+                  //   setSelectedDraw("profile");
+                  //   setProfileIsCredits(true);
+                  // }
                   e.preventDefault();
                   e.stopPropagation();
                 }}
