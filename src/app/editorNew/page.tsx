@@ -7,7 +7,7 @@ import { parsePath, absolutize, normalize, serialize } from "path-data-parser";
 import ToolBox from "./_components/ToolBox";
 import Link from "next/link";
 import { Just_Another_Hand } from "next/font/google";
-import Generate from "./_components/Generate";
+import Generate from "./_components/NewGenerate";
 import SVGPathCommander from "svg-path-commander";
 import { HexColorPicker } from "react-colorful";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,14 @@ import {
 } from "../../components/ui/popover";
 import { Feedback } from "./_components/Feedback";
 import { api } from "~/trpc/react";
+import {
+  Circle,
+  PenTool,
+  Square,
+  Type,
+  FilePlus2,
+  WandSparkles,
+} from "lucide-react";
 
 const colorMap: Record<string, string> = {
   aliceblue: "#F0F8FF",
@@ -2880,7 +2888,7 @@ export default function Editor() {
             </Link>
           </div>
           <div className="justify-self-center">
-            <div className="relative z-50 flex h-full flex-row gap-4  bg-red-200">
+            <div className="relative z-50 flex h-full flex-row gap-4 ">
               {guideIndex === 4 && (
                 <div className="absolute  top-full translate-y-4">
                   <Guidebox
@@ -2911,32 +2919,7 @@ export default function Editor() {
                   }}
                   ref={aiPopUpRef}
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    stroke="black"
-                    // className="hover:stroke-white"
-                  >
-                    <path
-                      d="M5.91165 3.16664C5.94923 3.09576 6.05077 3.09577 6.08835 3.16664L7.89127 6.56722C7.90064 6.5849 7.9151 6.59936 7.93278 6.60873L11.3334 8.41165C11.4042 8.44923 11.4042 8.55077 11.3334 8.58835L7.93278 10.3913C7.9151 10.4006 7.90064 10.4151 7.89127 10.4328L6.08835 13.8334C6.05077 13.9042 5.94923 13.9042 5.91165 13.8334L4.10873 10.4328C4.09936 10.4151 4.0849 10.4006 4.06722 10.3913L0.666643 8.58835C0.595765 8.55077 0.595765 8.44923 0.666643 8.41165L4.06722 6.60873C4.0849 6.59936 4.09936 6.5849 4.10873 6.56722L5.91165 3.16664Z"
-                      stroke="inherit"
-                    ></path>
-                    <path
-                      d="M15.5 3L13.5 0.5L11.5 3L13.5 5.5L15.5 3Z"
-                      stroke="inherit"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                    <path
-                      d="M13.5 10.5V14.5M11.5 12.5H15.5"
-                      stroke="inherit"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                  </svg>
+                  <WandSparkles className="h-[20px] w-[20px] stroke-[1.5px]" />
                   <>
                     {selectedDraw === "aiInput" ? (
                       <div className="absolute left-0 top-full z-10 flex -translate-x-1.5 translate-y-6 items-center justify-center rounded-lg bg-white shadow-md">
@@ -2965,26 +2948,6 @@ export default function Editor() {
                             ></Guidebox>
                           </div>
                         )}
-                        <div
-                          className="absolute right-0 top-0 flex h-[24px] w-[24px] items-center justify-center text-slate-300"
-                          onClick={(e) => {
-                            setSelectedDraw(null);
-                            e.stopPropagation();
-                          }}
-                        >
-                          <svg
-                            width="10"
-                            height="10"
-                            viewBox="0 0 16 16"
-                            fill="grey"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              className="fillDefault fillActive"
-                              d="M15.0996 13.6L9.39961 7.9L15.0996 2.2C15.4996 1.8 15.4996 1.2 15.0996 0.8C14.6996 0.4 14.0996 0.4 13.6996 0.8L7.99965 6.5L2.29963 0.8C1.89963 0.4 1.29961 0.4 0.899609 0.8C0.499609 1.2 0.499609 1.8 0.899609 2.2L6.59962 7.9L0.899609 13.6C0.499609 14 0.499609 14.6 0.899609 15C1.09961 15.2 1.39962 15.3 1.59962 15.3C1.89962 15.3 2.09963 15.2 2.29963 15L7.99965 9.3L13.6996 15C13.8996 15.2 14.1996 15.3 14.3996 15.3C14.6996 15.3 14.8996 15.2 15.0996 15C15.4996 14.7 15.4996 14 15.0996 13.6Z"
-                            ></path>
-                          </svg>
-                        </div>
                       </div>
                     ) : null}
                   </>
@@ -3000,21 +2963,7 @@ export default function Editor() {
                   }}
                   ref={filePopUpRef}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="black"
-                    width={18}
-                    height={18}
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                    />
-                  </svg>
+                  <FilePlus2 className="h-[20px] w-[20px] stroke-[1.5px]" />
                   <>
                     {selectedDraw === "fileInput" ? (
                       <AnimatePresence>
@@ -3113,26 +3062,7 @@ export default function Editor() {
                     setAddShape("rect");
                   }}
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="_typeIcon_12syx_29"
-                    color="black"
-                  >
-                    <rect
-                      stroke="black"
-                      x="1.5"
-                      y="1.5"
-                      stroke-width="1.2"
-                      width="13"
-                      height="13"
-                      rx="2"
-                      fill="none"
-                      fill-rule="evenodd"
-                    ></rect>
-                  </svg>
+                  <Square className="h-[20px] w-[20px] stroke-[1.5px]"></Square>
                 </div>
                 <div
                   className={`flex h-[30px] w-[30px] ${tool == "add" && addShape == "circle" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
@@ -3141,24 +3071,7 @@ export default function Editor() {
                     setAddShape("circle");
                   }}
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="_typeIcon_12syx_29"
-                    color="black"
-                  >
-                    <circle
-                      stroke="black"
-                      cx="8"
-                      cy="8"
-                      r="6.5"
-                      fill="none"
-                      fill-rule="evenodd"
-                      stroke-width="1.2"
-                    ></circle>
-                  </svg>
+                  <Circle className="h-[20px] w-[20px] stroke-[1.5px]"></Circle>
                 </div>
                 <div
                   className={`flex h-[30px] w-[30px] items-center ${tool == "add" && addShape == "text" ? "bg-violet-300" : ""} justify-center rounded-md text-[18px] font-light hover:bg-violet-300`}
@@ -3167,7 +3080,7 @@ export default function Editor() {
                     setAddShape("text");
                   }}
                 >
-                  T
+                  <Type className="h-[20px] w-[20px] stroke-[1.5px]"></Type>
                 </div>
                 <div
                   onClick={(e) => {
@@ -3197,36 +3110,7 @@ export default function Editor() {
                   }}
                   className={`flex h-[30px] w-[30px] ${tool == "draw" ? "bg-violet-300" : ""} items-center justify-center rounded-md hover:bg-violet-300`}
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M9.49641 2.64768C9.65292 2.67176 9.79251 2.75949 9.88208 2.89007L14.2237 9.21965C14.4037 9.48202 14.5 9.79272 14.5 10.1109C14.5 10.5261 14.3361 10.9246 14.0439 11.2196L11.2541 14.0362C10.9602 14.333 10.5598 14.5 10.1421 14.5C9.82732 14.5 9.51985 14.4051 9.25985 14.2276L2.8938 9.88327C2.76081 9.79251 2.67142 9.65066 2.64694 9.49153L1.50615 2.07635C1.45478 1.74245 1.74246 1.45476 2.07636 1.50613L9.49641 2.64768Z"
-                      stroke="black"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
-                    <path
-                      d="M2.00002 1.9999L6.50002 6.4999"
-                      stroke="black"
-                      stroke-linecap="round"
-                    ></path>
-                    <path
-                      d="M12.8691 7.93213L7.8966 12.9093"
-                      stroke="black"
-                    ></path>
-                    <circle
-                      cx="7"
-                      cy="7"
-                      r="1"
-                      transform="rotate(90 7 7)"
-                      fill="black"
-                    ></circle>
-                  </svg>
+                  <PenTool className="h-[20px] w-[20px] stroke-[1.5px]"></PenTool>
                 </div>
               </div>
               {tool === "draw" ? (
@@ -3595,21 +3479,21 @@ export default function Editor() {
                     <div className="flex w-full flex-row">
                       <div className="flex w-1/2 flex-row gap-3">
                         <div>W</div>
-                        <div>{getDimensionsOfSelectedPaths().w}</div>
+                        <div>{getDimensionsOfSelectedPaths().w.toFixed()}</div>
                       </div>
                       <div className="flex w-1/2 flex-row gap-3">
                         <div>X</div>
-                        <div>{getDimensionsOfSelectedPaths().x}</div>
+                        <div>{getDimensionsOfSelectedPaths().x.toFixed()}</div>
                       </div>
                     </div>
                     <div className="flex w-full flex-row">
                       <div className="flex w-1/2 flex-row gap-3">
                         <div>H</div>
-                        <div>{getDimensionsOfSelectedPaths().h}</div>
+                        <div>{getDimensionsOfSelectedPaths().x.toFixed()}</div>
                       </div>
                       <div className="flex w-1/2 flex-row gap-3">
                         <div>Y</div>
-                        <div>{getDimensionsOfSelectedPaths().y}</div>
+                        <div>{getDimensionsOfSelectedPaths().y.toFixed()}</div>
                       </div>
                     </div>
                   </div>

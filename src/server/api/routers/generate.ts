@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
+export const maxDuration = 300;
 
 const historySchema = z.object({
   role: z.string(),
