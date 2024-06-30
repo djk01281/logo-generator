@@ -3074,7 +3074,7 @@ export default function Editor() {
                 >
                   <Circle className="h-[20px] w-[20px] stroke-[1.5px]"></Circle>
                 </div>
-                <div
+                {/* <div
                   className={`flex h-[30px] w-[30px] items-center ${tool == "add" && addShape == "text" ? "bg-violet-300" : ""} justify-center rounded-md text-[18px] font-light hover:bg-violet-300`}
                   onClick={(e) => {
                     setTool("add");
@@ -3082,7 +3082,7 @@ export default function Editor() {
                   }}
                 >
                   <Type className="h-[20px] w-[20px] stroke-[1.5px]"></Type>
-                </div>
+                </div> */}
                 <div
                   onClick={(e) => {
                     setTool("draw");
