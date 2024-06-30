@@ -17,6 +17,7 @@ import { Modak, Leckerli_One, Pacifico } from "next/font/google";
 import Guidebox from "./_components/GuideBox";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "../../components/ui/button";
+import { SignOutButton } from "@clerk/nextjs";
 import {
   Popover,
   PopoverContent,
@@ -3266,14 +3267,14 @@ export default function Editor() {
 
               <div
                 onClick={(e) => {
-                  // if (selectedDraw === "profile") {
-                  //   setSelectedDraw(null);
-                  // } else {
-                  //   setSelectedPaths([]);
-                  //   setSelectPoint(null);
-                  //   setSelectedDraw("profile");
-                  //   setProfileIsCredits(true);
-                  // }
+                  if (selectedDraw === "profile") {
+                    setSelectedDraw(null);
+                  } else {
+                    setSelectedPaths([]);
+                    setSelectPoint(null);
+                    setSelectedDraw("profile");
+                    setProfileIsCredits(true);
+                  }
                   e.preventDefault();
                   e.stopPropagation();
                 }}
@@ -3288,47 +3289,27 @@ export default function Editor() {
                   ></Image>
                 )}
                 {selectedDraw === "profile" && (
-                  <AnimatePresence>
-                    <motion.div className="absolute right-2 top-[68px] z-40 flex w-64 flex-col gap-2 rounded-md bg-white p-2 shadow-md">
-                      <div className=" relative flex flex-row gap-2 text-sm">
-                        <button
-                          onClick={(e) => {
-                            setProfileIsCredits(true);
-                            e.stopPropagation();
-                            e.preventDefault();
-                          }}
-                          className={`z-50 flex w-1/2 items-center justify-center rounded-md ${profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"} `}
-                        >
-                          Credits
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            setProfileIsCredits(false);
-                            e.stopPropagation();
-                            e.preventDefault();
-                          }}
-                          className={`flex w-1/2 items-center justify-center rounded-md p-1.5  ${!profileIsCredits ? "bg-[#18181b] p-1.5 text-[#fafafa] hover:bg-[#2f2f31]" : "hover:bg-slate-100"}`}
-                        >
-                          Workspaces
-                        </button>
-                      </div>
-                      {profileIsCredits ? (
-                        <div className="flex flex-col gap-3 rounded-md bg-[#fafafa] p-4">
-                          <div className="flex  items-center justify-center text-sm ">
-                            Current Credits :{" "}
-                            <span className="font-bold">{credits}</span>
-                          </div>
-                          <div className="flex items-center justify-center">
-                            <button className="inline-block items-center justify-center rounded-md bg-[#18181b] p-1.5 text-sm text-[#fafafa] hover:bg-[#2f2f31]">
-                              Buy Credits
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>Workspaces</div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
+                  <div className="r absolute right-[24px]  top-[80px] z-50 flex flex-col justify-center gap-2 rounded-md border-[1px] border-[#e0e0e0] bg-white p-4 font-sans text-[14px] text-[#666666] shadow-sm ">
+                    <div className="mb-1.5">
+                      {user?.primaryEmailAddress?.emailAddress ?? ""}
+                    </div>
+                    {/* <Link
+                    href={`/history?id=${session?.user.id}`}
+                    onClick={() => {
+                      // void router.push(`/history?id=${session?.user.id}`);
+                      setOpened(false);
+                    }}
+                  >
+                    {" "}
+                    History
+                  </Link> */}
+                    <Link href={"/profile"}>Account Settings</Link>
+                    <SignOutButton>
+                      <button className=" mt-2 h-[32px] w-full rounded-md border-[1px] border-black bg-[#171717] px-[12px] font-sans text-[14px] text-white  no-underline transition hover:border-[#383838] hover:bg-[#383838]">
+                        Sign Out
+                      </button>
+                    </SignOutButton>
+                  </div>
                 )}
               </div>
             </div>
