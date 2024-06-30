@@ -51,9 +51,9 @@ export default function Home() {
               </div>
             </div>
             <div
-              className={`sans text-l mb-8  flex w-2/3 flex-col  items-center justify-center gap-6 font-[geist] font-medium text-[#5c5b61]`}
+              className={`sans text-l mb-8  flex w-2/3 flex-col  items-center justify-center gap-6 font-sans font-medium text-[#5c5b61]`}
             >
-              <div className="flex w-4/5 items-center justify-center  font-[just]">
+              <div className="flex w-4/5 items-center justify-center  font-sans">
                 An AI-powered, In-Browser logo generator for your next logo.
               </div>
               <AuthShowcase color="red" />
