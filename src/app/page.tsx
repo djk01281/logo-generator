@@ -67,6 +67,7 @@ export default function Home() {
               src={screenshot}
             ></Image>
           </div>
+          <Footer></Footer>
         </div>
 
         {/* <div className="flex w-full flex-row justify-center bg-[#4d9efe]">
@@ -261,6 +262,14 @@ c124 10 359 9 471 -2z"
           </svg> */}
         </div>
       </SignedOut>
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <div className="flex flex-row p-2 text-sm text-[#9ca3bd]">
+      Contact : djk01281@gmail.com
     </div>
   );
 }
