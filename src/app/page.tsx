@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <>
       <Navbar></Navbar>
-      <main className=" relative flex   w-full flex-col items-center justify-center bg-white font-sans ">
+      <main className=" font-gabarito relative   flex w-full flex-col items-center justify-center bg-white ">
         <div className="absolute h-full  w-5/6 sm:w-[36rem]">
           <div className="relative h-full w-full">
             <div className="absolute left-4 top-36 h-[37.5%] w-[75%] rounded-full bg-purple-300 opacity-50 mix-blend-multiply blur-[30px] filter sm:h-[24rem] sm:w-[24rem] sm:blur-[40px]"></div>
@@ -23,9 +23,9 @@ export default function Home() {
         <div className="mt-32 flex w-full flex-col items-center justify-center ">
           <div className="container  flex w-2/3 flex-col items-center justify-center gap-12 px-4 py-16 ">
             <div
-              className={`font-bricolage mt-12 flex flex-col  items-center justify-center font-serif text-[60px] font-extrabold text-black  sm:flex-row sm:text-[60px]`}
+              className={`font-gabarito mt-12 flex flex-col  items-center justify-center  text-[60px] font-extrabold text-black  sm:flex-row sm:text-[60px]`}
             >
-              <div className="font-bricolage relative flex flex-col leading-none">
+              <div className="font-gabarito relative flex flex-col leading-none">
                 <svg
                   className="absolute left-0 top-0 -translate-x-12 -translate-y-3/4 -rotate-12"
                   width="120"
@@ -45,7 +45,8 @@ export default function Home() {
                 </svg>
                 <span className=" text-[#2f303c]">All-in-one solution</span>
                 <span className="text-[#2f303c]">
-                  for your <span className="text-slate-400"> next logo</span>
+                  for your{" "}
+                  <span className="bg-red-400 text-white"> next logo</span>
                 </span>
               </div>
             </div>

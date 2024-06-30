@@ -7,6 +7,7 @@ import {
   Bricolage_Grotesque,
   Paytone_One,
   Modak,
+  Gabarito,
 } from "next/font/google";
 
 import { cookies } from "next/headers";
@@ -49,6 +50,12 @@ const just = Just_Another_Hand({
   variable: "--font-just_another_hand",
 });
 
+const gabarito = Gabarito({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-gabarito",
+});
+
 export const metadata = {
   title: "LogoAI",
   description: "logo-ai",
@@ -64,9 +71,9 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        className={` ${GeistMono.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
+        className={` ${GeistMono.className} ${gabarito.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
       >
-        <body className={`font-mono`}>
+        <body className={``}>
           <TRPCReactProvider>
             <NextAuthProvider>
               <main>{children}</main>
