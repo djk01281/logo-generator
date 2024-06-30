@@ -71,7 +71,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        className={` ${GeistMono.className} ${gabarito.className} ${GeistSans.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
+        className={` ${GeistMono.className} ${gabarito.className} ${GeistSans.className} ${inter.className} ${GeistSans.className} ${montserrat.className} ${GeistMono.className} ${paytone.variable} ${inter.variable} ${bricolage.variable} ${just.variable}  ${montserrat.variable}`}
       >
         <body className={``}>
           <TRPCReactProvider>

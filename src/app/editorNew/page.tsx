@@ -2980,7 +2980,7 @@ export default function Editor() {
                             className="absolute h-full w-60 appearance-none opacity-0"
                             ref={fileInputRef}
                           />
-                          <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-[geist] text-[14px]">
+                          <div className="h-full w-full flex-col items-center rounded-md border-2 border-dashed bg-[#f1f5fb] p-2 font-sans text-[14px]">
                             <div className="mb-1 flex w-full items-center justify-center">
                               <svg
                                 version="1.0"
@@ -3322,7 +3322,7 @@ export default function Editor() {
                 initial={{ x: -300 }}
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
-                className="z-10 flex h-[590px]  w-[296px] flex-col  gap-4 rounded-xl bg-white p-4 font-[Inter] text-[#1a1a1a] shadow-md"
+                className="font-inter z-10 flex  h-[590px] w-[296px]  flex-col gap-4 rounded-xl bg-white p-4 text-[#1a1a1a] shadow-md"
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Layers
@@ -3401,7 +3401,7 @@ export default function Editor() {
                 initial={{ x: 300 }}
                 animate={{ x: 0 }}
                 exit={{ x: 300 }}
-                className={`z-10 flex   h-[590px]   w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-[Inter] text-[#1a1a1a] shadow-md`}
+                className={`font-inter z-10   flex   h-[590px] w-[296px] flex-col gap-4 rounded-xl bg-white  p-4 text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Properties
@@ -3603,7 +3603,7 @@ export default function Editor() {
               </div>
             </div> */}
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div className="flex h-[30px] w-[60px] items-center justify-center rounded-md bg-slate-200 bg-white font-[geist] text-xs hover:bg-slate-200">
+              <div className="flex h-[30px] w-[60px] items-center justify-center rounded-md bg-slate-200 bg-white font-sans text-xs hover:bg-slate-200">
                 {Math.round(scale.x * 100)}%
               </div>
             </div>

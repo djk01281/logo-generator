@@ -84,6 +84,7 @@ const config = {
         sans: ["var(--font-geist-sans)"],
         modak: ["var(--font-modak)"],
         gabarito: ["var(--gabarito)"],
+        inter: ["var(--font-inter)"],
       },
     },
   },
