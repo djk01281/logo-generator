@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <>
       <Navbar></Navbar>
-      <main className=" font-gabarito relative   flex w-full flex-col items-center justify-center bg-white ">
+      <main className=" font-gabarito relative flex  w-full min-w-[900px] flex-col items-center justify-center bg-white ">
         <div className="absolute h-full  w-5/6 sm:w-[36rem]">
           <div className="relative h-full w-full">
             <div className="absolute left-4 top-36 h-[37.5%] w-[75%] rounded-full bg-purple-300 opacity-50 mix-blend-multiply blur-[30px] filter sm:h-[24rem] sm:w-[24rem] sm:blur-[40px]"></div>
@@ -53,9 +53,8 @@ export default function Home() {
             <div
               className={`sans text-l mb-8  flex w-2/3 flex-col  items-center justify-center gap-6 font-[geist] font-medium text-[#5c5b61]`}
             >
-              <div className="w-2/3 font-[just]">
-                Elevate your brand with effortless logo design using our
-                AI-powered, in-browser logo generator.
+              <div className="flex w-4/5 items-center justify-center  font-[just]">
+                An AI-powered, In-Browser logo generator for your next logo.
               </div>
               <AuthShowcase color="red" />
             </div>
