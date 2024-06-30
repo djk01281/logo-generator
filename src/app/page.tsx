@@ -5,6 +5,8 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import BackgroundVideo from "next-video/background-video";
 import sample from "../../videos/LandingPage-zoomed.mp4";
 import { Check } from "lucide-react";
+import Image from "next/image";
+import screenshot from "./screenshot.png";
 
 export default function Home() {
   return (
@@ -18,7 +20,7 @@ export default function Home() {
             <div className="absolute left-1/2 top-60 h-[37.5%] w-[75%] -translate-x-1/2 transform rounded-full bg-pink-300 opacity-50 mix-blend-multiply blur-[30px] filter sm:h-[24rem] sm:w-[24rem] sm:blur-[40px]"></div>
           </div>
         </div>
-        <div className="mt-32 flex w-full items-center justify-center ">
+        <div className="mt-32 flex w-full flex-col items-center justify-center ">
           <div className="container  flex w-2/3 flex-col items-center justify-center gap-12 px-4 py-16 ">
             <div
               className={`font-bricolage mt-12 flex flex-col  items-center justify-center font-serif text-[60px] font-extrabold text-black  sm:flex-row sm:text-[60px]`}
@@ -57,8 +59,17 @@ export default function Home() {
               <AuthShowcase color="red" />
             </div>
           </div>
+          <div className="w-5/6">
+            <Image
+              width={3164}
+              height={1938}
+              alt="Screenshot of the Editor"
+              src={screenshot}
+            ></Image>
+          </div>
         </div>
-        <div className="flex w-full flex-row justify-center bg-[#4d9efe]">
+
+        {/* <div className="flex w-full flex-row justify-center bg-[#4d9efe]">
           <div className="flex w-full flex-row items-center justify-center  py-24 font-modak  xl:w-[1284px]">
             <div className=" w-2/3 px-8">
               <div className="w-full overflow-clip rounded-lg  p-0 shadow-lg">
@@ -124,7 +135,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </main>
     </>
   );
