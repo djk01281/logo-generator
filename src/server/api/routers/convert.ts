@@ -5,6 +5,7 @@ type convertedResultType = {
 };
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+export const maxDuration = 300; 
 
 export const convertRouter = createTRPCRouter({
   create: protectedProcedure
