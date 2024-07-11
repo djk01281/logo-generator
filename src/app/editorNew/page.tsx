@@ -1286,6 +1286,7 @@ export default function Editor() {
         ) {
           const shape = svg[selectedPath].shape;
           if (!shape.hasOwnProperty("d")) return;
+
           const d = shape.d as AbsoluteSegment[];
           d.map((segment) => {
             if ("arcParams" in segment) {
