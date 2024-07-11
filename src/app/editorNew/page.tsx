@@ -1119,13 +1119,13 @@ export default function Editor() {
         svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
-          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
+          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
 
           return;
         }
 
-        const shape = svg[selectedPath].shape;
+        const shape = svg[selectedPath]!.shape;
         const d = shape.d as AbsoluteSegment[];
         d.map((segment) => {
           if ("arcParams" in segment) {
@@ -1187,8 +1187,8 @@ export default function Editor() {
         svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
-          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
+          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
 
           return;
         }
@@ -1254,8 +1254,8 @@ export default function Editor() {
         svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
-          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
+          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
 
           return;
         }
@@ -1321,8 +1321,8 @@ export default function Editor() {
         svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
-          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
+          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
 
           return;
         }
