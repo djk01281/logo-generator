@@ -1067,26 +1067,60 @@ export default function Editor() {
 
     //   return;
     // }
+    let xMin = svg[selectedPaths[0]!]!.xMin + svg[selectedPaths[0]!]!.offset.x;
+    let xMax = svg[selectedPaths[0]!]!.xMax + svg[selectedPaths[0]!]!.offset.x;
+    let yMin = svg[selectedPaths[0]!]!.yMin + svg[selectedPaths[0]!]!.offset.y;
+    let yMax = svg[selectedPaths[0]!]!.yMax + svg[selectedPaths[0]!]!.offset.y;
+    selectedPaths.map((selectedPath) => {
+      xMin =
+        Math.min(xMin, svg[selectedPath]!.xMin) + svg[selectedPath]!.offset.x;
+      xMax =
+        Math.max(xMax, svg[selectedPath]!.xMax) + svg[selectedPath]!.offset.x;
+      yMin =
+        Math.min(yMin, svg[selectedPath]!.yMin) + svg[selectedPath]!.offset.y;
+      yMax =
+        Math.max(yMax, svg[selectedPath]!.yMax) + svg[selectedPath]!.offset.y;
+    });
+
+    const oldBoxHeight = yMax - yMin;
+    const oldBoxWidth = xMax - xMin;
 
     selectedPaths.map((selectedPath) => {
       if (!svg[selectedPath]) return;
-      const oldWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-      const oldHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
       if (selectedBoxPoint === "leftUpper") {
+        const newBoxHeight = oldBoxHeight - dy;
+        const newBoxWidth = oldBoxWidth - dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMin - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMinY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMin - svg[selectedPath]!.offset.y) *
+            boxScaleY;
+        const newMaxX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMax - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMaxY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMax - svg[selectedPath]!.offset.y) *
+            boxScaleY;
+
         console.log("LEFT UPPER");
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMin += realDx;
-        svg[selectedPath]!.yMin += realDy;
-
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx =
-            svg[selectedPath].shape.rx * (newWidth / oldWidth);
-          svg[selectedPath].shape.ry =
-            svg[selectedPath].shape.ry * (newHeight / oldHeight);
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
 
           return;
         }
@@ -1098,45 +1132,63 @@ export default function Editor() {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMax) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax -
+              (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
+                boxScaleX;
+
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMax) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMax -
+              (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax - (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMax) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
+              yMax - (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
 
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "rightUpper") {
-        console.log("RIGHT UPPER");
+        const newBoxHeight = oldBoxHeight - dy;
+        const newBoxWidth = oldBoxWidth + dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMin +
+          (svg[selectedPath]!.xMin + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMinY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMin - svg[selectedPath]!.offset.y) *
+            boxScaleY;
+        const newMaxX =
+          xMin +
+          (svg[selectedPath]!.xMax + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMaxY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMax - svg[selectedPath].offset.y) *
+            boxScaleY;
+
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMax += realDx;
-        svg[selectedPath]!.yMin += realDy;
-
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx =
-            svg[selectedPath].shape.rx * (newWidth / oldWidth);
-          svg[selectedPath].shape.ry =
-            svg[selectedPath].shape.ry * (newHeight / oldHeight);
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
 
           return;
         }
@@ -1148,48 +1200,62 @@ export default function Editor() {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMin) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin +
+              (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
+                boxScaleX;
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMax) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMax -
+              (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin + (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMax) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
+              yMax - (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
 
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "leftLower") {
-        console.log("LEFT LOWER");
+        const newBoxHeight = oldBoxHeight + dy;
+        const newBoxWidth = oldBoxWidth - dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMin - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMinY =
+          yMin +
+          (svg[selectedPath]!.yMin + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
+        const newMaxX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMax - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMaxY =
+          yMin +
+          (svg[selectedPath]!.yMax + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
 
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMin += realDx;
-        svg[selectedPath]!.yMax += realDy;
-
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          console.log("ELIPSE");
-
-          svg[selectedPath].shape.rx =
-            svg[selectedPath].shape.rx * (newWidth / oldWidth);
-          svg[selectedPath].shape.ry =
-            svg[selectedPath].shape.ry * (newHeight / oldHeight);
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
 
           return;
         }
@@ -1201,47 +1267,63 @@ export default function Editor() {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMax) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax -
+              (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
+                boxScaleX;
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMin) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMin +
+              (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax - (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
+              yMin + (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
 
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "rightLower") {
-        console.log("RIGHT LOWER");
+        const newBoxHeight = oldBoxHeight + dy;
+        const newBoxWidth = oldBoxWidth + dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMin +
+          (svg[selectedPath]!.xMin + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMinY =
+          yMin +
+          (svg[selectedPath]!.yMin + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
+        const newMaxX =
+          xMin +
+          (svg[selectedPath]!.xMax + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMaxY =
+          yMin +
+          (svg[selectedPath]!.yMax + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
 
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMax += realDx;
-        svg[selectedPath]!.yMax += realDy;
-
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
 
         if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath].shape.rx =
-            svg[selectedPath].shape.rx * (newWidth / oldWidth);
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
 
-          svg[selectedPath].shape.ry =
-            svg[selectedPath].shape.ry * (newHeight / oldHeight);
           return;
         }
 
@@ -1252,30 +1334,29 @@ export default function Editor() {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMin) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin +
+              (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
+                boxScaleX;
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMin) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMin +
+              (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
-
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin + (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
+              yMin + (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
+
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       }
 
       const newPath2D = pathToPath2D(svg[selectedPath]!);
@@ -2022,6 +2103,7 @@ export default function Editor() {
     }
 
     if (selectedBoundingBoxPoint !== null) {
+      //calculate the scale by comparing the current width/height of the bounding box with the previous width/height
       selectedPaths.map((selectedPath) => {
         onPathExpand(
           ctx,
