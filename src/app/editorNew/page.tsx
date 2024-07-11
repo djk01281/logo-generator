@@ -34,174 +34,6 @@ import {
   WandSparkles,
 } from "lucide-react";
 
-const colorMap: Record<string, string> = {
-  aliceblue: "#F0F8FF",
-  antiquewhite: "#FAEBD7",
-  aqua: "#00FFFF",
-  aquamarine: "#7FFFD4",
-  azure: "#F0FFFF",
-  beige: "#F5F5DC",
-  bisque: "#FFE4C4",
-  black: "#000000",
-  blanchedalmond: "#FFEBCD",
-  blue: "#0000FF",
-  blueviolet: "#8A2BE2",
-  brown: "#A52A2A",
-  burlywood: "#DEB887",
-  cadetblue: "#5F9EA0",
-  chartreuse: "#7FFF00",
-  chocolate: "#D2691E",
-  coral: "#FF7F50",
-  cornflowerblue: "#6495ED",
-  cornsilk: "#FFF8DC",
-  crimson: "#DC143C",
-  cyan: "#00FFFF",
-  darkblue: "#00008B",
-  darkcyan: "#008B8B",
-  darkgoldenrod: "#B8860B",
-  darkgray: "#A9A9A9",
-  darkgreen: "#006400",
-  darkgrey: "#A9A9A9",
-  darkkhaki: "#BDB76B",
-  darkmagenta: "#8B008B",
-  darkolivegreen: "#556B2F",
-  darkorange: "#FF8C00",
-  darkorchid: "#9932CC",
-  darkred: "#8B0000",
-  darksalmon: "#E9967A",
-  darkseagreen: "#8FBC8F",
-  darkslateblue: "#483D8B",
-  darkslategray: "#2F4F4F",
-  darkslategrey: "#2F4F4F",
-  darkturquoise: "#00CED1",
-  darkviolet: "#9400D3",
-  deeppink: "#FF1493",
-  deepskyblue: "#00BFFF",
-  dimgray: "#696969",
-  dimgrey: "#696969",
-  dodgerblue: "#1E90FF",
-  firebrick: "#B22222",
-  floralwhite: "#FFFAF0",
-  forestgreen: "#228B22",
-  fuchsia: "#FF00FF",
-  gainsboro: "#DCDCDC",
-  ghostwhite: "#F8F8FF",
-  gold: "#FFD700",
-  goldenrod: "#DAA520",
-  gray: "#808080",
-  grey: "#808080",
-  green: "#008000",
-  greenyellow: "#ADFF2F",
-  honeydew: "#F0FFF0",
-  hotpink: "#FF69B4",
-  indianred: "#CD5C5C",
-  indigo: "#4B0082",
-  ivory: "#FFFFF0",
-  khaki: "#F0E68C",
-  lavender: "#E6E6FA",
-  lavenderblush: "#FFF0F5",
-  lawngreen: "#7CFC00",
-  lemonchiffon: "#FFFACD",
-  lightblue: "#ADD8E6",
-  lightcoral: "#F08080",
-  lightcyan: "#E0FFFF",
-  lightgoldenrodyellow: "#FAFAD2",
-  lightgray: "#D3D3D3",
-  lightgreen: "#90EE90",
-  lightgrey: "#D3D3D3",
-  lightpink: "#FFB6C1",
-  lightsalmon: "#FFA07A",
-  lightseagreen: "#20B2AA",
-  lightskyblue: "#87CEFA",
-  lightslategray: "#778899",
-  lightslategrey: "#778899",
-  lightsteelblue: "#B0C4DE",
-  lightyellow: "#FFFFE0",
-  lime: "#00FF00",
-  limegreen: "#32CD32",
-  linen: "#FAF0E6",
-  magenta: "#FF00FF",
-  maroon: "#800000",
-  mediumaquamarine: "#66CDAA",
-  mediumblue: "#0000CD",
-  mediumorchid: "#BA55D3",
-  mediumpurple: "#9370DB",
-  mediumseagreen: "#3CB371",
-  mediumslateblue: "#7B68EE",
-  mediumspringgreen: "#00FA9A",
-  mediumturquoise: "#48D1CC",
-  mediumvioletred: "#C71585",
-  midnightblue: "#191970",
-  mintcream: "#F5FFFA",
-  mistyrose: "#FFE4E1",
-  moccasin: "#FFE4B5",
-  navajowhite: "#FFDEAD",
-  navy: "#000080",
-  oldlace: "#FDF5E6",
-  olive: "#808000",
-  olivedrab: "#6B8E23",
-  orange: "#FFA500",
-  orangered: "#FF4500",
-  orchid: "#DA70D6",
-  palegoldenrod: "#EEE8AA",
-  palegreen: "#98FB98",
-  paleturquoise: "#AFEEEE",
-  palevioletred: "#DB7093",
-  papayawhip: "#FFEFD5",
-  peachpuff: "#FFDAB9",
-  peru: "#CD853F",
-  pink: "#FFC0CB",
-  plum: "#DDA0DD",
-  powderblue: "#B0E0E6",
-  purple: "#800080",
-  rebeccapurple: "#663399",
-  red: "#FF0000",
-  rosybrown: "#BC8F8F",
-  royalblue: "#4169E1",
-  saddlebrown: "#8B4513",
-  salmon: "#FA8072",
-  sandybrown: "#F4A460",
-  seagreen: "#2E8B57",
-  seashell: "#FFF5EE",
-  sienna: "#A0522D",
-  silver: "#C0C0C0",
-  skyblue: "#87CEEB",
-  slateblue: "#6A5ACD",
-  slategray: "#708090",
-  slategrey: "#708090",
-  snow: "#FFFAFA",
-  springgreen: "#00FF7F",
-  steelblue: "#4682B4",
-  tan: "#D2B48C",
-  teal: "#008080",
-  thistle: "#D8BFD8",
-  tomato: "#FF6347",
-  turquoise: "#40E0D0",
-  violet: "#EE82EE",
-  wheat: "#F5DEB3",
-  white: "#FFFFFF",
-  whitesmoke: "#F5F5F5",
-  yellow: "#FFFF00",
-  yellowgreen: "#9ACD32",
-};
-const just = Just_Another_Hand({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-just_another_hand",
-});
-
-const modak = Modak({
-  weight: ["400"],
-  subsets: ["devanagari"],
-  variable: "--font-modak",
-});
-
-const pacifico = Pacifico({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-pacifico",
-});
-
 export default function Editor() {
   const { user } = useUser();
   let credits = 0;
@@ -238,6 +70,14 @@ export default function Editor() {
   const [point2Ds, setPoint2Ds] = useState<Path2D[][]>([]);
   const [selectedPaths, setSelectedPaths] = useState<number[]>([]);
 
+  type UIBox = {
+    leftUpper: Point;
+    rightUpper: Point;
+    leftLower: Point;
+    rightLower: Point;
+  };
+
+  const [uiBox, setUiBox] = useState<UIBox | null>(null);
   type PointIndex = [number, number];
   const [selectedPoint, setSelectedPoint] = useState<PointIndex[] | null>(null);
   const [selectedDraw, setSelectedDraw] = useState<string | null>("aiInput");
@@ -1089,94 +929,73 @@ export default function Editor() {
     //   return;
     // }
 
+    // Calculate the center of the bounding box
+    let xMin = svg[selectedPaths[0]!]!.xMin;
+    let xMax = svg[selectedPaths[0]!]!.xMax;
+    let yMin = svg[selectedPaths[0]!]!.yMin;
+    let yMax = svg[selectedPaths[0]!]!.yMax;
     selectedPaths.map((selectedPath) => {
-      const originX =
-        (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2 +
-        svg[selectedPath]!.offset.x;
-      const originY =
-        (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2 +
-        svg[selectedPath]!.offset.y;
+      xMin =
+        Math.min(xMin, svg[selectedPath]!.xMin) + svg[selectedPath]!.offset.x;
+      xMax =
+        Math.max(xMax, svg[selectedPath]!.xMax) + svg[selectedPath]!.offset.x;
+      yMin =
+        Math.min(yMin, svg[selectedPath]!.yMin) + svg[selectedPath]!.offset.y;
+      yMax =
+        Math.max(yMax, svg[selectedPath]!.yMax) + svg[selectedPath]!.offset.y;
+    });
+
+    // Calculate the radian to rotate
+    const rotateCenter = { x: (xMin + xMax) / 2, y: (yMin + yMax) / 2 };
+    const originVector = {
+      x: prevX - rotateCenter.x,
+      y: prevY - rotateCenter.y,
+    };
+    const crossToOriginVector = {
+      x:
+        -originVector.y /
+        Math.sqrt(
+          originVector.x * originVector.x + originVector.y * originVector.y,
+        ),
+      y:
+        originVector.x /
+        Math.sqrt(
+          originVector.x * originVector.x + originVector.y * originVector.y,
+        ),
+    };
+    const newVectorLength = Math.sqrt(
+      Math.pow(crossToOriginVector.x * dx, 2) +
+        Math.pow(crossToOriginVector.y * dy, 2),
+    );
+    const direction =
+      crossToOriginVector.x * dx + crossToOriginVector.y * dy > 0 ? -1 : 1;
+    const radian = (newVectorLength * direction * scale.x) / 100;
+
+    selectedPaths.map((selectedPath) => {
+      const originX = rotateCenter.x;
+      const originY = rotateCenter.y;
 
       // console.log(svg[selectedPath]!.offset.x, svg[selectedPath]!.offset.y);
 
-      //Fix How it only rotates clockwise
-      const originVector = { x: prevX - originX, y: prevY - originY };
-      const crossToOriginVector = {
-        x:
-          -originVector.y /
-          Math.sqrt(
-            originVector.x * originVector.x + originVector.y * originVector.y,
-          ),
-        y:
-          originVector.x /
-          Math.sqrt(
-            originVector.x * originVector.x + originVector.y * originVector.y,
-          ),
-      };
-
-      const newVectorLength = Math.sqrt(
-        Math.pow(crossToOriginVector.x * dx, 2) +
-          Math.pow(crossToOriginVector.y * dy, 2),
-      );
-      const direction =
-        crossToOriginVector.x * dx + crossToOriginVector.y * dy > 0 ? -1 : 1;
-
-      const radian = (newVectorLength * direction * scale.x) / 100;
       if (selectedPath === null) return;
       if (svg === null) return;
+      if (svg[selectedPath] === null) return;
 
-      svg[selectedPath]!.rotation = radian;
+      svg[selectedPath]!.rotation = svg[selectedPath]!.rotation + radian;
       const newPath = { ...svg[selectedPath]! };
-
-      if (newPath.shape.d === null) return;
-
-      //figure out if there's an arc in the new Path
-      let hasArc = false;
-      newPath.shape.d.map((segment) => {
-        if ("arcParams" in segment) {
-          hasArc = true;
-        }
-      });
-      if (hasArc) {
-        return;
-      }
-
-      newPath.shape.d.map((segment) => {
-        if ("arcParams" in segment) {
-          // const points = [];
-          // points.push({ x: segment.arcParams.dx, y: segment.arcParams.dy });
-          // // points.push({ x: segment.arcParams.rx, y: segment.arcParams.ry });
-          // points.map((point) => {
-          //   const rotatedPoint = rotatePoint(
-          //     point.x,
-          //     point.y,
-          //     (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2,
-          //     (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2,
-          //     radian,
-          //   );
-          //   point.x = rotatedPoint.x;
-          //   point.y = rotatedPoint.y;
-          // });
-          segment.arcParams.rotation += radian;
-          console.log("Rotating Arc");
-        } else {
-          segment.data.map((point) => {
-            const rotatedPoint = rotatePoint(
-              point.x,
-              point.y,
-              (svg[selectedPath]!.xMin + svg[selectedPath]!.xMax) / 2,
-              (svg[selectedPath]!.yMin + svg[selectedPath]!.yMax) / 2,
-              radian,
-            );
-            point.x = rotatedPoint.x;
-            point.y = rotatedPoint.y;
-          });
-        }
-      });
-      // const rotatedXmaxYmax = rotatePoint(
-      //   svg[selectedPath]!.xMax
-      // )
-      // newPath.xMin = svg[selectedPath]!.xMin;
+      const centerOfPath = {
+        x: (newPath.xMax + newPath.xMin) / 2,
+        y: (newPath.yMax + newPath.yMin) / 2,
+      };
+      const { dx, dy } = dValuesForRotatePoint(
+        centerOfPath.x,
+        centerOfPath.y,
+        originX,
+        originY,
+        radian,
+      );
+      const prevOffset = { x: newPath.offset.x, y: newPath.offset.y };
+      newPath.offset = { x: prevOffset.x + dx, y: prevOffset.y + dy };
 
       const newPath2D = pathToPath2D(newPath);
       svg[selectedPath]!.shape.path2D = newPath2D;
@@ -1212,6 +1031,26 @@ export default function Editor() {
     return { x: nx, y: ny };
   };
 
+  const dValuesForRotatePoint = (
+    x: number,
+    y: number,
+    originX: number,
+    originY: number,
+    radian: number,
+  ) => {
+    const dx =
+      x * (Math.cos(radian) - 1) -
+      y * Math.sin(radian) +
+      originX * (1 - Math.cos(radian)) +
+      originY * Math.sin(radian);
+    const dy =
+      x * Math.sin(radian) +
+      y * (Math.cos(radian) - 1) -
+      originX * Math.sin(radian) +
+      originY * (1 - Math.cos(radian));
+    return { dx: dx, dy: dy };
+  };
+
   const onPathExpand = (
     ctx: CanvasRenderingContext2D,
     path: Path2D,
@@ -1228,190 +1067,297 @@ export default function Editor() {
 
     //   return;
     // }
+    let xMin = svg[selectedPaths[0]!]!.xMin + svg[selectedPaths[0]!]!.offset.x;
+    let xMax = svg[selectedPaths[0]!]!.xMax + svg[selectedPaths[0]!]!.offset.x;
+    let yMin = svg[selectedPaths[0]!]!.yMin + svg[selectedPaths[0]!]!.offset.y;
+    let yMax = svg[selectedPaths[0]!]!.yMax + svg[selectedPaths[0]!]!.offset.y;
+    selectedPaths.map((selectedPath) => {
+      xMin =
+        Math.min(xMin, svg[selectedPath]!.xMin) + svg[selectedPath]!.offset.x;
+      xMax =
+        Math.max(xMax, svg[selectedPath]!.xMax) + svg[selectedPath]!.offset.x;
+      yMin =
+        Math.min(yMin, svg[selectedPath]!.yMin) + svg[selectedPath]!.offset.y;
+      yMax =
+        Math.max(yMax, svg[selectedPath]!.yMax) + svg[selectedPath]!.offset.y;
+    });
+
+    const oldBoxHeight = yMax - yMin;
+    const oldBoxWidth = xMax - xMin;
 
     selectedPaths.map((selectedPath) => {
-      const oldWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-      const oldHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+      if (!svg[selectedPath]) return;
       if (selectedBoxPoint === "leftUpper") {
+        const newBoxHeight = oldBoxHeight - dy;
+        const newBoxWidth = oldBoxWidth - dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMin - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMinY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMin - svg[selectedPath]!.offset.y) *
+            boxScaleY;
+        const newMaxX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMax - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMaxY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMax - svg[selectedPath]!.offset.y) *
+            boxScaleY;
+
+        console.log("LEFT UPPER");
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMin += realDx;
-        svg[selectedPath]!.yMin += realDy;
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
 
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
+        if (svg[selectedPath]?.tag === "elipse") {
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
 
-        svg[selectedPath]?.shape.d.map((segment) => {
+          return;
+        }
+
+        const shape = svg[selectedPath].shape;
+        const d = shape.d as AbsoluteSegment[];
+        d.map((segment) => {
           if ("arcParams" in segment) {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMax) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax -
+              (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
+                boxScaleX;
+
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMax) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMax -
+              (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax - (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMax) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
+              yMax - (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
 
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "rightUpper") {
+        const newBoxHeight = oldBoxHeight - dy;
+        const newBoxWidth = oldBoxWidth + dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMin +
+          (svg[selectedPath]!.xMin + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMinY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMin - svg[selectedPath]!.offset.y) *
+            boxScaleY;
+        const newMaxX =
+          xMin +
+          (svg[selectedPath]!.xMax + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMaxY =
+          yMax -
+          (yMax - svg[selectedPath]!.yMax - svg[selectedPath].offset.y) *
+            boxScaleY;
+
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMax += realDx;
-        svg[selectedPath]!.yMin += realDy;
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-        svg[selectedPath]?.shape.d.map((segment) => {
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
+
+        if (svg[selectedPath]?.tag === "elipse") {
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+
+          return;
+        }
+
+        const shape = svg[selectedPath].shape;
+        const d = shape.d as AbsoluteSegment[];
+        d.map((segment) => {
           if ("arcParams" in segment) {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMin) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin +
+              (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
+                boxScaleX;
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMax) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMax -
+              (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin + (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMax) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMax;
+              yMax - (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
 
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "leftLower") {
+        const newBoxHeight = oldBoxHeight + dy;
+        const newBoxWidth = oldBoxWidth - dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMin - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMinY =
+          yMin +
+          (svg[selectedPath]!.yMin + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
+        const newMaxX =
+          xMax -
+          (xMax - svg[selectedPath]!.xMax - svg[selectedPath]!.offset.x) *
+            boxScaleX;
+        const newMaxY =
+          yMin +
+          (svg[selectedPath]!.yMax + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
+
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMin += realDx;
-        svg[selectedPath]!.yMax += realDy;
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
 
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-        svg[selectedPath]?.shape.d.map((segment) => {
+        if (svg[selectedPath]?.tag === "elipse") {
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+
+          return;
+        }
+
+        const shape = svg[selectedPath].shape;
+        const d = shape.d as AbsoluteSegment[];
+        d.map((segment) => {
           if ("arcParams" in segment) {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMax) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax -
+              (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
+                boxScaleX;
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMin) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
-            segment.arcParams.ry =
-              segment.arcParams.ry * (newHeight / oldHeight);
+              yMin +
+              (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMax) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMax;
+              xMax - (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
+              yMin + (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
 
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "rightLower") {
+        const newBoxHeight = oldBoxHeight + dy;
+        const newBoxWidth = oldBoxWidth + dx;
+        const boxScaleX = newBoxWidth / oldBoxWidth;
+        const boxScaleY = newBoxHeight / oldBoxHeight;
+
+        const newMinX =
+          xMin +
+          (svg[selectedPath]!.xMin + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMinY =
+          yMin +
+          (svg[selectedPath]!.yMin + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
+        const newMaxX =
+          xMin +
+          (svg[selectedPath]!.xMax + svg[selectedPath]!.offset.x - xMin) *
+            boxScaleX;
+        const newMaxY =
+          yMin +
+          (svg[selectedPath]!.yMax + svg[selectedPath]!.offset.y - yMin) *
+            boxScaleY;
+
         realDx = dx;
         realDy = dy;
-        svg[selectedPath]!.xMax += realDx;
-        svg[selectedPath]!.yMax += realDy;
-        const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-        const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-        svg[selectedPath]?.shape.d.map((segment) => {
+        svg[selectedPath]!.xMin = newMinX;
+        svg[selectedPath]!.yMin = newMinY;
+        svg[selectedPath]!.xMax = newMaxX;
+        svg[selectedPath]!.yMax = newMaxY;
+
+        if (svg[selectedPath]?.tag === "elipse") {
+          svg[selectedPath].shape.rx = svg[selectedPath].shape.rx * boxScaleX;
+          svg[selectedPath].shape.ry = svg[selectedPath].shape.ry * boxScaleY;
+
+          return;
+        }
+
+        const shape = svg[selectedPath].shape;
+        const d = shape.d as AbsoluteSegment[];
+        d.map((segment) => {
           if ("arcParams" in segment) {
             //FIXXXXXXXXX
 
             segment.arcParams.dx =
-              (segment.arcParams.dx - svg[selectedPath]!.xMin) *
-                (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin +
+              (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
+                boxScaleX;
             segment.arcParams.dy =
-              (segment.arcParams.dy - svg[selectedPath]!.yMin) *
-                (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
-            segment.arcParams.rx = segment.arcParams.rx * (newWidth / oldWidth);
+              yMin +
+              (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
+                boxScaleY;
+            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
             return;
           }
-
           segment.data.map((point) => {
             point.x =
-              (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
-              svg[selectedPath]!.xMin;
+              xMin + (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
             point.y =
-              (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
-              svg[selectedPath]!.yMin;
+              yMin + (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
+
             // console.log(point);
           });
         });
+        svg[selectedPath]!.offset.x = 0;
+        svg[selectedPath]!.offset.y = 0;
       }
-
-      // const newPathToBeSerialized: Segment[] = [];
-      // svg[selectedPath]!.d.forEach((segment) => {
-      //   const newSegment: Segment = { key: segment.key, data: [] };
-      //   newSegment.data = absoluteSegmentToSegment(segment).data;
-      //   newPathToBeSerialized.push(newSegment);
-      // });
-      // const newPathString = serialize(newPathToBeSerialized);
-      // // const transformedPathString = new SVGPathCommander(newPathString)
-      // //   // .transform(transform)
-      // //   .toString();
-      // const transformedPathString = newPathString;
-      // const newPath = parsePath(transformedPathString);
-      // const newPathAbsolute: AbsoluteSegment[] = newPath.map((segment) => {
-      //   return segmentToAbsoluteSegment(segment);
-      // });
-      // svg[selectedPath]!.d = newPathAbsolute;
-
-      // const newPath2D = pathToPath2D(svg[selectedPath]!);
-      // svg[selectedPath]!.path2D = newPath2D;
-
-      // const newWidth = svg[selectedPath]!.xMax - svg[selectedPath]!.xMin;
-      // const newHeight = svg[selectedPath]!.yMax - svg[selectedPath]!.yMin;
-      // svg[selectedPath]?.d.map((segment) => {
-      //   segment.data.map((point) => {
-      //     point.x =
-      //       (point.x - svg[selectedPath]!.xMin) * (newWidth / oldWidth) +
-      //       svg[selectedPath]!.xMin;
-      //     point.y =
-      //       (point.y - svg[selectedPath]!.yMin) * (newHeight / oldHeight) +
-      //       svg[selectedPath]!.yMin;
-      //     // console.log(point);
-      //   });
-      // });
 
       const newPath2D = pathToPath2D(svg[selectedPath]!);
       svg[selectedPath]!.shape.path2D = newPath2D;
@@ -1457,11 +1403,12 @@ export default function Editor() {
     const selectedPath = selectedPaths[0];
     if (selectedPath === undefined) return;
     if (svg[selectedPath] === undefined || svg[selectedPath] === null) return;
+    if (svg[selectedPath].tag === "elipse") return;
     const selectedPathPath = svg[selectedPath];
     if (selectedPathPath === null || selectedPathPath === undefined) return;
 
     drawBezierControlLines(ctx, svg);
-    const { d } = selectedPathPath.shape;
+    const d = selectedPathPath.shape.d as AbsoluteSegment[];
 
     const offset = selectedPathPath.offset;
     const newPoint2Ds: Path2D[][] = [];
@@ -1503,6 +1450,7 @@ export default function Editor() {
     if (selectedPath === undefined) return;
     if (svg[selectedPath] === undefined || svg[selectedPath] === null) return;
     const selectedPathPath = svg[selectedPath];
+    if (selectedPathPath?.tag === "elipse") return;
     if (selectedPathPath === null || selectedPathPath === undefined) return;
 
     const { d } = selectedPathPath.shape;
@@ -1590,6 +1538,30 @@ export default function Editor() {
 
   const pathToPath2D = (path: SubSVG): Path2D => {
     const tag = path.tag;
+
+    if (tag === "elipse") {
+      // Do something and Return
+      const tempPath2D = new Path2D();
+      const matrix = new DOMMatrix();
+      matrix.translateSelf(path.offset.x, path.offset.y);
+      matrix.rotateSelf(path.rotation);
+      matrix.scaleSelf(scale.x, scale.y);
+      tempPath2D.ellipse(
+        path.shape.cx,
+        path.shape.cy,
+        path.shape.rx,
+        path.shape.ry,
+        0,
+        0,
+        2 * Math.PI,
+      );
+
+      const path2D = new Path2D();
+      path2D.addPath(tempPath2D, matrix);
+
+      return path2D;
+    }
+
     if (!path.shape.d) return new Path2D();
     const { d } = path.shape;
     const offset = path.offset;
@@ -1938,6 +1910,8 @@ export default function Editor() {
     const svgSelectedPath = svg[selectedPath];
     if (svgSelectedPath === undefined) return;
 
+    if (svgSelectedPath.tag === "elipse") return;
+
     const segment = svgSelectedPath.shape.d[selectedPoint[0]![0]];
     if (segment?.key === "A") return;
 
@@ -1979,7 +1953,7 @@ export default function Editor() {
 
     // const newString = serialize(newPath);
     if (selectedPath === null) return;
-
+    if (svg[selectedPath]?.tag === "elipse") return;
     const newBbox = getBBox(svg[selectedPath]!.shape);
     svgSelectedPath.xMax = newBbox.x2;
     svgSelectedPath.xMin = newBbox.x;
@@ -2129,6 +2103,7 @@ export default function Editor() {
     }
 
     if (selectedBoundingBoxPoint !== null) {
+      //calculate the scale by comparing the current width/height of the bounding box with the previous width/height
       selectedPaths.map((selectedPath) => {
         onPathExpand(
           ctx,
@@ -2356,6 +2331,8 @@ export default function Editor() {
     console.log("I IS", selectedLine);
     if (selectedLine === -1) return;
     const path = svg[svg.length - 1]!;
+    if (path.tag === "elipse") return;
+
     const d = path.shape.d;
     let segment = d[selectedLine + 1]!;
     if (segment.key === "C") return;
@@ -2429,6 +2406,8 @@ export default function Editor() {
     if (svg.length === 0) return;
     const path = svg[svg.length - 1];
     if (path === undefined) return;
+    if (path.tag === "elipse") return;
+
     let { x, y } = computePointInCanvas(e)!;
     x = (x - panOffset.x) * (1 / scale.x);
     y = (y - panOffset.y) * (1 / scale.y);
@@ -2637,6 +2616,7 @@ export default function Editor() {
     const offset = subSVG.offset;
     const xOffSet = offset.x;
     const yOffSet = offset.y;
+    if (subSVG.tag === "elipse") return;
     const d = subSVG.shape.d;
     d.map((segment) => {
       if (segment.key === "A") return;
@@ -2665,6 +2645,8 @@ export default function Editor() {
     //draw line
     const path = svg[svg.length - 1];
     if (path === undefined) return;
+    if (path.tag === "elipse") return;
+
     const offset = { x: panOffset.x, y: panOffset.y };
     const xOffSet = offset.x;
     const yOffSet = offset.y;
@@ -2800,7 +2782,7 @@ export default function Editor() {
   };
   return (
     <div
-      className={`  flex h-screen w-screen items-center justify-center bg-[#F3F4F6] ${modak.variable} ${pacifico.variable}`}
+      className={`  flex h-screen w-screen items-center justify-center bg-[#F3F4F6]`}
       onClick={(e) => {
         // if (colorPickerRef !== null) {
         //   return;
@@ -2823,31 +2805,34 @@ export default function Editor() {
               left: isRightClicked.x,
             }}
           >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (selectedPaths.length !== 1) return;
+            {
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (selectedPaths.length !== 1) return;
 
-                //check the selected path to see if it's an Elipse
-                let hasCircle = false;
-                if (!svg) return;
-                if (selectedPaths[0] === undefined) return;
-                const selectedPath = svg[selectedPaths[0]];
-                if (selectedPath === undefined) return;
-                const d = selectedPath.shape.d;
-                d.map((segment) => {
-                  if (segment.key === "A") hasCircle = true;
-                });
-                setIsRightClicked(null);
-                if (hasCircle) return;
+                  //check the selected path to see if it's an Elipse
+                  let hasCircle = false;
+                  if (!svg) return;
+                  if (selectedPaths[0] === undefined) return;
+                  const selectedPath = svg[selectedPaths[0]];
+                  if (selectedPath === undefined) return;
+                  if (selectedPath.tag === "elipse") return;
+                  const d = selectedPath.shape.d;
+                  d.map((segment) => {
+                    if (segment.key === "A") hasCircle = true;
+                  });
+                  setIsRightClicked(null);
+                  if (hasCircle) return;
 
-                setIsEditing(true);
-              }}
-              className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
-            >
-              Edit
-            </button>
+                  setIsEditing(true);
+                }}
+                className="flex flex-row justify-start rounded-md p-1 hover:bg-[#2c2c2c]"
+              >
+                Edit
+              </button>
+            }
             {selectedPaths.length === 1 &&
               svg![selectedPaths[0] ?? 0]!.tag === "text" && (
                 <button
@@ -2882,7 +2867,7 @@ export default function Editor() {
         <div className="flex grid h-[80px] w-full flex-none grid-cols-3  p-[20px]">
           <div className="justify-self-start">
             <Link
-              className={` ${just.className} z-10 flex h-full items-center justify-center rounded-xl bg-red-400 px-2 pt-1 text-center text-[20px] leading-snug text-white`}
+              className={`  z-10 flex h-full items-center justify-center rounded-xl bg-red-400 px-2 pt-1 text-center text-[20px] leading-snug text-white`}
               href="/"
             >
               LOGOAI
@@ -3322,7 +3307,7 @@ export default function Editor() {
                 initial={{ x: -300 }}
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
-                className="font-inter z-10 flex  h-[590px] w-[296px]  flex-col gap-4 rounded-xl bg-white p-4 text-[#1a1a1a] shadow-md"
+                className="z-10 flex h-[590px]  w-[296px] flex-col  gap-4 rounded-xl bg-white p-4 font-inter text-[#1a1a1a] shadow-md"
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Layers
@@ -3346,40 +3331,52 @@ export default function Editor() {
                         className={`flex ${selectedPaths.includes(i) ? "bg-[#e5f4ff]" : ""}  flex-row items-center gap-1 gap-2 rounded-sm border-[1px] border-dashed border-[#e6e6e6] p-1.5`}
                       >
                         <span>
-                          {subSVG?.tag === "text" ? (
-                            <svg
-                              className="svg"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="10"
-                              height="10"
-                              viewBox="0 0 10 10"
-                            >
-                              <path
-                                fill="#000"
-                                fill-opacity="1"
-                                fill-rule="nonzero"
-                                stroke="none"
-                                d="M0 0h10v3H9V1H5.5v8H7v1H3V9h1.5V1H1v2H0V0z"
-                              ></path>
-                            </svg>
-                          ) : (
-                            <svg
-                              className="svg"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="10"
-                              height="10"
-                              viewBox={`${subSVG?.xMin} ${subSVG?.yMin} ${subSVG?.xMax - subSVG?.xMin} ${subSVG?.yMax - subSVG?.yMin}`}
-                            >
-                              <path
-                                fill={subSVG?.fill}
-                                fill-opacity="1"
-                                fill-rule="nonzero"
-                                stroke={subSVG?.stroke}
-                                stroke-width="24"
-                                d={svgPathToString(subSVG?.shape.d)}
-                              ></path>
-                            </svg>
-                          )}
+                          {
+                            //TODO : CAse for Elipses
+                            subSVG?.tag === "text" ? (
+                              <svg
+                                className="svg"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="10"
+                                height="10"
+                                viewBox="0 0 10 10"
+                              >
+                                <path
+                                  fill="#000"
+                                  fill-opacity="1"
+                                  fill-rule="nonzero"
+                                  stroke="none"
+                                  d="M0 0h10v3H9V1H5.5v8H7v1H3V9h1.5V1H1v2H0V0z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              <svg
+                                className="svg"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="10"
+                                height="10"
+                                viewBox={`${subSVG?.xMin} ${subSVG?.yMin} ${subSVG?.xMax - subSVG?.xMin} ${subSVG?.yMax - subSVG?.yMin}`}
+                              >
+                                {subSVG.tag === "elipse" ? (
+                                  <ellipse
+                                    cx={subSVG.shape.cx}
+                                    cy={subSVG.shape.cy}
+                                    rx={subSVG.shape.rx}
+                                    ry={subSVG.shape.ry}
+                                  />
+                                ) : (
+                                  <path
+                                    fill={subSVG?.fill}
+                                    fill-opacity="1"
+                                    fill-rule="nonzero"
+                                    stroke={subSVG?.stroke}
+                                    stroke-width="24"
+                                    d={svgPathToString(subSVG?.shape.d)}
+                                  ></path>
+                                )}
+                              </svg>
+                            )
+                          }
                         </span>
                         <span className="inline-block flex h-full items-center justify-center align-text-bottom text-[11px]">
                           {subSVG?.tag === "text"
@@ -3401,7 +3398,7 @@ export default function Editor() {
                 initial={{ x: 300 }}
                 animate={{ x: 0 }}
                 exit={{ x: 300 }}
-                className={`font-inter z-10   flex   h-[590px] w-[296px] flex-col gap-4 rounded-xl bg-white  p-4 text-[#1a1a1a] shadow-md`}
+                className={`z-10 flex   h-[590px]   w-[296px] flex-col gap-4 rounded-xl bg-white p-4  font-inter text-[#1a1a1a] shadow-md`}
               >
                 <div className="border-b-[1px] border-[#e6e6e6] p-1 pb-3 font-semibold">
                   Properties
@@ -3620,7 +3617,7 @@ export default function Editor() {
           ref={canvasRef}
           width={600}
           height={600}
-          className={` ${modak.className} ${pacifico.className} z-2 absolute inset-0 m-auto rounded-lg bg-white ${
+          className={`z-2 absolute inset-0 m-auto rounded-lg bg-white ${
             tool === "hand" ? "cursor-grab" : ""
           } ${mouseDown ? "cursor-grabbing" : ""}`}
         ></canvas>
