@@ -1127,36 +1127,42 @@ export default function Editor() {
           return;
         }
 
-        const shape = svg[selectedPath]!.shape;
-        if (!shape.hasOwnProperty("d")) return;
-        const d = shape.d as AbsoluteSegment[];
-        d.map((segment) => {
-          if ("arcParams" in segment) {
-            //FIXXXXXXXXX
+        if (
+          svg[selectedPath]!.tag === "text" ||
+          svg[selectedPath]!.tag === "path"
+        ) {
+          const shape = svg[selectedPath]!.shape;
+          const d = shape.d as AbsoluteSegment[];
+          d.map((segment) => {
+            if ("arcParams" in segment) {
+              //FIXXXXXXXXX
 
-            segment.arcParams.dx =
-              xMax -
-              (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
-                boxScaleX;
+              segment.arcParams.dx =
+                xMax -
+                (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
+                  boxScaleX;
 
-            segment.arcParams.dy =
-              yMax -
-              (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
-                boxScaleY;
-            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
-            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
+              segment.arcParams.dy =
+                yMax -
+                (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
+                  boxScaleY;
+              segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+              segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
-            return;
-          }
-          segment.data.map((point) => {
-            point.x =
-              xMax - (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
-            point.y =
-              yMax - (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
+              return;
+            }
+            segment.data.map((point) => {
+              point.x =
+                xMax -
+                (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
+              point.y =
+                yMax -
+                (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
 
-            // console.log(point);
+              // console.log(point);
+            });
           });
-        });
+        }
         svg[selectedPath]!.offset.x = 0;
         svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "rightUpper") {
@@ -1198,35 +1204,42 @@ export default function Editor() {
           return;
         }
 
-        const shape = svg[selectedPath].shape;
-        if (!shape.hasOwnProperty("d")) return;
-        const d = shape.d as AbsoluteSegment[];
-        d.map((segment) => {
-          if ("arcParams" in segment) {
-            //FIXXXXXXXXX
+        if (
+          svg[selectedPath]!.tag === "text" ||
+          svg[selectedPath]!.tag === "path"
+        ) {
+          const shape = svg[selectedPath].shape;
+          if (!shape.hasOwnProperty("d")) return;
+          const d = shape.d as AbsoluteSegment[];
+          d.map((segment) => {
+            if ("arcParams" in segment) {
+              //FIXXXXXXXXX
 
-            segment.arcParams.dx =
-              xMin +
-              (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
-                boxScaleX;
-            segment.arcParams.dy =
-              yMax -
-              (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
-                boxScaleY;
-            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
-            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
+              segment.arcParams.dx =
+                xMin +
+                (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
+                  boxScaleX;
+              segment.arcParams.dy =
+                yMax -
+                (yMax - segment.arcParams.dy - svg[selectedPath]!.offset.y) *
+                  boxScaleY;
+              segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+              segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
-            return;
-          }
-          segment.data.map((point) => {
-            point.x =
-              xMin + (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
-            point.y =
-              yMax - (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
+              return;
+            }
+            segment.data.map((point) => {
+              point.x =
+                xMin +
+                (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
+              point.y =
+                yMax -
+                (yMax - point.y - svg[selectedPath]!.offset.y) * boxScaleY;
 
-            // console.log(point);
+              // console.log(point);
+            });
           });
-        });
+        }
         svg[selectedPath]!.offset.x = 0;
         svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "leftLower") {
@@ -1267,36 +1280,42 @@ export default function Editor() {
           svg[selectedPath]!.offset.y = 0;
           return;
         }
+        if (
+          svg[selectedPath]!.tag === "text" ||
+          svg[selectedPath]!.tag === "path"
+        ) {
+          const shape = svg[selectedPath].shape;
+          if (!shape.hasOwnProperty("d")) return;
+          const d = shape.d as AbsoluteSegment[];
+          d.map((segment) => {
+            if ("arcParams" in segment) {
+              //FIXXXXXXXXX
 
-        const shape = svg[selectedPath].shape;
-        if (!shape.hasOwnProperty("d")) return;
-        const d = shape.d as AbsoluteSegment[];
-        d.map((segment) => {
-          if ("arcParams" in segment) {
-            //FIXXXXXXXXX
+              segment.arcParams.dx =
+                xMax -
+                (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
+                  boxScaleX;
+              segment.arcParams.dy =
+                yMin +
+                (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
+                  boxScaleY;
+              segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+              segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
-            segment.arcParams.dx =
-              xMax -
-              (xMax - segment.arcParams.dx - svg[selectedPath]!.offset.x) *
-                boxScaleX;
-            segment.arcParams.dy =
-              yMin +
-              (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
-                boxScaleY;
-            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
-            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
+              return;
+            }
+            segment.data.map((point) => {
+              point.x =
+                xMax -
+                (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
+              point.y =
+                yMin +
+                (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
 
-            return;
-          }
-          segment.data.map((point) => {
-            point.x =
-              xMax - (xMax - point.x - svg[selectedPath]!.offset.x) * boxScaleX;
-            point.y =
-              yMin + (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
-
-            // console.log(point);
+              // console.log(point);
+            });
           });
-        });
+        }
         svg[selectedPath]!.offset.x = 0;
         svg[selectedPath]!.offset.y = 0;
       } else if (selectedBoxPoint === "rightLower") {
@@ -1337,36 +1356,42 @@ export default function Editor() {
           svg[selectedPath]!.offset.y = 0;
           return;
         }
+        if (
+          svg[selectedPath]!.tag === "text" ||
+          svg[selectedPath]!.tag === "path"
+        ) {
+          const shape = svg[selectedPath].shape;
+          if (!shape.hasOwnProperty("d")) return;
+          const d = shape.d as AbsoluteSegment[];
+          d.map((segment) => {
+            if ("arcParams" in segment) {
+              //FIXXXXXXXXX
 
-        const shape = svg[selectedPath].shape;
-        if (!shape.hasOwnProperty("d")) return;
-        const d = shape.d as AbsoluteSegment[];
-        d.map((segment) => {
-          if ("arcParams" in segment) {
-            //FIXXXXXXXXX
+              segment.arcParams.dx =
+                xMin +
+                (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
+                  boxScaleX;
+              segment.arcParams.dy =
+                yMin +
+                (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
+                  boxScaleY;
+              segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
+              segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
 
-            segment.arcParams.dx =
-              xMin +
-              (segment.arcParams.dx + svg[selectedPath]!.offset.x - xMin) *
-                boxScaleX;
-            segment.arcParams.dy =
-              yMin +
-              (segment.arcParams.dy + svg[selectedPath]!.offset.y - yMin) *
-                boxScaleY;
-            segment.arcParams.rx = segment.arcParams.rx * boxScaleX;
-            segment.arcParams.ry = segment.arcParams.ry * boxScaleY;
+              return;
+            }
+            segment.data.map((point) => {
+              point.x =
+                xMin +
+                (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
+              point.y =
+                yMin +
+                (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
 
-            return;
-          }
-          segment.data.map((point) => {
-            point.x =
-              xMin + (point.x + svg[selectedPath]!.offset.x - xMin) * boxScaleX;
-            point.y =
-              yMin + (point.y + svg[selectedPath]!.offset.y - yMin) * boxScaleY;
-
-            // console.log(point);
+              // console.log(point);
+            });
           });
-        });
+        }
         svg[selectedPath]!.offset.x = 0;
         svg[selectedPath]!.offset.y = 0;
       }
