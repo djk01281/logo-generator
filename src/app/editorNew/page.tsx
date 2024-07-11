@@ -1122,11 +1122,13 @@ export default function Editor() {
           const shape = svg[selectedPath]!.shape as Elipse;
           shape.rx = shape.rx * boxScaleX;
           shape.ry = shape.ry * boxScaleY;
-
+          svg[selectedPath]!.offset.x = 0;
+          svg[selectedPath]!.offset.y = 0;
           return;
         }
 
         const shape = svg[selectedPath]!.shape;
+        if (!shape.hasOwnProperty("d")) return;
         const d = shape.d as AbsoluteSegment[];
         d.map((segment) => {
           if ("arcParams" in segment) {
@@ -1191,11 +1193,13 @@ export default function Editor() {
           const shape = svg[selectedPath]!.shape as Elipse;
           shape.rx = shape.rx * boxScaleX;
           shape.ry = shape.ry * boxScaleY;
-
+          svg[selectedPath]!.offset.x = 0;
+          svg[selectedPath]!.offset.y = 0;
           return;
         }
 
         const shape = svg[selectedPath].shape;
+        if (!shape.hasOwnProperty("d")) return;
         const d = shape.d as AbsoluteSegment[];
         d.map((segment) => {
           if ("arcParams" in segment) {
@@ -1259,11 +1263,13 @@ export default function Editor() {
           const shape = svg[selectedPath]!.shape as Elipse;
           shape.rx = shape.rx * boxScaleX;
           shape.ry = shape.ry * boxScaleY;
-
+          svg[selectedPath]!.offset.x = 0;
+          svg[selectedPath]!.offset.y = 0;
           return;
         }
 
         const shape = svg[selectedPath].shape;
+        if (!shape.hasOwnProperty("d")) return;
         const d = shape.d as AbsoluteSegment[];
         d.map((segment) => {
           if ("arcParams" in segment) {
@@ -1327,11 +1333,13 @@ export default function Editor() {
           const shape = svg[selectedPath]!.shape as Elipse;
           shape.rx = shape.rx * boxScaleX;
           shape.ry = shape.ry * boxScaleY;
-
+          svg[selectedPath]!.offset.x = 0;
+          svg[selectedPath]!.offset.y = 0;
           return;
         }
 
         const shape = svg[selectedPath].shape;
+        if (!shape.hasOwnProperty("d")) return;
         const d = shape.d as AbsoluteSegment[];
         d.map((segment) => {
           if ("arcParams" in segment) {
