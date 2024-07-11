@@ -1118,9 +1118,10 @@ export default function Editor() {
         svg[selectedPath]!.xMax = newMaxX;
         svg[selectedPath]!.yMax = newMaxY;
 
-        if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
-          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
+        if (svg[selectedPath]!.tag === "elipse") {
+          const shape = svg[selectedPath]!.shape as Elipse;
+          shape.rx = shape.rx * boxScaleX;
+          shape.ry = shape.ry * boxScaleY;
 
           return;
         }
@@ -1186,9 +1187,10 @@ export default function Editor() {
         svg[selectedPath]!.xMax = newMaxX;
         svg[selectedPath]!.yMax = newMaxY;
 
-        if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
-          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
+        if (svg[selectedPath]!.tag === "elipse") {
+          const shape = svg[selectedPath]!.shape as Elipse;
+          shape.rx = shape.rx * boxScaleX;
+          shape.ry = shape.ry * boxScaleY;
 
           return;
         }
@@ -1253,9 +1255,10 @@ export default function Editor() {
         svg[selectedPath]!.xMax = newMaxX;
         svg[selectedPath]!.yMax = newMaxY;
 
-        if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
-          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
+        if (svg[selectedPath]!.tag === "elipse") {
+          const shape = svg[selectedPath]!.shape as Elipse;
+          shape.rx = shape.rx * boxScaleX;
+          shape.ry = shape.ry * boxScaleY;
 
           return;
         }
@@ -1320,9 +1323,10 @@ export default function Editor() {
         svg[selectedPath]!.xMax = newMaxX;
         svg[selectedPath]!.yMax = newMaxY;
 
-        if (svg[selectedPath]?.tag === "elipse") {
-          svg[selectedPath]!.shape.rx = svg[selectedPath]!.shape.rx * boxScaleX;
-          svg[selectedPath]!.shape.ry = svg[selectedPath]!.shape.ry * boxScaleY;
+        if (svg[selectedPath]!.tag === "elipse") {
+          const shape = svg[selectedPath]!.shape as Elipse;
+          shape.rx = shape.rx * boxScaleX;
+          shape.ry = shape.ry * boxScaleY;
 
           return;
         }
