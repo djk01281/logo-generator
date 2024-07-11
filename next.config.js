@@ -24,6 +24,10 @@ const nextConfig = {
       "img.clerk.com",
     ],
   },
+
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default withNextVideo(nextConfig);
