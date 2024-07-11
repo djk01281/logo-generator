@@ -47,6 +47,15 @@ type TextContent = {
   path2D: Path2D | null;
   d: AbsoluteSegment[];
 };
+
+type Elipse = {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  path2D: Path2D | null;
+};
+
 type SVG = SubSVG[];
 
 type SubSVG =
@@ -73,23 +82,29 @@ type SubSVG =
       yMax: number;
       yMin: number;
       rotation: number;
+    }
+  | {
+      shape: Elipse;
+      tag: "elipse";
+      fill: string;
+      offset: Point;
+      stroke: string;
+      xMax: number;
+      xMin: number;
+      yMax: number;
+      yMin: number;
+      rotation: number;
     };
 
-type SubPath = {
-  tag: "path" | "text";
-  info: Path | Text;
-};
-
-type AbsoluteSegment = Lineish | Arc;
-
-type Lineish = {
-  key: "M" | "L" | "C" | "Z";
-  data: Point[];
-};
-type Arc = {
-  key: "A";
-  arcParams: ArcParams;
-};
+type AbsoluteSegment =
+  | {
+      key: "M" | "L" | "C" | "Z";
+      data: Point[];
+    }
+  | {
+      key: "A";
+      arcParams: ArcParams;
+    };
 
 type ArcParams = {
   rx: number;
