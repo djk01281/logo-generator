@@ -118,12 +118,10 @@ export default function Editor() {
     newHistory.push([...svg]);
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
-    console.log("New History", newHistory.length - 1);
   };
 
   const onReturnHistory = () => {
     if (historyIndex === 0) return;
-    console.log("RETURNED", historyIndex - 1);
     setHistoryIndex(historyIndex - 1);
     setSVG([...history[historyIndex - 1]!]);
     const ctx = canvasRef.current?.getContext("2d");
@@ -201,23 +199,18 @@ export default function Editor() {
     type: string,
   ) {
     if (!svg) {
-      console.log("svg is null");
       return;
     }
     if (!ctx) {
-      console.log("ctx is null");
       return;
     }
     if (!currentPoint) {
-      console.log("current point is null");
       return;
     }
     if (tool !== "add") {
-      console.log("tool is not add");
       return;
     }
     if (type === null) {
-      console.log("type is null");
       return;
     }
 
@@ -233,7 +226,6 @@ export default function Editor() {
     e: React.MouseEvent<HTMLCanvasElement>,
   ) {
     if (!ctx) {
-      console.log("ctx is null");
       return;
     }
     if (!isMouseDown) {
@@ -249,21 +241,17 @@ export default function Editor() {
       y: (addPoint!.y - panOffset.y) * (1 / scale.y),
     };
     if (!calculatedPoint) {
-      console.log("current point is null");
       return;
     }
     if (!addPoint) {
-      console.log("add point is null");
       return;
     }
     if (!addShape) {
-      console.log("add shape is null");
       return;
     }
     const addWidth = currentPoint.x - addPoint.x;
     const addHeight = currentPoint.y - addPoint.y;
     if (!svg) {
-      console.log("svg is null");
       return;
     }
 
@@ -332,15 +320,12 @@ export default function Editor() {
     e: React.MouseEvent<HTMLCanvasElement>,
   ) {
     if (!ctx) {
-      console.log("ctx is null");
       return;
     }
     if (!addPoint) {
-      console.log("add point is null");
       return;
     }
     if (!addShape) {
-      console.log("add shape is null");
       return;
     }
     const currentPoint = computePointInCanvas(e)!;
@@ -357,7 +342,6 @@ export default function Editor() {
     const addWidth = calculatedPoint.x - calculatedAddPoint.x;
     const addHeight = calculatedPoint.y - calculatedAddPoint.y;
     if (!svg) {
-      console.log("svg is null");
       return;
     }
 
@@ -551,7 +535,6 @@ export default function Editor() {
           point2D.some((point, j) => {
             if (ctx.isPointInPath(point, currentPoint.x, currentPoint.y)) {
               setSelectedPoint([[i, j]]);
-              console.log("Selected Point", [[i, j]]);
               continueFlag = false;
               return true;
             }
@@ -966,7 +949,6 @@ export default function Editor() {
 
     // Calculate the radian to rotate
     const rotateCenter = { x: (xMin + xMax) / 2, y: (yMin + yMax) / 2 };
-    console.log("Rotate", rotateCenter);
     const originVector = {
       x: prevX - rotateCenter.x,
       y: prevY - rotateCenter.y,
@@ -1018,7 +1000,6 @@ export default function Editor() {
         originY,
         radian,
       );
-      console.log("PathDX and PathDY", pathDX, pathDY);
       const prevOffset = { x: newPath.offset.x, y: newPath.offset.y };
       newPath.offset = { x: prevOffset.x + pathDX, y: prevOffset.y + pathDY };
 
@@ -1132,7 +1113,6 @@ export default function Editor() {
           (yMax - svg[selectedPath]!.yMax - svg[selectedPath]!.offset.y) *
             boxScaleY;
 
-        console.log("LEFT UPPER");
         realDx = dx;
         realDy = dy;
         svg[selectedPath]!.xMin = newMinX;
@@ -1933,7 +1913,6 @@ export default function Editor() {
     newSVG.reverse().some((subSVG, i) => {
       const path2D = subSVG.shape.path2D;
       if (!path2D) {
-        console.log("no path 2d");
         return;
       }
       if (ctx.isPointInPath(path2D, currentPoint.x, currentPoint.y)) {
@@ -2107,7 +2086,6 @@ export default function Editor() {
 
   function onMove({ ctx, currentPoint, prevPoint }: Move) {
     if (!svg) {
-      console.log("No SVG");
       return;
     }
 
@@ -2178,7 +2156,6 @@ export default function Editor() {
     }
 
     if (selectedRotatePoint !== false) {
-      console.log("Click", currentPoint);
       selectedPaths.map((selectedPath) => {
         onPathRotate(
           ctx,
@@ -2383,13 +2360,11 @@ export default function Editor() {
     const x = currentPoint.x;
     const y = currentPoint.y;
     let selectedLine = -1;
-    console.log(linePath2Ds);
     linePath2Ds.map((linePath2D, i) => {
       if (ctx.isPointInPath(linePath2D, x, y)) {
         selectedLine = i;
       }
     });
-    console.log("I IS", selectedLine);
     if (selectedLine === -1) return;
     const path = svg[svg.length - 1]!;
     if (path.tag === "elipse") return;
@@ -2772,7 +2747,6 @@ export default function Editor() {
     const newSVG = [...svg];
     newSVG[selectedPaths[0]] = selectedPath;
     setSVG(newSVG);
-    console.log("font is", event.target.value);
   };
   //Also, when the tool is draw, draw the svgPoints of the current path that is being drawn
   // ------------------- Draw Tool -------------------
@@ -2943,7 +2917,6 @@ export default function Editor() {
                     guideIndex={5}
                     guideLength={5}
                     onNext={() => {
-                      console.log("next");
                       setGuideIndex(-1);
                       setSelectedDraw(null);
                     }}
@@ -2982,7 +2955,6 @@ export default function Editor() {
                               guideIndex={1}
                               guideLength={5}
                               onNext={() => {
-                                console.log("next");
                                 setGuideIndex(1);
 
                                 setSelectedDraw("fileInput");
@@ -3066,7 +3038,6 @@ export default function Editor() {
                               guideIndex={2}
                               guideLength={5}
                               onNext={() => {
-                                console.log("next");
                                 setGuideIndex(2);
                                 setSelectedDraw(null);
                                 // download an svg file from the directory, set it as svg
@@ -3249,7 +3220,6 @@ export default function Editor() {
                 >
                   <Feedback
                     onFeedback={async (feedback) => {
-                      console.log("Feedback", feedback);
                       if (!user) return;
                       const email = user.emailAddresses[0]?.emailAddress;
                       if (!email) return;
@@ -3591,7 +3561,6 @@ export default function Editor() {
                   guideIndex={3}
                   guideLength={5}
                   onNext={() => {
-                    console.log("next");
                     setGuideIndex(3);
                     setIsEditing(true);
                     setSelectedPaths([0]);
@@ -3695,7 +3664,6 @@ export default function Editor() {
               guideIndex={4}
               guideLength={5}
               onNext={() => {
-                console.log("next");
                 setGuideIndex(4);
                 setIsEditing(false);
                 setSelectedDraw(null);
