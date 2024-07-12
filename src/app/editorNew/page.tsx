@@ -775,10 +775,21 @@ export default function Editor() {
         const shape = subSvg.shape;
         const path2D = shape.path2D;
         if (!path2D) return;
+        ctx.save();
+        ctx.translate(
+          subSvg.offset.x + (subSvg.xMax + subSvg.xMin) / 2,
+          subSvg.offset.y + (subSvg.yMax + subSvg.yMin) / 2,
+        );
+        ctx.rotate(subSvg.rotation);
+        ctx.translate(
+          -subSvg.offset.x - (subSvg.xMax + subSvg.xMin) / 2,
+          -subSvg.offset.y - (subSvg.yMax + subSvg.yMin) / 2,
+        );
         ctx.fillStyle = svg[i]?.fill ?? "#000000";
         ctx.fill(path2D);
         ctx.strokeStyle = svg[i]?.stroke ?? "#000000";
         ctx.stroke(path2D);
+        ctx.restore();
       }
     });
   };
@@ -930,23 +941,32 @@ export default function Editor() {
     // }
 
     // Calculate the center of the bounding box
-    let xMin = svg[selectedPaths[0]!]!.xMin;
-    let xMax = svg[selectedPaths[0]!]!.xMax;
-    let yMin = svg[selectedPaths[0]!]!.yMin;
-    let yMax = svg[selectedPaths[0]!]!.yMax;
+    let xMin = svg[selectedPaths[0]!]!.xMin + svg[selectedPaths[0]!]!.offset.x;
+    let xMax = svg[selectedPaths[0]!]!.xMax + svg[selectedPaths[0]!]!.offset.x;
+    let yMin = svg[selectedPaths[0]!]!.yMin + svg[selectedPaths[0]!]!.offset.y;
+    let yMax = svg[selectedPaths[0]!]!.yMax + svg[selectedPaths[0]!]!.offset.y;
     selectedPaths.map((selectedPath) => {
-      xMin =
-        Math.min(xMin, svg[selectedPath]!.xMin) + svg[selectedPath]!.offset.x;
-      xMax =
-        Math.max(xMax, svg[selectedPath]!.xMax) + svg[selectedPath]!.offset.x;
-      yMin =
-        Math.min(yMin, svg[selectedPath]!.yMin) + svg[selectedPath]!.offset.y;
-      yMax =
-        Math.max(yMax, svg[selectedPath]!.yMax) + svg[selectedPath]!.offset.y;
+      xMin = Math.min(
+        xMin,
+        svg[selectedPath]!.xMin + svg[selectedPath]!.offset.x,
+      );
+      xMax = Math.max(
+        xMax,
+        svg[selectedPath]!.xMax + svg[selectedPath]!.offset.x,
+      );
+      yMin = Math.min(
+        yMin,
+        svg[selectedPath]!.yMin + svg[selectedPath]!.offset.y,
+      );
+      yMax = Math.max(
+        yMax,
+        svg[selectedPath]!.yMax + svg[selectedPath]!.offset.y,
+      );
     });
 
     // Calculate the radian to rotate
     const rotateCenter = { x: (xMin + xMax) / 2, y: (yMin + yMax) / 2 };
+    console.log("Rotate", rotateCenter);
     const originVector = {
       x: prevX - rotateCenter.x,
       y: prevY - rotateCenter.y,
@@ -969,7 +989,11 @@ export default function Editor() {
     );
     const direction =
       crossToOriginVector.x * dx + crossToOriginVector.y * dy > 0 ? -1 : 1;
-    const radian = (newVectorLength * direction * scale.x) / 100;
+    const prevToCenterLength = Math.sqrt(
+      Math.pow(prevX - rotateCenter.x, 2) + Math.pow(prevY - rotateCenter.y, 2),
+    );
+    const radian =
+      Math.atan(newVectorLength / prevToCenterLength) * direction * scale.x;
 
     selectedPaths.map((selectedPath) => {
       const originX = rotateCenter.x;
@@ -981,24 +1005,26 @@ export default function Editor() {
       if (svg === null) return;
       if (svg[selectedPath] === null) return;
 
-      svg[selectedPath]!.rotation = svg[selectedPath]!.rotation + radian;
+      svg[selectedPath]!.rotation = svg[selectedPath]!.rotation + radian * -1;
       const newPath = { ...svg[selectedPath]! };
       const centerOfPath = {
-        x: (newPath.xMax + newPath.xMin) / 2,
-        y: (newPath.yMax + newPath.yMin) / 2,
+        x: (newPath.xMax + newPath.xMin) / 2 + newPath.offset.x,
+        y: (newPath.yMax + newPath.yMin) / 2 + newPath.offset.y,
       };
-      const { dx, dy } = dValuesForRotatePoint(
+      const { pathDX, pathDY } = dValuesForRotatePoint(
         centerOfPath.x,
         centerOfPath.y,
         originX,
         originY,
         radian,
       );
+      console.log("PathDX and PathDY", pathDX, pathDY);
       const prevOffset = { x: newPath.offset.x, y: newPath.offset.y };
-      newPath.offset = { x: prevOffset.x + dx, y: prevOffset.y + dy };
+      newPath.offset = { x: prevOffset.x + pathDX, y: prevOffset.y + pathDY };
 
       const newPath2D = pathToPath2D(newPath);
-      svg[selectedPath]!.shape.path2D = newPath2D;
+      newPath.shape.path2D = newPath2D;
+      svg[selectedPath] = newPath;
     });
     clear();
     drawSVG(ctx, svg);
@@ -1038,17 +1064,13 @@ export default function Editor() {
     originY: number,
     radian: number,
   ) => {
-    const dx =
-      x * (Math.cos(radian) - 1) -
-      y * Math.sin(radian) +
-      originX * (1 - Math.cos(radian)) +
-      originY * Math.sin(radian);
-    const dy =
-      x * Math.sin(radian) +
-      y * (Math.cos(radian) - 1) -
-      originX * Math.sin(radian) +
-      originY * (1 - Math.cos(radian));
-    return { dx: dx, dy: dy };
+    const pathToOrginLength = Math.sqrt(
+      Math.pow(x - originX, 2) + Math.pow(y - originY, 2),
+    );
+    const rotatedPoint = rotatePoint(x, y, originX, originY, radian);
+    const dx = rotatedPoint.x - x;
+    const dy = rotatedPoint.y - y;
+    return { pathDX: dx, pathDY: dy };
   };
 
   const onPathExpand = (
@@ -2156,6 +2178,7 @@ export default function Editor() {
     }
 
     if (selectedRotatePoint !== false) {
+      console.log("Click", currentPoint);
       selectedPaths.map((selectedPath) => {
         onPathRotate(
           ctx,
