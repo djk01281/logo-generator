@@ -206,6 +206,73 @@ export default function Editor() {
   const dragLayer = useRef<number>(0);
   const dragOverLayer = useRef<number>(0);
 
+  const generateSVGContent = (svg: SVG): SVGElement => {
+    const svgElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg",
+    );
+
+    // Get the min, max of the whole thing, then translate the whole svg so that it doesn't go out of the canvas
+    let xMin = Number.MAX_VALUE;
+    let xMax = Number.MIN_VALUE;
+    let yMin = Number.MAX_VALUE;
+    let yMax = Number.MIN_VALUE;
+
+    svg?.forEach((subSVG) => {
+      xMin = Math.min(xMin, subSVG.xMin + subSVG.offset.x);
+      xMax = Math.max(xMax, subSVG.xMax + subSVG.offset.x);
+      yMin = Math.min(yMin, subSVG.yMin + subSVG.offset.y);
+      yMax = Math.max(yMax, subSVG.yMax + subSVG.offset.y);
+
+      if (subSVG.tag === "path") {
+        const pathElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path",
+        );
+        pathElement.setAttribute(
+          "transform",
+          `translate(${subSVG.offset.x} ${subSVG.offset.y}) rotate(${subSVG.rotation})`,
+        );
+        pathElement.setAttribute("d", svgPathToString(subSVG.shape.d));
+        pathElement.setAttribute("fill", subSVG.fill);
+        pathElement.setAttribute("stroke", subSVG.stroke);
+        svgElement.appendChild(pathElement);
+      } else if (subSVG.tag === "text") {
+        const textElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
+
+        textElement.setAttribute("font-family", subSVG.shape.font);
+        textElement.setAttribute("font-size", subSVG.shape.size.toString());
+        textElement.textContent = subSVG.shape.content;
+        svgElement.appendChild(textElement);
+      }
+    });
+
+    svgElement.setAttribute("viewBox", `${xMin} ${yMin} ${xMax} ${yMax}`);
+
+    return svgElement;
+  };
+
+  const downloadSVG = (type: "all" | "selected") => {
+    if (!svg) return;
+    const svgElement = generateSVGContent(
+      type === "all"
+        ? svg
+        : svg?.filter((subSVG, index) => selectedPaths.includes(index)),
+    );
+
+    const svgString = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(svgBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "image.svg";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const svgPathToString = (path: AbsoluteSegment[]) => {
     let pathString = "";
     path.forEach((segment) => {
@@ -2929,6 +2996,15 @@ export default function Editor() {
                 Edit
               </button>
             }
+            {
+              <button
+                onClick={() => downloadSVG("selected")}
+                className={`flex  flex-row justify-start  rounded-md p-1 hover:bg-[#2c2c2c]`}
+                disabled={selectedPaths.length === 0}
+              >
+                Download
+              </button>
+            }
             {selectedPaths.length === 1 &&
               svg![selectedPaths[0] ?? 0]!.tag === "text" && (
                 <button
@@ -3321,7 +3397,9 @@ export default function Editor() {
                   </svg>
                 </div> */}
                 <a
-                  onClick={downloadImage}
+                  onClick={() => {
+                    downloadSVG("all");
+                  }}
                   className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200 "
                 >
                   <svg
