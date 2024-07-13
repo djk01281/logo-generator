@@ -133,3 +133,14 @@ export default function Navbar() {
     </div>
   );
 }
+
+export function Logo() {
+  return (
+    <Link
+      className={` ${just.className} z-10 flex h-full items-center justify-center rounded-xl bg-red-400 px-2 pt-1 text-center text-[20px] leading-snug text-white`}
+      href="/"
+    >
+      LOGOAI
+    </Link>
+  );
+}

@@ -18,6 +18,7 @@ import Guidebox from "./_components/GuideBox";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "../../components/ui/button";
 import { SignOutButton } from "@clerk/nextjs";
+import { Logo } from "../_components/Navbar";
 import {
   Popover,
   PopoverContent,
@@ -3037,13 +3038,8 @@ export default function Editor() {
         ) : null}
 
         <div className="flex grid h-[80px] w-full flex-none grid-cols-3  p-[20px]">
-          <div className="justify-self-start">
-            <Link
-              className={`  z-10 flex h-full items-center justify-center rounded-xl bg-red-400 px-2 pt-1 text-center text-[20px] leading-snug text-white`}
-              href="/"
-            >
-              LOGOAI
-            </Link>
+          <div className="h-full justify-self-start">
+            <Logo></Logo>
           </div>
           <div className="justify-self-center">
             <div className="relative z-50 flex h-full flex-row gap-4 ">
