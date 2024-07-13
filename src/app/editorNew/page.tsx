@@ -115,9 +115,69 @@ export default function Editor() {
     if (newHistory.length !== 0 && historyIndex !== newHistory.length - 1) {
       newHistory = newHistory.slice(0, historyIndex + 1);
     }
-    newHistory.push([...svg]);
+
+    const clonedSVG = svg.map((subSVG) => {
+      const subSVGPath2D = subSVG.shape.path2D;
+      if (subSVG.tag === "text") {
+        return {
+          tag: "text",
+          fill: subSVG.fill,
+          offset: { ...subSVG.offset },
+          stroke: subSVG.stroke,
+          xMax: subSVG.xMax,
+          xMin: subSVG.xMin,
+          yMax: subSVG.yMax,
+          yMin: subSVG.yMin,
+          rotation: subSVG.rotation,
+          shape: {
+            content: subSVG.shape.content,
+            d: [...subSVG.shape.d],
+            font: subSVG.shape.font,
+            path2D: subSVGPath2D === null ? null : new Path2D(subSVGPath2D),
+            size: subSVG.shape.size,
+          },
+        };
+      } else if (subSVG.tag === "path") {
+        return {
+          tag: "path",
+          fill: subSVG.fill,
+          offset: { ...subSVG.offset },
+          stroke: subSVG.stroke,
+          xMax: subSVG.xMax,
+          xMin: subSVG.xMin,
+          yMax: subSVG.yMax,
+          yMin: subSVG.yMin,
+          rotation: subSVG.rotation,
+          shape: {
+            d: [...subSVG.shape.d],
+            path2D: subSVGPath2D === null ? null : new Path2D(subSVGPath2D),
+          },
+        };
+      } else if (subSVG.tag === "elipse") {
+        return {
+          tag: "elipse",
+          fill: subSVG.fill,
+          offset: { ...subSVG.offset },
+          stroke: subSVG.stroke,
+          xMax: subSVG.xMax,
+          xMin: subSVG.xMin,
+          yMax: subSVG.yMax,
+          yMin: subSVG.yMin,
+          rotation: subSVG.rotation,
+          shape: {
+            cx: subSVG.shape.cx,
+            cy: subSVG.shape.cy,
+            path2D: subSVGPath2D === null ? null : new Path2D(subSVGPath2D),
+            rx: subSVG.shape.rx,
+            ry: subSVG.shape.ry,
+          },
+        };
+      }
+    }) as SVG;
+    newHistory.push(clonedSVG);
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
+    console.log(historyIndex);
   };
 
   const onReturnHistory = () => {
@@ -136,6 +196,7 @@ export default function Editor() {
     setSVG(history[historyIndex + 1]!);
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
+    clear();
     drawSVG(ctx, history[historyIndex + 1]!);
   };
 
@@ -2245,15 +2306,15 @@ export default function Editor() {
   };
 
   const onMouseUpWrapper = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    //onNewhistory()
-
+    onNewHistory();
     setIsMouseDown(false);
     onSelectMouseUp();
     handMouseUpHandler();
-    setBoundingPoint2D(null);
 
+    setBoundingPoint2D(null);
     if (selectPoint !== null && selectedPaths.length === 0) {
       // calculate if the box contains any paths, set selected paths
+
       if (!svg) return;
       const ctx = canvasRef.current?.getContext("2d");
       if (!ctx) return;
@@ -3575,60 +3636,62 @@ export default function Editor() {
                 ></Guidebox>
               </div>
             )}
-            {/* <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
-              <div
-                onClick={() => {
-                  console.log(historyIndex);
-                  onReturnHistory();
-                  console.log("RETURN");
-                }}
-                className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200  hover:text-white"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.8"
-                  stroke="
-                #222429"
-                  className=""
-                  height={18}
-                  width={18}
+            {
+              <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
+                <div
+                  onClick={() => {
+                    console.log(historyIndex);
+                    onReturnHistory();
+                    console.log("RETURN");
+                  }}
+                  className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-white hover:bg-slate-200  hover:text-white"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
-                  />
-                </svg>
-              </div>
-              <div className="h-[28px] w-[1px] bg-[#f3f5f7]"></div>
-              <div
-                className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-slate-200 bg-white hover:bg-slate-200"
-                onClick={() => {
-                  onForwardHistory();
-                  console.log("FORWARD");
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.8"
-                  stroke="
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.8"
+                    stroke="
                 #222429"
-                  className=""
-                  height={18}
-                  width={18}
+                    className=""
+                    height={18}
+                    width={18}
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                    />
+                  </svg>
+                </div>
+                <div className="h-[28px] w-[1px] bg-[#f3f5f7]"></div>
+                <div
+                  className="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-slate-200 bg-white hover:bg-slate-200"
+                  onClick={() => {
+                    onForwardHistory();
+                    console.log("FORWARD");
+                  }}
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
-                  />
-                </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.8"
+                    stroke="
+                #222429"
+                    className=""
+                    height={18}
+                    width={18}
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+                    />
+                  </svg>
+                </div>
               </div>
-            </div> */}
+            }
             <div className="flex h-full items-center gap-1 rounded-md bg-white p-1 shadow-md">
               <div className="flex h-[30px] w-[60px] items-center justify-center rounded-md bg-slate-200 bg-white font-sans text-xs hover:bg-slate-200">
                 {Math.round(scale.x * 100)}%
