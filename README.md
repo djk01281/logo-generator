@@ -1,59 +1,36 @@
-# Motivation
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-☝🏻 Creating a logo can be a lengthy process involving multiple tools:
-AI for generation, converting to SVG, and a vector editor for customization.
-This project aims to simplify that workflow by integrating all these steps into a single platform.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-# Links
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-🔗 **Site :** https://www.logo-ai.app/
+## Learn More
 
-🔗 **Repositories :**
+To learn more about Next.js, take a look at the following resources:
 
-https://github.com/djk01281/logo-generator
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-https://github.com/djk01281/vectorizeAPI
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-# Functionalities
+## Deploy on Vercel
 
-## 1. Generate Logos Using AI, Convert it to SVG for Editing
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-![Generate1-ezgif com-resize](https://github.com/djk01281/logo-generator/assets/80507522/1d814010-38b2-4830-bb21-17f0f82e68f3)
-
-## 2. Import Existing SVG Files to edit them
-
-![Google Chrome](https://github.com/djk01281/logo-generator/assets/80507522/5f02a03c-8ec8-485e-8756-23e6c887559c)
-
-## 3. Pan / Select Paths
-
-![pan-1](https://github.com/djk01281/logo-generator/assets/80507522/d1a6eac8-8854-4e6b-885a-352e997515c6)
-
-## 4. Edit, Resize or Rotate Paths
-
-![e-1](https://github.com/djk01281/logo-generator/assets/80507522/b187766d-3790-4690-8852-f5039d267ca6)
-
-## 5. Add New Shapes on Top of the SVG
-
-![add-1](https://github.com/djk01281/logo-generator/assets/80507522/2e305998-0b3e-42eb-bab5-d16e4e544d9e)
-
-# Architecture
-
-![Untitled (5)](https://github.com/djk01281/logo-generator/assets/80507522/df5bffda-660c-4f9f-b919-eebcb8616e5f)
-
-## Summary
-
-- 🌐 NextJS Project hosted on Vercel
-- 🔐 Auth and Protected Routes with NextAuth
-- 🚀 DB and API Server that needs disk space hosted on Railway
-- 🎨 Vector Editor using React
-- 💻 Generates logo using ChatGPT and DALL-E 3
-- ☀️ Framer Motion and Tailwind CSS for styling
-- 🛒 Purchase credits using Stripe
-
-# Contact Information
-
-✉️ **Email :** djk01281@gmail.com
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
