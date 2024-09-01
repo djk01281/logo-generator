@@ -7,7 +7,7 @@ import { MousePointer2 } from "lucide-react";
 import { Type } from "lucide-react";
 import { Shapes } from "lucide-react";
 import { PenTool as Pen } from "lucide-react";
-import { ToolType, useToolStore } from "@/lib/store";
+import { ToolType, useToolStore } from "@/lib/store/useToolStore";
 
 type ToolBarProps = {
   side: side;
