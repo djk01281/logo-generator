@@ -7,18 +7,26 @@ function useCanvasDimensions() {
     scale: 1,
   });
 
-  useEffect(() => {
-    const dpr = window.devicePixelRatio || 1;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
+  const handleResize = () => {
     setDimensions({
-      width,
-      height,
-      scale: dpr,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      scale: window.devicePixelRatio || 1,
+    });
+  };
+
+  useEffect(() => {
+    setDimensions({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      scale: window.devicePixelRatio || 1,
     });
 
-    return () => {};
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return dimensions;
