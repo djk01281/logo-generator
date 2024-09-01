@@ -1,16 +1,18 @@
 "use client";
 
-import AITool from "./AITool";
-import ModeTool from "./ModeTool";
-import PenTool from "./PenTool";
-import ShapeTool from "./ShapeTool";
 import SideWrapper from "../Wrapper/SideWrapper";
-import TextTool from "./TextTool";
+import ToolButton from "./ToolButton";
+import { Sparkles } from "lucide-react";
+import { MousePointer2 } from "lucide-react";
+import { Type } from "lucide-react";
+import { Shapes } from "lucide-react";
+import { PenTool as Pen } from "lucide-react";
 import { ToolType, useToolStore } from "@/app/lib/store";
 
 type ToolBarProps = {
   side: side;
 };
+
 export default function ToolBar({ side }: ToolBarProps) {
   const tool = useToolStore((state) => state.tool);
   const setTool = useToolStore((state) => state.setTool);
@@ -21,26 +23,31 @@ export default function ToolBar({ side }: ToolBarProps) {
 
   return (
     <SideWrapper side={side}>
-      <div className="bg-white rounded-lg border-[1px] border-gray-500 p-2 flex flex-row gap-2">
-        <ModeTool
+      <div className="bg-white rounded-lg border-[1px] border-gray-500 p-1 flex flex-row gap-1">
+        <ToolButton
           onClick={() => handleToolClick("select")}
           isActive={tool === "select"}
+          Icon={MousePointer2}
         />
-        <AITool
-          onClick={() => handleToolClick("ai")}
-          isActive={tool === "ai"}
-        />
-        <ShapeTool
+        <ToolButton
           onClick={() => handleToolClick("shape")}
           isActive={tool === "shape"}
+          Icon={Shapes}
         />
-        <PenTool
+        <ToolButton
           onClick={() => handleToolClick("pen")}
           isActive={tool === "pen"}
+          Icon={Pen}
         />
-        <TextTool
+        <ToolButton
           onClick={() => handleToolClick("text")}
           isActive={tool === "text"}
+          Icon={Type}
+        />
+        <ToolButton
+          onClick={() => handleToolClick("ai")}
+          isActive={tool === "ai"}
+          Icon={Sparkles}
         />
       </div>
     </SideWrapper>
