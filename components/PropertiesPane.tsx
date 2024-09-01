@@ -1,4 +1,4 @@
-import SideWrapper from "./SideWrapper";
+import SideWrapper from "./Wrapper/SideWrapper";
 
 type PropertiesPaneProps = {
   side: side;

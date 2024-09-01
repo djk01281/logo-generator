@@ -1,8 +1,8 @@
 import Editor from "@/components/Editor";
-import FixedWrapper from "@/components/FixedWrapper";
+import FixedWrapper from "@/components/Wrapper/FixedWrapper";
 import LayersPane from "@/components/LayersPane";
 import PropertiesPane from "@/components/PropertiesPane";
-import ToolBar from "@/components/ToolBar";
+import ToolBar from "@/components/ToolBar/ToolBar";
 
 export default function EditorPage() {
   return (
