@@ -22,6 +22,11 @@ export default function UICanvas() {
       const { x: startX, y: startY } = dragStartPointRef.current;
       ctx.fillStyle = "#d9eaf6";
       ctx.fillRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+
+      // Draw border
+      ctx.strokeStyle = "#6bacfd";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
     },
     []
   );
