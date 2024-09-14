@@ -1,4 +1,4 @@
-const sideStyle = {
+const sideStyle: { readonly [key in side]: string } = {
   left: "left-0",
   right: "right-0 ",
   top: "top-0 left-1/2 -translate-x-1/2",
