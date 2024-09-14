@@ -1,10 +1,6 @@
-# Start From Scratch
-
 > [!IMPORTANT]
-> A Second Run. Trying to improve an old project I did.
+> A Second Run. Trying to improve an old project. 😢
 
-# Checklist
-
-- [ ] Basic Components
-- [ ] Editor Logic
-- [ ] SVG Logic
+> [!NOTE]
+> **Legacy Branch**: `main`<br>
+> **Current Branch**: `v2-rebuild`
