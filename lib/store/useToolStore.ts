@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 // toolStore for the tool state and event handling
-export type ToolType = "select" | "pen" | "shape" | "text" | "ai";
+export type ToolType = "upload" | "select" | "pen" | "shape" | "text" | "ai";
 
 type ToolStore = {
   tool: ToolType;

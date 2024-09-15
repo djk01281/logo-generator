@@ -13,7 +13,7 @@ type SideWrapperProps = {
 export default function SideWrapper({ side, children }: SideWrapperProps) {
   return (
     <div
-      className={`absolute
+      className={`absolute z-20
     ${sideStyle[side]}
     `}
     >

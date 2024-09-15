@@ -1,27 +1,23 @@
 type ToolButtonProps = {
   onClick: () => void;
   isActive: boolean;
-  Icon: React.ComponentType<{ size: number; className?: string }>;
+  children: React.ReactNode;
 };
 
 export default function ToolButton({
   onClick,
   isActive,
-  Icon,
+  children,
 }: ToolButtonProps) {
   return (
-    <div
+    <button
       onClick={onClick}
-      className={`hover:bg-[#0ca3ff] ${
-        isActive ? "bg-[#0ca3ff]" : ""
-      } p-1.5 rounded-md group cursor-pointer`}
+      className={`p-1.5 rounded-md cursor-pointer transition-colors
+        ${
+          isActive ? "bg-[#0ca3ff] text-white" : "hover:bg-[#eaeaea] text-black"
+        }`}
     >
-      <Icon
-        className={`stroke-1 ${
-          isActive ? "stroke-white" : ""
-        } group-hover:stroke-white`}
-        size={20}
-      />
-    </div>
+      {children}
+    </button>
   );
 }
