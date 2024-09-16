@@ -11,18 +11,19 @@ import {
   Upload,
 } from "lucide-react";
 import { ToolType, useToolStore } from "@/lib/store/useToolStore";
+import FileInput from "../FileInput";
 
 type ToolBarProps = {
   side: side;
 };
 
 export default function ToolBar({ side }: ToolBarProps) {
-  const tool = useToolStore((state) => state.tool);
-  const setTool = useToolStore((state) => state.setTool);
+  const currentTool = useToolStore((state) => state.currentTool);
+  const setCurrentTool = useToolStore((state) => state.setCurrentTool);
 
   const handleToolClick = (toolType: ToolType) => {
     console.log("toolType", toolType);
-    setTool(toolType);
+    setCurrentTool(toolType);
   };
 
   return (
@@ -30,37 +31,37 @@ export default function ToolBar({ side }: ToolBarProps) {
       <div className="bg-white rounded-lg border-[1px] border-gray-500 p-1 flex flex-row gap-1">
         <ToolButton
           onClick={() => handleToolClick("upload")}
-          isActive={tool === "upload"}
+          isActive={currentTool === "upload"}
         >
-          <Upload size={20} strokeWidth={1} />
+          <FileInput />
         </ToolButton>
         <ToolButton
           onClick={() => handleToolClick("select")}
-          isActive={tool === "select"}
+          isActive={currentTool === "select"}
         >
           <MousePointer2 size={20} strokeWidth={1} />
         </ToolButton>
         <ToolButton
           onClick={() => handleToolClick("shape")}
-          isActive={tool === "shape"}
+          isActive={currentTool === "shape"}
         >
           <Shapes size={20} strokeWidth={1} />
         </ToolButton>
         <ToolButton
           onClick={() => handleToolClick("pen")}
-          isActive={tool === "pen"}
+          isActive={currentTool === "pen"}
         >
           <Pen size={20} strokeWidth={1} />
         </ToolButton>
         <ToolButton
           onClick={() => handleToolClick("text")}
-          isActive={tool === "text"}
+          isActive={currentTool === "text"}
         >
           <Type size={20} strokeWidth={1} />
         </ToolButton>
         <ToolButton
           onClick={() => handleToolClick("ai")}
-          isActive={tool === "ai"}
+          isActive={currentTool === "ai"}
         >
           <Sparkles size={20} strokeWidth={1} />
         </ToolButton>

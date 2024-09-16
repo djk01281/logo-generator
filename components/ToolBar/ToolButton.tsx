@@ -10,7 +10,7 @@ export default function ToolButton({
   children,
 }: ToolButtonProps) {
   return (
-    <button
+    <div
       onClick={onClick}
       className={`p-1.5 rounded-md cursor-pointer transition-colors
         ${
@@ -18,6 +18,6 @@ export default function ToolButton({
         }`}
     >
       {children}
-    </button>
+    </div>
   );
 }
