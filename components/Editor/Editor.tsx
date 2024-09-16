@@ -3,53 +3,20 @@ import { useEffect } from "react";
 import RenderCanvas from "./RenderCanvas";
 import UICanvas from "./UICanvas";
 import { useSVGStore } from "@/lib/store/useSVGStore";
-import { tagToString } from "@/lib/utils/svg";
+import { tagToString, svgStringToTags } from "@/lib/utils/svg";
 
 export default function Editor() {
   const setSVG = useSVGStore((state) => state.setSVG);
 
   useEffect(() => {
-    const svg = {
-      children: [
-        {
-          type: "path",
-          segments: [
-            {
-              type: "M",
-              point: { x: 100, y: 100 },
-            },
-            {
-              type: "L",
-              point: { x: 200, y: 200 },
-            },
-          ],
-          bounds: null,
-          style: {
-            fill: "red",
-            stroke: "black",
-            strokeWidth: 1,
-            opacity: 1,
-          },
-          transform: {},
-          path2d: new Path2D(
-            tagToString({
-              type: "path",
-              segments: [
-                {
-                  type: "M",
-                  point: { x: 100, y: 100 },
-                },
-                {
-                  type: "L",
-                  point: { x: 200, y: 200 },
-                },
-              ],
-            } as PathTag)
-          ),
-        } as PathTag,
-      ],
-    };
-    setSVG(svg);
+    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">
+      <path fill="red" stroke="red" stroke-width="1" d="M100 100 L200 200" />
+    </svg>`;
+
+    const tags = svgStringToTags(svgString);
+    setSVG({
+      children: tags,
+    });
   }, []);
 
   return (

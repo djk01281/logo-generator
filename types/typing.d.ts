@@ -23,9 +23,9 @@ type StyleAttributes = {
 };
 
 type TransformAttributes = {
-  translate?: Point;
-  scale?: Point;
-  rotate?: number;
+  translate: Point;
+  scale: Point;
+  rotate: number;
 };
 
 interface Shape {

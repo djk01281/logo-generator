@@ -1,21 +1,21 @@
 import { create } from "zustand";
-import { tagToString } from "../utils/svg";
 
 type SVGStore = {
   svg: SVGRootElement;
   setSVG: (svg: SVGRootElement) => void;
-  deleteSVG: (index: number) => void;
-  updateSVG: (index: number, svg: SVGChildTag) => void;
+  deleteChildren: (array: number[]) => void;
+  moveChildren: (array: number[], offset: { x: number; y: number }) => void;
+  selectedChildren: number[];
+  setSelectedChildren: (selectedChildren: number[]) => void;
 };
-
 export const useSVGStore = create<SVGStore>((set) => ({
   svg: {
     children: [],
   },
   setSVG: (svg) => set({ svg }),
-  deleteSVG: (index) => {
+  deleteChildren: (array) => {
     set((state) => {
-      const children = state.svg.children.filter((_, i) => i !== index);
+      const children = state.svg.children.filter((_, i) => !array.includes(i));
       return {
         svg: {
           ...state.svg,
@@ -24,11 +24,18 @@ export const useSVGStore = create<SVGStore>((set) => ({
       };
     });
   },
-  updateSVG: (index, svg) => {
+  moveChildren: (array, offset) => {
     set((state) => {
-      const children = state.svg.children.map((child, i) =>
-        i === index ? svg : child
-      );
+      const children = state.svg.children.map((child, i) => {
+        if (!array.includes(i)) return child;
+
+        const newChild = { ...child };
+        newChild.transform.translate = {
+          x: newChild.transform.translate.x + offset.x,
+          y: newChild.transform.translate.y + offset.y,
+        };
+        return newChild;
+      });
       return {
         svg: {
           ...state.svg,
@@ -37,4 +44,6 @@ export const useSVGStore = create<SVGStore>((set) => ({
       };
     });
   },
+  selectedChildren: [],
+  setSelectedChildren: (selectedChildren) => set({ selectedChildren }),
 }));
