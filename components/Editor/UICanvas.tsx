@@ -1,8 +1,11 @@
-import { useCallback, useRef } from "react";
+import { use, useCallback, useRef } from "react";
 import BaseCanvas from "./BaseCanvas";
+import { useToolManager } from "@/app/hooks/useToolManager";
 
 export default function UICanvas() {
   const dragStartPointRef = useRef<{ x: number; y: number } | null>(null);
+  const uiCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  useToolManager(uiCanvasRef);
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
     console.log("Click", e.offsetX, e.offsetY);
@@ -44,6 +47,8 @@ export default function UICanvas() {
 
   const handleCanvasReady = useCallback(
     (canvas: HTMLCanvasElement) => {
+      uiCanvasRef.current = canvas;
+
       const mouseMoveHandler = (e: MouseEvent) => handleMouseMove(e, canvas);
       const mouseUpHandler = () => handleMouseUp(canvas);
 
