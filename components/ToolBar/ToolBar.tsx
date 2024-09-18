@@ -30,12 +30,6 @@ export default function ToolBar({ side }: ToolBarProps) {
     <SideWrapper side={side}>
       <div className="bg-white rounded-lg border-[1px] border-gray-500 p-1 flex flex-row gap-1">
         <ToolButton
-          onClick={() => handleToolClick("upload")}
-          isActive={currentTool === "upload"}
-        >
-          <FileInput />
-        </ToolButton>
-        <ToolButton
           onClick={() => handleToolClick("select")}
           isActive={currentTool === "select"}
         >
@@ -64,6 +58,12 @@ export default function ToolBar({ side }: ToolBarProps) {
           isActive={currentTool === "ai"}
         >
           <Sparkles size={20} strokeWidth={1} />
+        </ToolButton>
+        <ToolButton
+          onClick={() => handleToolClick("upload")}
+          isActive={currentTool === "upload"}
+        >
+          <Upload size={20} strokeWidth={1} />
         </ToolButton>
       </div>
     </SideWrapper>
