@@ -1,5 +1,5 @@
 "use client";
-
+import { useRef } from "react";
 import SideWrapper from "../Wrapper/SideWrapper";
 import ToolButton from "./ToolButton";
 import {
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { ToolType, useToolStore } from "@/lib/store/useToolStore";
 import FileInput from "../FileInput";
+import { svgStringToTags } from "@/lib/utils/svg";
+import { useSVGStore } from "@/lib/store/useSVGStore";
 
 type ToolBarProps = {
   side: side;
@@ -20,10 +22,32 @@ type ToolBarProps = {
 export default function ToolBar({ side }: ToolBarProps) {
   const currentTool = useToolStore((state) => state.currentTool);
   const setCurrentTool = useToolStore((state) => state.setCurrentTool);
+  const setSVG = useSVGStore((state) => state.setSVG);
 
   const handleToolClick = (toolType: ToolType) => {
     console.log("toolType", toolType);
     setCurrentTool(toolType);
+  };
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const handleFileInputClick = () => {
+    fileInputRef.current?.click();
+  };
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // TODO: Think I need to scale the SVG to make it fit the canvas..
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const svgString = e.target?.result as string;
+      const tags = svgStringToTags(svgString);
+      setSVG({
+        children: tags,
+      });
+    };
+    reader.readAsText(file);
+    setCurrentTool("select");
   };
 
   return (
@@ -60,11 +84,20 @@ export default function ToolBar({ side }: ToolBarProps) {
           <Sparkles size={20} strokeWidth={1} />
         </ToolButton>
         <ToolButton
-          onClick={() => handleToolClick("upload")}
+          onClick={() => {
+            handleFileInputClick();
+            handleToolClick("upload");
+          }}
           isActive={currentTool === "upload"}
         >
           <Upload size={20} strokeWidth={1} />
         </ToolButton>
+        <input
+          type="file"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleFileInputChange}
+        />
       </div>
     </SideWrapper>
   );
