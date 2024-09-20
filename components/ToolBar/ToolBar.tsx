@@ -41,10 +41,7 @@ export default function ToolBar({ side }: ToolBarProps) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const svgString = e.target?.result as string;
-      const tags = svgStringToTags(svgString);
-      setSVG({
-        children: tags,
-      });
+      setSVG(svgString);
     };
     reader.readAsText(file);
     setCurrentTool("select");

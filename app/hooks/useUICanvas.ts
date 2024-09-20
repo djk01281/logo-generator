@@ -6,6 +6,24 @@ export const useUICanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
   const svg = useSVGStore((state) => state.svg);
   const selectedChildren = useSVGStore((state) => state.selectedChildren);
 
+  const applyTransform = useCallback(
+    (point: { x: number; y: number }, transform: TransformAttributes) => {
+      const { x, y } = point;
+      const { translate, scale, rotate } = transform;
+
+      const tx = x * scale.x + translate.x;
+      const ty = y * scale.y + translate.y;
+
+      const cos = Math.cos(rotate);
+      const sin = Math.sin(rotate);
+      const rx = tx * cos - ty * sin;
+      const ry = tx * sin + ty * cos;
+
+      return { x: rx, y: ry };
+    },
+    []
+  );
+
   const drawBoundingBox = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -15,31 +33,50 @@ export const useUICanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    if (selectedChildren.length === 0) return;
+
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+
     selectedChildren.forEach((index) => {
       const child = svg.children[index];
       if (!child) return;
 
       const bounds = child.bounds || calculateBounds(child);
-      ctx.strokeStyle = "#0b99ff";
-      ctx.lineWidth = 1;
+      const { topLeft, bottomRight } = bounds;
 
-      ctx.save();
+      const globalTopLeft = applyTransform(topLeft, child.transform);
+      const globalBottomRight = applyTransform(bottomRight, child.transform);
 
-      ctx.translate(child.transform.translate.x, child.transform.translate.y);
-      ctx.scale(child.transform.scale.x, child.transform.scale.y);
-      ctx.rotate(child.transform.rotate);
-      ctx.strokeRect(
-        bounds.topLeft.x,
-        bounds.topLeft.y,
-        bounds.bottomRight.x - bounds.topLeft.x,
-        bounds.bottomRight.y - bounds.topLeft.y
-      );
-
-      ctx.restore();
-      console.log("drawing bounding box");
-      console.log("bounds", bounds);
+      minX = Math.min(minX, globalTopLeft.x, globalBottomRight.x);
+      minY = Math.min(minY, globalTopLeft.y, globalBottomRight.y);
+      maxX = Math.max(maxX, globalTopLeft.x, globalBottomRight.x);
+      maxY = Math.max(maxY, globalTopLeft.y, globalBottomRight.y);
     });
-  }, [canvasRef, selectedChildren, svg]);
+
+    ctx.strokeStyle = "#0b99ff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+
+    const cornerSize = 4;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#0b99ff";
+    [
+      [minX, minY],
+      [maxX, minY],
+      [minX, maxY],
+      [maxX, maxY],
+    ].forEach(([x, y]) => {
+      ctx.strokeRect(
+        x - cornerSize / 2,
+        y - cornerSize / 2,
+        cornerSize,
+        cornerSize
+      );
+    });
+  }, [canvasRef, selectedChildren, svg, applyTransform]);
 
   const strokeSelectedChildren = useCallback(() => {
     const canvas = canvasRef.current;
@@ -59,12 +96,10 @@ export const useUICanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
       ctx.lineWidth = 1;
 
       ctx.save();
-
       ctx.translate(child.transform.translate.x, child.transform.translate.y);
       ctx.scale(child.transform.scale.x, child.transform.scale.y);
       ctx.rotate(child.transform.rotate);
       ctx.stroke(path2d);
-
       ctx.restore();
     });
   }, [canvasRef, selectedChildren, svg]);
@@ -72,5 +107,7 @@ export const useUICanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
   useEffect(() => {
     drawBoundingBox();
     strokeSelectedChildren();
-  }, [drawBoundingBox, selectedChildren, strokeSelectedChildren]);
+  }, [drawBoundingBox, strokeSelectedChildren]);
+
+  return { applyTransform };
 };

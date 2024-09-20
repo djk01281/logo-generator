@@ -1,9 +1,15 @@
 import { create } from "zustand";
-import { createPath2D, calculateBounds, isIntersecting } from "@/lib/utils/svg";
+import {
+  createPath2D,
+  calculateBounds,
+  isIntersecting,
+  svgStringToTags,
+} from "@/lib/utils/svg";
 
 type SVGStore = {
   svg: SVGRootElement;
-  setSVG: (svg: SVGRootElement) => void;
+  setSVG: (svgString: string) => void;
+  updateChildTransform: (index: number, transform: TransformAttributes) => void;
   deleteChildren: (array: number[]) => void;
   moveChildren: (array: number[], offset: Point) => void;
   selectedChildren: number[];
@@ -15,8 +21,55 @@ type SVGStore = {
 };
 
 export const useSVGStore = create<SVGStore>((set, get) => ({
-  svg: { children: [] },
-  setSVG: (svg) => set({ svg }),
+  svg: { children: [], width: 0, height: 0, viewBox: "" },
+  setSVG: (svgString: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, "image/svg+xml");
+    const svgElement = doc.querySelector("svg");
+
+    if (svgElement) {
+      const width = svgElement.getAttribute("width");
+      const height = svgElement.getAttribute("height");
+      const viewBox = svgElement.getAttribute("viewBox");
+
+      const children = svgStringToTags(svgString).map((child) => ({
+        ...child,
+        transform: child.transform || {
+          translate: { x: 0, y: 0 },
+          scale: { x: 1, y: 1 },
+          rotate: 0,
+        },
+      }));
+
+      set({
+        svg: {
+          children,
+          width: width ? parseInt(width) : 0,
+          height: height ? parseInt(height) : 0,
+          viewBox: viewBox || "",
+        },
+      });
+    }
+  },
+  updateChildTransform: (index, newTransform) => {
+    set((state) => ({
+      svg: {
+        ...state.svg,
+        children: state.svg.children.map((child, i) =>
+          i === index
+            ? {
+                ...child,
+                transform: newTransform,
+                bounds: calculateBounds({
+                  ...child,
+                  transform: newTransform,
+                } as SVGChildTag),
+              }
+            : child
+        ),
+      },
+    }));
+  },
   deleteChildren: (array) => {
     set((state) => ({
       svg: {
@@ -61,15 +114,11 @@ export const useSVGStore = create<SVGStore>((set, get) => ({
   selectByBox: (selectionBox) => {
     const selectedIndices = get().svg.children.reduce((acc, _, index) => {
       const bounds = get().getBounds(index);
-
-      console.log(bounds, selectionBox);
       if (bounds && isIntersecting(bounds, selectionBox)) {
-        console.log("intersecting");
         acc.push(index);
       }
       return acc;
     }, [] as number[]);
-    console.log("selectedIndices", selectedIndices);
     set({ selectedChildren: selectedIndices });
   },
   selectByPoint: (point, ctx) => {

@@ -69,10 +69,10 @@ const svgStringToTags = (str: string): SVGChildTag[] => {
     switch (child.tagName) {
       case "path":
         return pathTagFromElement(child as SVGPathElement);
-      //   case "ellipse":
-      //     return ellipseTagFromElement(child as SVGEllipseElement);
-      //   case "text":
-      //     return textTagFromElement(child as SVGTextElement);
+      // case "ellipse":
+      //   return ellipseTagFromElement(child as SVGEllipseElement);
+      // case "text":
+      //   return textTagFromElement(child as SVGTextElement);
       default:
         return {} as PathTag;
     }
@@ -85,8 +85,11 @@ const pathTagFromElement = (element: SVGPathElement): PathTag => {
   const transform = transformAttributesFromElement(element);
   const segments = pathToSegments(element.getAttribute("d") || "");
 
-  // TODO: Calculate bounds
-  const bounds = null;
+  const bounds = calculateBounds({
+    type: "path",
+    segments,
+    transform,
+  } as PathTag);
   return { type: "path", path2d, style, transform, segments, bounds };
 };
 
@@ -99,30 +102,32 @@ const styleAttributesFromElement = (element: SVGPathElement) => {
   };
 };
 
-const transformAttributesFromElement = (element: SVGElement) => {
+const transformAttributesFromElement = (
+  element: SVGElement
+): TransformAttributes => {
   const transform = {
     translate: { x: 0, y: 0 },
     scale: { x: 1, y: 1 },
     rotate: 0,
   };
 
-  if (element.getAttribute("transform")) {
-    const transformString = element.getAttribute("transform") || "";
-    const translateMatch = transformString.match(/translate\(([^)]+)\)/);
+  const transformAttr = element.getAttribute("transform");
+  if (transformAttr) {
+    const translateMatch = transformAttr.match(/translate\(([^)]+)\)/);
     if (translateMatch) {
-      const [x, y] = translateMatch[1].split(",");
-      transform.translate = { x: parseFloat(x), y: parseFloat(y) };
+      const [x, y] = translateMatch[1].split(",").map(parseFloat);
+      transform.translate = { x: x || 0, y: y || 0 };
     }
 
-    const scaleMatch = transformString.match(/scale\(([^)]+)\)/);
+    const scaleMatch = transformAttr.match(/scale\(([^)]+)\)/);
     if (scaleMatch) {
-      const [x, y] = scaleMatch[1].split(",");
-      transform.scale = { x: parseFloat(x), y: parseFloat(y) };
+      const [x, y] = scaleMatch[1].split(",").map(parseFloat);
+      transform.scale = { x: x || 1, y: y || x || 1 };
     }
 
-    const rotateMatch = transformString.match(/rotate\(([^)]+)\)/);
+    const rotateMatch = transformAttr.match(/rotate\(([^)]+)\)/);
     if (rotateMatch) {
-      transform.rotate = parseFloat(rotateMatch[1]);
+      transform.rotate = parseFloat(rotateMatch[1]) * (Math.PI / 180);
     }
   }
 
@@ -380,6 +385,17 @@ const calculateBounds = (shape: SVGChildTag): Bounds => {
   }
 
   const transform = shape.transform;
+  if (!transform || !transform.translate || !transform.scale)
+    return {
+      topLeft: {
+        x: minX!,
+        y: minY!,
+      },
+      bottomRight: {
+        x: maxX!,
+        y: maxY!,
+      },
+    };
   return {
     topLeft: {
       x: minX! * transform.scale.x + transform.translate.x,
