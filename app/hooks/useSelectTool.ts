@@ -8,6 +8,7 @@ export const useSelectTool = () => {
   const svg = useSVGStore((state) => state.svg);
   const dragStartPointRef = useRef<Point | null>(null);
 
+  // NOTE: Should this go in the useUICanvas hook..?
   const drawSelectionBox = useCallback(
     (
       canvas: HTMLCanvasElement,
