@@ -4,7 +4,7 @@ import { useSVGStore } from "@/lib/store/useSVGStore";
 import { drawSVG } from "@/lib/utils/svg";
 
 export default function RenderCanvas() {
-  const { svg } = useSVGStore();
+  const { svg, selectedChildren } = useSVGStore();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
@@ -21,7 +21,7 @@ export default function RenderCanvas() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawSVG(ctx, svg);
-  }, [svg]);
+  }, [svg, selectedChildren]);
 
   return <BaseCanvas onCanvasReady={handleCanvasReady} />;
 }

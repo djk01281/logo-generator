@@ -1,7 +1,10 @@
 const drawSVG = (ctx: CanvasRenderingContext2D, svg: SVGRootElement) => {
   svg.children.forEach((child) => {
     const path2d = child.path2d;
-    if (!path2d) return;
+    if (!path2d) {
+      console.log("path2d is null");
+      return;
+    }
 
     ctx.save();
     ctx.fillStyle = child.style.fill?.toString()?.trim() || "transparent";
@@ -64,9 +67,14 @@ const svgStringToTags = (str: string): SVGChildTag[] => {
   const svg = doc.querySelector("svg");
   if (!svg) return [];
 
-  const children = Array.from(svg.children);
-  return children.map((child) => {
-    switch (child.tagName) {
+  const paths = Array.from(svg.querySelectorAll("path"));
+  const ellipses = Array.from(svg.querySelectorAll("ellipse"));
+  const texts = Array.from(svg.querySelectorAll("text"));
+
+  const allElements = [...paths, ...ellipses, ...texts];
+
+  return allElements.map((child): SVGChildTag => {
+    switch (child.tagName.toLowerCase()) {
       case "path":
         return pathTagFromElement(child as SVGPathElement);
       // case "ellipse":
@@ -74,23 +82,39 @@ const svgStringToTags = (str: string): SVGChildTag[] => {
       // case "text":
       //   return textTagFromElement(child as SVGTextElement);
       default:
-        return {} as PathTag;
+        console.warn("Unsupported SVG element:", child.tagName);
+        return createDefaultPathTag();
     }
   });
 };
 
+const createDefaultPathTag = (): PathTag => ({
+  type: "path",
+  path2d: new Path2D(),
+  style: { fill: "", stroke: "", strokeWidth: 1, opacity: 1 },
+  transform: {
+    translate: { x: 0, y: 0 },
+    scale: { x: 1, y: 1 },
+    rotate: 0,
+  },
+  segments: [],
+  bounds: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 0, y: 0 } },
+});
 const pathTagFromElement = (element: SVGPathElement): PathTag => {
-  const path2d = new Path2D(element.getAttribute("d") || "");
+  const d = element.getAttribute("d") || "";
+  const path2d = new Path2D(d);
   const style = styleAttributesFromElement(element);
   const transform = transformAttributesFromElement(element);
-  const segments = pathToSegments(element.getAttribute("d") || "");
+  const segments = pathToSegments(d);
 
-  const bounds = calculateBounds({
+  return {
     type: "path",
-    segments,
+    path2d,
+    style,
     transform,
-  } as PathTag);
-  return { type: "path", path2d, style, transform, segments, bounds };
+    segments,
+    bounds: calculateBounds({ type: "path", segments, transform } as PathTag),
+  };
 };
 
 const styleAttributesFromElement = (element: SVGPathElement) => {
@@ -135,47 +159,41 @@ const transformAttributesFromElement = (
 };
 
 const pathToSegments = (d: string): PathSegment[] => {
-  const segments = d.match(/[A-Za-z][^A-Za-z]*/g) || [];
-
-  return segments.map((segment): PathSegment => {
-    const type = segment[0] as "M" | "L" | "C" | "A" | "Z";
-    const values = segment.slice(1).trim().split(" ");
+  const commands = d.match(/[a-zA-Z][^a-zA-Z]*/g) || [];
+  return commands.map((cmd): PathSegment => {
+    const type = cmd[0].toUpperCase();
+    const args = cmd
+      .slice(1)
+      .trim()
+      .split(/[\s,]+/)
+      .map(parseFloat);
 
     switch (type) {
       case "M":
       case "L":
-        return {
-          type,
-          point: {
-            x: parseFloat(values[0]),
-            y: parseFloat(values[1]),
-          },
-        };
+        return { type, point: { x: args[0], y: args[1] } };
       case "C":
         return {
           type,
-          control1: {
-            x: parseFloat(values[0]),
-            y: parseFloat(values[1]),
-          },
-          control2: {
-            x: parseFloat(values[2]),
-            y: parseFloat(values[3]),
-          },
-          end: { x: parseFloat(values[4]), y: parseFloat(values[5]) },
+          control1: { x: args[0], y: args[1] },
+          control2: { x: args[2], y: args[3] },
+          end: { x: args[4], y: args[5] },
         };
       case "A":
         return {
           type,
-          rx: parseFloat(values[0]),
-          ry: parseFloat(values[1]),
-          angle: parseFloat(values[2]),
-          largeArcFlag: values[3] === "1",
-          sweepFlag: values[4] === "1",
-          end: { x: parseFloat(values[5]), y: parseFloat(values[6]) },
+          rx: args[0],
+          ry: args[1],
+          angle: args[2],
+          largeArcFlag: args[3] === 1,
+          sweepFlag: args[4] === 1,
+          end: { x: args[5], y: args[6] },
         };
       case "Z":
         return { type };
+      default:
+        console.warn("Unsupported path command:", type);
+        return { type: "L", point: { x: 0, y: 0 } };
     }
   });
 };
@@ -356,22 +374,37 @@ function arcToBezierCurves(
 }
 
 const calculateBounds = (shape: SVGChildTag): Bounds => {
-  let minX, minY, maxX, maxY;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
 
   if (shape.type === "path") {
-    const points = shape.segments.flatMap((s) =>
-      s.type === "C"
-        ? [s.control1, s.control2, s.end]
-        : s.type === "A"
-        ? [s.end]
-        : s.type === "Z"
-        ? []
-        : [s.point]
-    );
-    minX = Math.min(...points.map((p) => p.x));
-    minY = Math.min(...points.map((p) => p.y));
-    maxX = Math.max(...points.map((p) => p.x));
-    maxY = Math.max(...points.map((p) => p.y));
+    shape.segments.forEach((segment) => {
+      switch (segment.type) {
+        case "M":
+        case "L":
+          minX = Math.min(minX, segment.point.x);
+          minY = Math.min(minY, segment.point.y);
+          maxX = Math.max(maxX, segment.point.x);
+          maxY = Math.max(maxY, segment.point.y);
+          break;
+        case "C":
+          [segment.control1, segment.control2, segment.end].forEach((point) => {
+            minX = Math.min(minX, point.x);
+            minY = Math.min(minY, point.y);
+            maxX = Math.max(maxX, point.x);
+            maxY = Math.max(maxY, point.y);
+          });
+          break;
+        case "A":
+          minX = Math.min(minX, segment.end.x);
+          minY = Math.min(minY, segment.end.y);
+          maxX = Math.max(maxX, segment.end.x);
+          maxY = Math.max(maxY, segment.end.y);
+          break;
+      }
+    });
   } else if (shape.type === "ellipse") {
     minX = shape.cx - shape.rx;
     minY = shape.cy - shape.ry;
@@ -387,23 +420,18 @@ const calculateBounds = (shape: SVGChildTag): Bounds => {
   const transform = shape.transform;
   if (!transform || !transform.translate || !transform.scale)
     return {
-      topLeft: {
-        x: minX!,
-        y: minY!,
-      },
-      bottomRight: {
-        x: maxX!,
-        y: maxY!,
-      },
+      topLeft: { x: minX, y: minY },
+      bottomRight: { x: maxX, y: maxY },
     };
+
   return {
     topLeft: {
-      x: minX! * transform.scale.x + transform.translate.x,
-      y: minY! * transform.scale.y + transform.translate.y,
+      x: minX * transform.scale.x + transform.translate.x,
+      y: minY * transform.scale.y + transform.translate.y,
     },
     bottomRight: {
-      x: maxX! * transform.scale.x + transform.translate.x,
-      y: maxY! * transform.scale.y + transform.translate.y,
+      x: maxX * transform.scale.x + transform.translate.x,
+      y: maxY * transform.scale.y + transform.translate.y,
     },
   };
 };

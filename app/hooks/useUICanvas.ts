@@ -60,8 +60,8 @@ export const useUICanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
     ctx.lineWidth = 2;
     ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
 
-    const cornerSize = 4;
-    ctx.lineWidth = 1;
+    const cornerSize = 6;
+    ctx.lineWidth = 2;
     ctx.strokeStyle = "#0b99ff";
     [
       [minX, minY],
@@ -70,6 +70,12 @@ export const useUICanvas = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
       [maxX, maxY],
     ].forEach(([x, y]) => {
       ctx.strokeRect(
+        x - cornerSize / 2,
+        y - cornerSize / 2,
+        cornerSize,
+        cornerSize
+      );
+      ctx.clearRect(
         x - cornerSize / 2,
         y - cornerSize / 2,
         cornerSize,
